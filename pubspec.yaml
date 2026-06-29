@@ -11,9 +11,9 @@ dependencies:
     sdk: flutter
   meta: ^1.17.0
   path: ^1.9.1
-  raylib_dartified_base: ^5.5.3
-  raylib_dartified_web: ^5.5.4
-  raylib_dartified: ^5.5.4
+  raylib_dartified_base: '>=5.5.0 <6.0.0'
+  raylib_dartified_web: '>=5.5.0 <6.0.0'
+  raylib_dartified: '>=5.5.0 <6.0.0'
 
 dev_dependencies:
   lints: ^6.0.0
