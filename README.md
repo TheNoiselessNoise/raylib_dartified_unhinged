@@ -6,6 +6,19 @@ This framework is not a game engine.
 
 It is a **deterministic playground for constructing realities out of data, structure, and controlled execution.**
 
+## Platform Support
+
+UNHINGED automatically selects the right backend at compile time. Native (`raylib_dartified`) or web (`raylib_dartified_web`). So you don't need to choose.
+
+| Platform | Status | Backend | Notes |
+|---|:-:|---|---|
+| **Linux** | ✅ | Native | Primary development platform |
+| **Windows** | ✅ | Native | Should work out of the box |
+| **macOS** | ❌ | Native | See [`raylib_dartified`](https://pub.dev/packages/raylib_dartified) for details |
+| **Web** | ✅ | Web (WASM) | Requires WebAssembly + WebGL support; all modern browsers should qualify |
+| **Android** | ❓ | Native | Not tested |
+| **iOS** | ❓ | Native | Not tested, likely blocked |
+
 ## What “UNHINGED” actually means
 
 UNHINGED does **NOT** mean chaotic or unpredictable.

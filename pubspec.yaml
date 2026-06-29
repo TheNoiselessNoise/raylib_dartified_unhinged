@@ -1,14 +1,12 @@
 name: raylib_dartified_unhinged
 description: Deterministic playground for constructing realities out of data, structure, and controlled execution.
-version: 5.5.0
+version: 5.5.1
 repository: https://github.com/TheNoiselessNoise/raylib_dartified_unhinged
 
 environment:
   sdk: '^3.10.0'
 
 dependencies:
-  flutter:
-    sdk: flutter
   meta: ^1.17.0
   path: ^1.9.1
   raylib_dartified_base: '>=5.5.0 <6.0.0'
