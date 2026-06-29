@@ -1,0 +1,105 @@
+part of '../../raylib_dartified_unhinged.dart';
+
+// velocity
+class CVelocity<T extends App<T>> extends Comp<T> {
+  Vector2D velocity;      // units per second
+  double angularVelocity; // radians per second
+
+  /// Optional damping: 0 = no damping. Typical: 1..10 (per second).
+  double linearDamping;
+  double angularDamping;
+
+  /// Optional speed limit (units per second). Null = unbounded.
+  double? maxVelocity;
+
+  CVelocity(super.app, {
+    Vector2D? velocity,
+    this.angularVelocity = 0,
+    this.linearDamping = 0,
+    this.angularDamping = 0,
+    this.maxVelocity,
+  }) : velocity = velocity ?? .zero();
+
+  @override
+  void onUpdate(double dt) => entity.onTransform((t) {
+    // Integrate
+    t.position = t.position.add(velocity.scale(dt));
+    t.rotation += angularVelocity * dt;
+
+    // Optional damping (stable-ish exponential decay)
+    if (linearDamping > 0) {
+      final k = math.exp(-linearDamping * dt);
+      velocity.x *= k;
+      velocity.y *= k;
+    }
+    if (angularDamping > 0) {
+      angularVelocity *= math.exp(-angularDamping * dt);
+    }
+
+    // Optional clamp to max speed
+    final max = maxVelocity;
+    if (max != null) {
+      final speedSq = velocity.x * velocity.x + velocity.y * velocity.y;
+      if (speedSq > max * max && speedSq > 0) {
+        final scale = max / math.sqrt(speedSq);
+        velocity.x *= scale;
+        velocity.y *= scale;
+      }
+    }
+  });
+
+  // clone
+
+  @override
+  CVelocity<T> createInstance() => .new(app,
+    velocity: velocity.copy(),
+    angularVelocity: angularVelocity,
+    linearDamping: linearDamping,
+    angularDamping: angularDamping,
+    maxVelocity: maxVelocity,
+  );
+
+  // state
+
+  @override
+  CVelocitySnapshot<T> createSnapshot() {
+    final snapshot = CVelocitySnapshot<T>(namedId);
+    snapshot.velocity = velocity.copy();
+    snapshot.angularVelocity = angularVelocity;
+    snapshot.linearDamping = linearDamping;
+    snapshot.angularDamping = angularDamping;
+    snapshot.maxVelocity = maxVelocity;
+    return snapshot;
+  }
+
+  @override
+  @mustCallSuper
+  void restoreSnapshot(covariant CVelocitySnapshot<T> snapshot) {
+    super.restoreSnapshot(snapshot);
+    
+    velocity = snapshot.velocity.copy();
+    angularVelocity = snapshot.angularVelocity;
+    linearDamping = snapshot.linearDamping;
+    angularDamping = snapshot.angularDamping;
+    maxVelocity = snapshot.maxVelocity;
+  }
+}
+
+class CVelocitySnapshot<T extends App<T>> extends CompSnapshot<T, CVelocity<T>> {
+  late Vector2D velocity;
+  late double angularVelocity;
+  late double linearDamping;
+  late double angularDamping;
+  late double? maxVelocity;
+  
+  CVelocitySnapshot(super.namedId);
+
+  @override
+  CVelocity<T> createInstance(T app) => .new(app,
+    velocity: velocity.copy(),
+    angularVelocity: angularVelocity,
+    linearDamping: linearDamping,
+    angularDamping: angularDamping,
+    maxVelocity: maxVelocity,
+  );
+}

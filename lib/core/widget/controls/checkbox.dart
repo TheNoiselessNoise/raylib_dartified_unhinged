@@ -1,0 +1,175 @@
+part of '../../raylib_dartified_unhinged.dart';
+
+enum FCheckboxVariant {
+  primary,
+  danger,
+  success,
+}
+
+class FCheckboxTheme {
+  final ColorD border;
+  final ColorD borderHovered;
+  final ColorD fill;
+  final ColorD fillHovered;
+  final ColorD check;
+  final ColorD background;
+
+  const FCheckboxTheme({
+    required this.border,
+    required this.borderHovered,
+    required this.fill,
+    required this.fillHovered,
+    required this.check,
+    required this.background,
+  });
+
+  static FCheckboxTheme resolveVariant(FCheckboxVariant variant) {
+    final colors = _fCheckboxVariantColors[variant]!;
+    return .new(
+      border:        .color(0xAA, 0xAA, 0xAA, 0xFF),
+      borderHovered: colors.solid,
+      fill:          colors.solid,
+      fillHovered:   colors.solidHover,
+      check:         .color(0xFF, 0xFF, 0xFF, 0xFF),
+      background:    .color(0xFF, 0xFF, 0xFF, 0xFF),
+    );
+  }
+}
+
+class _FCheckboxVariantPalette {
+  final ColorD solid;
+  final ColorD solidHover;
+
+  const _FCheckboxVariantPalette({
+    required this.solid,
+    required this.solidHover,
+  });
+}
+
+Map<FCheckboxVariant, _FCheckboxVariantPalette> get _fCheckboxVariantColors => {
+  .primary: .new(
+    solid:      .color(0x5B, 0x4F, 0xCF, 0xFF),
+    solidHover: .color(0x71, 0x65, 0xD6, 0xFF),
+  ),
+  .danger: .new(
+    solid:      .color(0xD8, 0x5A, 0x30, 0xFF),
+    solidHover: .color(0xE0, 0x6E, 0x45, 0xFF),
+  ),
+  .success: .new(
+    solid:      .color(0x1D, 0x9E, 0x75, 0xFF),
+    solidHover: .color(0x2B, 0xB5, 0x8A, 0xFF),
+  ),
+};
+
+class FCheckbox<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FCheckbox<T>> {
+  bool checked;
+  double boxSize;
+  double borderWidth;
+  double cornerRadius;
+  FCheckboxVariant checkboxVariant;
+
+  void Function(FCheckbox<T> self, bool checked)? onChangeFn;
+
+  FCheckbox(super.app, {
+    super.key,
+    this.checked = false,
+    this.boxSize = 20.0,
+    this.borderWidth = 2.0,
+    this.cornerRadius = 0.2,
+    this.checkboxVariant = .primary,
+    this.onChangeFn,
+  });
+
+  Vector2D get _interactiveSize => .vec2(boxSize, boxSize);
+
+  @override
+  void layout(FConstraints constraints) {
+    size = _interactiveSize.copy();
+  }
+
+  @override
+  @mustCallSuper
+  void onUpdate(double dt) => on2<CTransform<T>, CRectCollider<T>>((t, c) {
+    t.position = worldPosition;
+    c.size = _interactiveSize.copy();
+
+    final mouse = app.mouse;
+
+    final hovered = rl.CoreD.CheckCollisionPointRec(
+      mouse.position,
+      .rect(t.position.x, t.position.y, boxSize, boxSize),
+    );
+
+    _IsWidgetClickable_updateState(
+      hovered: hovered,
+      usePendingSingleClickMethod: false,
+      dt: dt,
+    );
+
+    if (hovered && mouse.btnLeft.pressed) {
+      checked = !checked;
+      onChangeFn?.call(this, checked);
+    }
+  });
+
+  @override
+  void onDraw(double dt) => onTransform((t) {
+    final theme = FCheckboxTheme.resolveVariant(checkboxVariant);
+    final isHovered = clickState.hovered;
+    final RectangleD rect = .rect(t.position.x, t.position.y, boxSize, boxSize);
+
+    // background
+    rl.CoreD.DrawRectangleRounded(rect, cornerRadius, 4, theme.background);
+
+    // border or filled bg when checked
+    if (checked) {
+      rl.CoreD.DrawRectangleRounded(
+        rect, cornerRadius, 4,
+        isHovered ? theme.fillHovered : theme.fill,
+      );
+    } else {
+      rl.CoreD.DrawRectangleRoundedLinesEx(
+        rect, cornerRadius, 4, borderWidth,
+        isHovered ? theme.borderHovered : theme.border,
+      );
+    }
+
+    // checkmark (two-segment polyline)
+    if (checked) {
+      final pad = boxSize * 0.2;
+      final x = t.position.x;
+      final y = t.position.y;
+      // knee of the tick: ~38% across, ~65% down
+      final kx = x + boxSize * 0.38;
+      final ky = y + boxSize - pad;
+      rl.CoreD.DrawLineEx(
+        .vec2(x + pad, y + boxSize * 0.52),
+        .vec2(kx,      ky),
+        boxSize * 0.12,
+        theme.check,
+      );
+      rl.CoreD.DrawLineEx(
+        .vec2(kx, ky),
+        .vec2(x + boxSize - pad, y + pad),
+        boxSize * 0.12,
+        theme.check,
+      );
+    }
+  });
+
+  @override
+  FWidget<T> build() => this;
+  
+  @override
+  void cloneWidgetInto(FWidget<T> copy) {
+    if (copy is! FCheckbox<T>) return;
+    copy.checked = checked;
+    copy.boxSize = boxSize;
+    copy.borderWidth = borderWidth;
+    copy.cornerRadius = cornerRadius;
+    copy.checkboxVariant = checkboxVariant;
+    copy._onWidgetClickFns = .from(_onWidgetClickFns);
+    copy._onWidgetDoubleClickFns = .from(_onWidgetDoubleClickFns);
+    copy._onWidgetClickHoldFns = .from(_onWidgetClickHoldFns);
+  }
+}
