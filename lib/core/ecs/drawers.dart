@@ -7,6 +7,83 @@ abstract class BaseDrawer<T extends App<T>> with HasAppAccess<T> {
   BaseDrawer(this.app);
 }
 
+class TextDrawer<T extends App<T>> extends BaseDrawer<T> {
+  TextDrawer(super.app) { _recalc(); }
+
+  double _startX = 0;
+  double _x = 0;
+  double _y = 0;
+
+  int _fontSize = 20;
+  late double _lineHeight;
+  late double _wordSpacing;
+
+  TextDrawer position(double x, double y) {
+    _startX = x;
+    _x = x;
+    _y = y;
+    return this;
+  }
+
+  void _recalc({
+    bool lineHeight = true,
+    bool wordSpacing = true,
+  }) {
+    if (lineHeight) {
+      _lineHeight = _fontSize * 1.2;
+    }
+    if (wordSpacing) {
+      _wordSpacing = rl.CoreD.MeasureText(' ', _fontSize).toDouble();
+    }
+  }
+
+  TextDrawer fontSize(int fontSize) {
+    _fontSize = fontSize;
+    _recalc();
+    return this;
+  }
+
+  TextDrawer lineHeight(double lineHeight) {
+    _lineHeight = lineHeight;
+    _recalc(lineHeight: false);
+    return this;
+  }
+
+  TextDrawer wordSpacing(double wordSpacing) {
+    _wordSpacing = wordSpacing;
+    _recalc(wordSpacing: false);
+    return this;
+  }
+
+  /// Draws [content] at the current cursor and advances horizontally.
+  TextDrawer text(String content, [ColorD? color]) {
+    rl.CoreD.DrawText(content, _x.toInt(), _y.toInt(), _fontSize, color ?? .WHITE);
+    final width = rl.CoreD.MeasureText(content, _fontSize);
+    _x += width + _wordSpacing;
+    return this;
+  }
+
+  /// Adds extra horizontal gap without drawing anything.
+  TextDrawer gap([double? amount]) {
+    _x += amount ?? _wordSpacing;
+    return this;
+  }
+
+  /// Moves cursor back to start x, down by one line.
+  TextDrawer nl() {
+    _x = _startX;
+    _y += _lineHeight;
+    return this;
+  }
+
+  /// Jump the cursor to an arbitrary position (e.g. start of a new block).
+  TextDrawer at(double x, double y) {
+    _x = x;
+    _y = y;
+    return this;
+  }
+}
+
 class ComponentDrawer<T extends App<T>> extends BaseDrawer<T> {
   ComponentDrawer(super.app);
 
@@ -288,6 +365,7 @@ class Drawers<T extends App<T>> with HasAppAccess<T> {
 
   late ComponentDrawer<T> component;
   late DigitalDrawer<T> digital;
+  TextDrawer<T> get text => .new(app);
 
   Drawers(this.app) {
     component = .new(app);

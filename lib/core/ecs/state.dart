@@ -9,10 +9,10 @@ enum SnapshotMissingPolicy {
 }
 
 enum SnapshotExtraPolicy {
-  /// Leave live origins that aren't referenced by the snapshot untouched.
+  /// Leave live entries that aren't referenced by the snapshot untouched.
   keep,
 
-  /// Remove live origins that aren't referenced by the snapshot.
+  /// Remove live entries that aren't referenced by the snapshot.
   remove,
 }
 

@@ -1945,6 +1945,13 @@ mixin IsComponentManagable<T extends App<T>, E extends ECSBase<T>> on
     return self;
   }
 
+  /// Removes the exact component.
+  E removeCompExact(Comp<T> component) {
+    if (!_components.any((c) => identical(c, component))) return self;
+    _removeComponentInstance(component);
+    return self;
+  }
+
   /// Removes the first top-level component whose `runtimeType == type`.
   E removeCompByType(Type type) {
     final component = _components.where((c) => c.runtimeType == type).firstOrNull;
