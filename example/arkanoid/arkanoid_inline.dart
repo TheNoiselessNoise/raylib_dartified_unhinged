@@ -43,7 +43,8 @@ class Arkanoid extends App<G> {
 
 class ArkanoidInline extends UnhingedRaylibGame<G> {
   @override
-  G create(Raylib rl) => G(rl).onSelf((app) {
+  G create(UnhingedBackend backend) => G(backend).onSelf((app) {
+    final rl = (backend as RaylibBackend).rl;
 
     final String K_q = 'q';
     final String K_r = 'r';

@@ -33,7 +33,7 @@ class TextDrawer<T extends App<T>> extends BaseDrawer<T> {
       _lineHeight = _fontSize * 1.2;
     }
     if (wordSpacing) {
-      _wordSpacing = rl.CoreD.MeasureText(' ', _fontSize).toDouble();
+      _wordSpacing = backend.render.measureText(' ', _fontSize).toDouble();
     }
   }
 
@@ -57,8 +57,8 @@ class TextDrawer<T extends App<T>> extends BaseDrawer<T> {
 
   /// Draws [content] at the current cursor and advances horizontally.
   TextDrawer text(String content, [ColorD? color]) {
-    rl.CoreD.DrawText(content, _x.toInt(), _y.toInt(), _fontSize, color ?? .WHITE);
-    final width = rl.CoreD.MeasureText(content, _fontSize);
+    backend.render.drawText(content, _x.toInt(), _y.toInt(), _fontSize, color ?? .WHITE);
+    final width = backend.render.measureText(content, _fontSize);
     _x += width + _wordSpacing;
     return this;
   }
@@ -102,7 +102,7 @@ class ComponentDrawer<T extends App<T>> extends BaseDrawer<T> {
     if (true) {
       label += ' (entity: ${node.entity})';
     }
-    rl.CoreD.DrawText(label, x, yRef[0], fontSize, color);
+    backend.render.drawText(label, x, yRef[0], fontSize, color);
     yRef[0] += (fontSize + 2).toInt();
 
     final children = node.getComponents().toList();
@@ -145,7 +145,7 @@ class ComponentDrawer<T extends App<T>> extends BaseDrawer<T> {
     }
   ) {
     final yRef = [y.toInt()];
-    rl.CoreD.DrawText('$entity', x, y, fontSize, color ?? .WHITE);
+    backend.render.drawText('$entity', x, y, fontSize, color ?? .WHITE);
     yRef[0] += fontSize.toInt();
     for (final comp in entity.getComponents()) {
       tree(comp, x, yRef[0], fontSize, prefix ?? '', color ?? .WHITE, yRef);
@@ -240,7 +240,7 @@ class DigitalDrawer<T extends App<T>> extends BaseDrawer<T> {
 
     if (textBackgroundColor != null) {
       final totalWidth = (text.length * digitWidth) + ((text.length - 1) * digitPadding);
-      rl.CoreD.DrawRectangleRec(
+      backend.render.drawRectangleRec(
         .rect(x, y, totalWidth, digitHeight),
         textBackgroundColor,
       );
@@ -284,7 +284,7 @@ class DigitalDrawer<T extends App<T>> extends BaseDrawer<T> {
     assert(n.length == 1, 'DrawDigitalNumber expects a single character; got "$n".');
 
     if (backgroundColor != null) {
-      rl.CoreD.DrawRectangleRec(dst, backgroundColor);
+      backend.render.drawRectangleRec(dst, backgroundColor);
     }
 
     final String key = n == 'b' ? 'b' : n == 'd' ? 'd' : n.toUpperCase();
@@ -343,9 +343,9 @@ class DigitalDrawer<T extends App<T>> extends BaseDrawer<T> {
     void drawSeg(RectangleD rect, bool lit) {
       final ColorD color = lit ? litColor : dimColor;
       if (style.roundedEnds) {
-        rl.CoreD.DrawRectangleRounded(rect, style.roundness, 4, color);
+        backend.render.drawRectangleRounded(rect, style.roundness, 4, color);
       } else {
-        rl.CoreD.DrawRectangleRec(rect, color);
+        backend.render.drawRectangleRec(rect, color);
       }
     }
 

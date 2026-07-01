@@ -95,7 +95,7 @@ class CCircleCollider<T extends App<T>> extends CCollider<T> {
     if (!debugDraw) return;
     if (!radius.isFinite || radius <= 0) return;
 
-    rl.CoreD.DrawCircleLinesV(
+    backend.render.drawCircleLinesV(
       center,
       radius,
       debugColor ?? .GREEN,
@@ -204,29 +204,18 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
     if (enableRotation) {
       double rotation = 0;
 
-      entity.onTransform((t) {
-        rotation = t.rotation * 180 / math.pi;
-      });
+      entity.onTransform((t) => rotation = t.rotation * 180 / math.pi);
 
-      final centerX = rect.x + rect.width / 2;
-      final centerY = rect.y + rect.height / 2;
-
-      rl.RlglD.rlPushMatrix();
-      rl.RlglD.rlTranslatef(centerX, centerY, 0);
-      rl.RlglD.rlRotatef(rotation, 0, 0, 1);
-
-      rl.CoreD.DrawRectangleLinesEx(
-        .rect(-rect.width / 2, -rect.height / 2, rect.width, rect.height),
+      backend.render.drawRectangleLinesRotated(
+        rect,
+        rotation,
         debugLinesThick,
         debugColor ?? .GREEN,
       );
-
-      rl.RlglD.rlPopMatrix();
-
       return;
     }
 
-    rl.CoreD.DrawRectangleLinesEx(
+    backend.render.drawRectangleLinesEx(
       rect,
       debugLinesThick,
       debugColor ?? .GREEN,

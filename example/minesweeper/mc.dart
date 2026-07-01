@@ -160,15 +160,15 @@ class Cell extends Entity<G> {
   void onUpdate(double dz) {
     if (msState.gameOver) return;
 
-    hovered = rl.CoreD.CheckCollisionPointRec(app.mouse.position, rect);
+    hovered = rl.CoreD.CheckCollisionPointRec(backend.mouse.position, rect);
 
     if (hovered) {
-      if (hidden && app.mouse.btnRight.pressed) {
+      if (hidden && backend.mouse.btnRight.pressed) {
         flagged = !flagged;
         emit(CellFlaggedEvent(app, this), scope: .scene);
-      } else if (!flagged && app.mouse.btnLeft.pressed) {
+      } else if (!flagged && backend.mouse.btnLeft.pressed) {
         grid.reveal(x, y);
-      } else if (!flagged && app.mouse.btnMiddle.pressed) {
+      } else if (!flagged && backend.mouse.btnMiddle.pressed) {
         if (hidden) {
           grid.reveal(x, y, withNeighbors: true);
         } else {
@@ -197,14 +197,14 @@ class Cell extends Entity<G> {
       _                        => .cell,
     };
 
-    final atlasSize = assets.atlasTileSize;
+    final atlasSize = backend.assets.atlasTileSize;
     final RectangleD src = .rect(
       tile.col * atlasSize.y,
       tile.row * atlasSize.x,
       atlasSize.x,
       atlasSize.y
     );
-    app.rl.CoreD.DrawTexturePro(assets.atlas, src, rect, .vec2(0, 0), 0, .WHITE);
+    app.rl.CoreD.DrawTexturePro(backend.assets.atlas, src, rect, .vec2(0, 0), 0, .WHITE);
   }
 }
 
@@ -600,9 +600,13 @@ class SettingsScene extends FWidgetScene<G> {
   void onEnter() => widget.rebuild();
 }
 
-extension on AssetManager<G> {
+extension on AssetManager {
   Vector2D get atlasTileSize => .vec2(16, 16);
-  TextureD get atlas => assets.texture('xp.png');
+  TextureD get atlas => texture('xp.png');
+}
+
+extension on HasAppAccess<G> {
+  Raylib get rl => (backend as RaylibBackend).rl;
 }
 
 class Minesweeper extends App<G> {
@@ -624,7 +628,7 @@ class Minesweeper extends App<G> {
 
 class UnhingedBridge extends UnhingedRaylibGame<G> {
   @override
-  G create(Raylib rl) => G(rl);
+  G create(RaylibBackend backend) => G(backend);
 }
 
 void main() => runRaylib(

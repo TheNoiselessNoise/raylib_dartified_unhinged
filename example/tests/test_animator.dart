@@ -176,8 +176,8 @@ class MyScene extends DrawScene<G> {
 
 typedef G = MyGame;
 
-class MyGame extends ExampleApp<G> {
-  MyGame(super.rl);
+class MyGame extends ExampleRaylibApp<G> {
+  MyGame(super.backend);
 
   @override
   Vector2D get screenSize => .vec2(800, 450);
@@ -210,4 +210,4 @@ class MyGame extends ExampleApp<G> {
   }
 }
 
-void main() => runExample((rl) => G(rl));
+void main() => runExample((backend) => G(backend));

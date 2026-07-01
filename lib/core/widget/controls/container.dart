@@ -26,7 +26,7 @@ class FContainer<T extends App<T>> extends FWidget<T> {
   void onDraw(double dt) {
     if (backgroundColor != null) {
       final position = worldPosition;
-      rl.CoreD.DrawRectangle(position.x, position.y, size.x, size.y, backgroundColor!);
+      backend.render.drawRectangle(position.x, position.y, size.x, size.y, backgroundColor!);
     }
 
     child!._doDraw(dt);

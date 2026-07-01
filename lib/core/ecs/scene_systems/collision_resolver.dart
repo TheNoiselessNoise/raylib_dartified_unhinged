@@ -344,19 +344,19 @@ class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
   /// Quick AABB (Axis-Aligned Bounding Box) check
   bool _quickAABBCheck(CCollider<T> a, CCollider<T> b) {
     if (a is CCircleCollider<T> && b is CCircleCollider<T>) {
-      return rl.CoreD.CheckCollisionCircles(a.center, a.radius, b.center, b.radius);
+      return backend.collision.circles(a.center, a.radius, b.center, b.radius);
     }
     
     if (a is CCircleCollider<T> && b is CRectCollider<T>) {
-      return rl.CoreD.CheckCollisionCircleRec(a.center, a.radius, b.rect);
+      return backend.collision.circleRectangle(a.center, a.radius, b.rect);
     }
     
     if (a is CRectCollider<T> && b is CCircleCollider<T>) {
-      return rl.CoreD.CheckCollisionCircleRec(b.center, b.radius, a.rect);
+      return backend.collision.circleRectangle(b.center, b.radius, a.rect);
     }
     
     if (a is CRectCollider<T> && b is CRectCollider<T>) {
-      return rl.CoreD.CheckCollisionRecs(a.rect, b.rect);
+      return backend.collision.rectangles(a.rect, b.rect);
     }
     
     return true; // Default to true for unknown types

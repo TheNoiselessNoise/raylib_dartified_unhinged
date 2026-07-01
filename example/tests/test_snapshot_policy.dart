@@ -175,8 +175,8 @@ class TestSnapshotPolicyScene extends DrawScene<G> {
 
 typedef G = TestSnapshotPolicyApp;
 
-class TestSnapshotPolicyApp extends ExampleApp<G> {
-  TestSnapshotPolicyApp(super.rl);
+class TestSnapshotPolicyApp extends ExampleRaylibApp<G> {
+  TestSnapshotPolicyApp(super.backend);
 
   @override
   void onInit() {
@@ -185,4 +185,4 @@ class TestSnapshotPolicyApp extends ExampleApp<G> {
   }
 }
 
-void main() => runExample((rl) => G(rl));
+void main() => runExample((backend) => G(backend));

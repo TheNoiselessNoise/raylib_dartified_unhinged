@@ -103,8 +103,8 @@ class TestDrawScene extends DrawScene<G> {
 
 typedef G = TestDrawApp;
 
-class TestDrawApp extends ExampleApp<G> {
-  TestDrawApp(super.rl);
+class TestDrawApp extends ExampleRaylibApp<G> {
+  TestDrawApp(super.backend);
 
   @override
   void onInit() {
@@ -116,4 +116,4 @@ class TestDrawApp extends ExampleApp<G> {
   }
 }
 
-void main() => runExample((rl) => G(rl));
+void main() => runExample((backend) => G(backend));

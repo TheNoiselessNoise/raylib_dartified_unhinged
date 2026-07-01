@@ -52,8 +52,8 @@ class EmptyScene extends DrawScene<G> {
 
 typedef G = EmptyGame;
 
-class EmptyGame extends ExampleApp<G> {
-  EmptyGame(super.rl);
+class EmptyGame extends ExampleRaylibApp<G> {
+  EmptyGame(super.backend);
 
   @override
   void onInit() {
@@ -64,4 +64,4 @@ class EmptyGame extends ExampleApp<G> {
   }
 }
 
-void main() => runExample((rl) => G(rl));
+void main() => runExample((backend) => G(backend));

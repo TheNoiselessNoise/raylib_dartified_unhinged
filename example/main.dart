@@ -140,6 +140,11 @@ class SecondScene extends DrawScene<G> {
   APP
 ========================= */
 
+/// Extension to access Raylib from anywhere.
+extension on HasAppAccess<G> {
+  Raylib get rl => (backend as RaylibBackend).rl;
+}
+
 /// The application.
 class MyApp extends App<G> {
   MyApp(super.rl);
@@ -166,7 +171,7 @@ class MyApp extends App<G> {
 /// to [MyApp] while keeping the app itself backend-agnostic.
 class MyAppRaylib extends UnhingedRaylibGame<G> {
   @override
-  G create(Raylib rl) => G(rl);
+  G create(RaylibBackend backend) => G(backend);
 }
 
 void main() => runRaylib(

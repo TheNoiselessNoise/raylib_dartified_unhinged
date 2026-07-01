@@ -142,10 +142,10 @@ class FSlider<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSl
     t.position = worldPosition;
     c.size = _interactiveSize.copy();
 
-    final mouse = app.mouse;
+    final mouse = backend.mouse;
     final originX = t.position.x;
 
-    final hovered = rl.CoreD.CheckCollisionPointRec(
+    final hovered = backend.collision.pointRectangle(
       mouse.position,
       .rect(t.position.x, t.position.y, _interactiveSize.x, _interactiveSize.y),
     );
@@ -172,8 +172,8 @@ class FSlider<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSl
       _seekToMouseX(mouse.position.x, originX);
     }
 
-    final rightDown = rl.CoreD.IsKeyDown(.KEY_RIGHT);
-    final leftDown = rl.CoreD.IsKeyDown(.KEY_LEFT);
+    final rightDown = backend.input.isKeyDown(.KEY_RIGHT);
+    final leftDown = backend.input.isKeyDown(.KEY_LEFT);
 
     if (enableArrowKeys && hovered && (rightDown || leftDown)) {
       _keyHeldTime += dt;
@@ -206,36 +206,36 @@ class FSlider<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSl
     switch (sliderStyle) {
       case .track:
         // full track
-        rl.CoreD.DrawRectangleRounded(
+        backend.render.drawRectangleRounded(
           .rect(originX, trackY, trackWidth, trackHeight),
           1.0, 4,
           isHovered ? theme.trackHovered : theme.track,
         );
         // thumb
-        rl.CoreD.DrawCircle(
-          thumbX.toInt(), centerY.toInt(), thumbRadius,
+        backend.render.drawCircle(
+          thumbX, centerY, thumbRadius,
           _isDragging ? theme.thumbDragged : isHovered ? theme.thumbHovered : theme.thumb,
         );
 
       case .filled:
         final fillWidth = _normalized * trackWidth;
         // unfilled portion
-        rl.CoreD.DrawRectangleRounded(
+        backend.render.drawRectangleRounded(
           .rect(originX, trackY, trackWidth, trackHeight),
           1.0, 4,
           isHovered ? theme.trackHovered : theme.track,
         );
         // filled portion
         if (fillWidth > 0) {
-          rl.CoreD.DrawRectangleRounded(
+          backend.render.drawRectangleRounded(
             .rect(originX, trackY, fillWidth, trackHeight),
             1.0, 4,
             isHovered ? theme.fillHovered : theme.fill,
           );
         }
         // thumb
-        rl.CoreD.DrawCircle(
-          thumbX.toInt(), centerY.toInt(), thumbRadius,
+        backend.render.drawCircle(
+          thumbX, centerY, thumbRadius,
           _isDragging ? theme.thumbDragged : isHovered ? theme.thumbHovered : theme.thumb,
         );
     }

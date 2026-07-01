@@ -26,14 +26,11 @@ mixin Self<T> {
 mixin HasAppAccess<T extends App<T>> {
   T get app;
 
-  /// Shorthand for [App.rl].
-  Raylib get rl => app.rl;
-
+  /// Shorthand for [App.backend].
+  UnhingedBackend get backend => app.backend;
+  
   /// Shorthand for [App.input].
   InputSystem<T> get input => app.input;
-
-  /// Shorthand for [App.assets].
-  AssetManager<T> get assets => app.assets;
 
   /// Shorthand for [App.renderer].
   Renderer<T> get renderer => app.renderer;
@@ -3596,7 +3593,7 @@ mixin IsSceneManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
           );
           
           final alpha = 40 + (waveIndex * 12);
-          app.rl.CoreD.DrawPixel(x, y, .color(30, 120, 220, alpha));
+          backend.render.drawPixel(x, y, .color(30, 120, 220, alpha));
           x += 2;
         }
       }

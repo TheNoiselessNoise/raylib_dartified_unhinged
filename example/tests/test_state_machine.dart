@@ -59,8 +59,8 @@ class TestStateMachineScene extends DrawScene<G> {
 
 typedef G = TestStateMachineApp;
 
-class TestStateMachineApp extends ExampleApp<G> {
-  TestStateMachineApp(super.rl);
+class TestStateMachineApp extends ExampleRaylibApp<G> {
+  TestStateMachineApp(super.backend);
 
   @override
   void onInit() {
@@ -71,7 +71,7 @@ class TestStateMachineApp extends ExampleApp<G> {
   }
 
   @override
-  TestStateMachineApp createInstance() => .new(rl);
+  TestStateMachineApp createInstance() => .new(backend);
 }
 
-void main() => runExample((rl) => G(rl));
+void main() => runExample((backend) => G(backend));

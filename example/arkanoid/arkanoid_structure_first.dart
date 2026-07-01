@@ -873,6 +873,11 @@ class ArkanoidScene extends DrawScene<G> {
 /// Shorthand alias for [Arkanoid], used throughout the codebase to reduce verbosity.
 typedef G = Arkanoid;
 
+/// Extension to access Raylib from anywhere.
+extension on HasAppAccess<G> {
+  Raylib get rl => (backend as RaylibBackend).rl;
+}
+
 /// The Arkanoid game application.
 ///
 /// It really does not matter where you handle the window initialization.
@@ -921,7 +926,7 @@ class Arkanoid extends App<G> {
 /// Raylib backend, allowing the same game to run on native and web.
 class ArkanoidStructureFirst extends UnhingedRaylibGame<G> {
   @override
-  G create(Raylib rl) => G(rl);
+  G create(RaylibBackend backend) => G(backend);
 }
 
 void main() => runRaylib(

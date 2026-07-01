@@ -209,6 +209,10 @@ class ArkanoidScene extends DrawScene<G> {
   GAME
 ========================= */
 
+extension on HasAppAccess<G> {
+  Raylib get rl => (backend as RaylibBackend).rl;
+}
+
 class Arkanoid extends App<G> {
   final String K_q = 'q';
 
@@ -238,7 +242,7 @@ class Arkanoid extends App<G> {
 
 class ArkanoidEventDriven extends UnhingedRaylibGame<G> {
   @override
-  G create(Raylib rl) => G(rl);
+  G create(RaylibBackend backend) => G(backend);
 }
 
 void main() => runRaylib(

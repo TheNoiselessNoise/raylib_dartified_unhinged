@@ -71,7 +71,7 @@ class AppTime<T extends App<T>> {
   /// value for this frame. Intended to be called once per frame by the
   /// app's main loop.
    void _update() {
-    final dt = app.rl.CoreD.GetFrameTime();
+    final dt = app.backend.getFrameTime();
     _time += dt;
     _frameCount++;
     _dt = dt * timeScale;
@@ -107,7 +107,7 @@ class AppTime<T extends App<T>> {
   /// [EventFPSChanged] with the old and new values.
   void setFPS(int newFPS) {
     if (newFPS == _fps) return;
-    app.rl.CoreD.SetTargetFPS(newFPS);
+    app.backend.setTargetFPS(newFPS);
     int oldFPS = _fps;
     _fps = newFPS;
     app._doFPSChange(oldFPS, newFPS);
@@ -141,9 +141,6 @@ class App<T extends App<T>> extends ECSBase<T> with
   IsPersistable<T, App<T>, AppSnapshot<T>>
   
 {
-
-  @override
-  late AssetManager<T> assets = .new(self);
   
   @override
   late Renderer<T> renderer = .new(self);
@@ -158,17 +155,15 @@ class App<T extends App<T>> extends ECSBase<T> with
   T get app => self;
 
   @override
-  final Raylib rl;
+  final UnhingedBackend backend;
 
   @override
   late AppTime<T> time;
 
-  App(this.rl) {
+  App(this.backend) {
     time = .new(self);
     _assignDummyScene();
   }
-
-  MouseInfo<Vector2D> mouse = .new();
 
   Vector2D get _screenSize => .vec2(800, 450);
   
@@ -178,7 +173,7 @@ class App<T extends App<T>> extends ECSBase<T> with
   bool _initialized = false;
   bool _dependenciesAssigned = false;
 
-  late FontD defaultFont = rl.CoreD.GetFontDefault();
+  late FontD defaultFont = backend.getFontDefault();
 
   bool _exitApp = false; // internal
   bool shouldExit() => false;
@@ -290,7 +285,7 @@ class App<T extends App<T>> extends ECSBase<T> with
     _onExitFns.forEach((f) => f(self));
     onExit();
     _doOnDispose();
-    rl.dispose();
+    backend.dispose();
     _doOnEvent(EventAppExited(app));
   }
 
@@ -390,7 +385,7 @@ class App<T extends App<T>> extends ECSBase<T> with
 
   @override
   void _doBeginFrame(double dt) {
-    mouse = rl.CoreD.GetMouseInfo();
+    backend.beginFrame();
     input._doBeginFrame(dt);
     _doHandleInput();
     getSystems().forEach((s) => s._doBeginFrame(dt));
@@ -404,13 +399,13 @@ class App<T extends App<T>> extends ECSBase<T> with
     getCurrentScene()._doEndFrame(dt);
     getSystems().forEach((s) => s._doEndFrame(dt));
     input._doEndFrame(dt);
+    backend.endFrame();
   }
 
   @override
   void _doOnDispose() {
     getScenes().forEach((s) => s._doOnDispose());
     getSystems().forEach((s) => s._doOnDispose());
-    assets._doOnDispose();
     renderer._doOnDispose();
     input._doOnDispose();
     super._doOnDispose();
@@ -428,7 +423,6 @@ class App<T extends App<T>> extends ECSBase<T> with
     if (target._dependenciesAssigned) return;
     _clones.add(target);
     target._dependenciesAssigned = true;
-    target.assets = assets;
     target.renderer = renderer;
     target.input = input.clone();
     target.defaultFont = defaultFont;
@@ -514,7 +508,7 @@ class AppSnapshot<T extends App<T>> extends StateSnapshot<T, T> {
   AppSnapshot(super.namedId);
 
   @override
-  T createInstance(T app) => App<T>(app.rl) as T;
+  T createInstance(T app) => App<T>(app.backend) as T;
 
   T assignSystems(T app, T destination) {
     for (final snap in systemSnapshots) {

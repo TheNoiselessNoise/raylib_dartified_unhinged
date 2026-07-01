@@ -12,7 +12,7 @@ class FMouseSystem<T extends App<T>> extends SceneSystem<T> {
 
   @override
   void onPreDraw(double dt) {
-    rl.CoreD.SetMouseCursor(cursor);
+    backend.setMouseCursor(cursor);
   }
 }
 

@@ -67,7 +67,7 @@ class FSeparator<T extends App<T>> extends FWidget<T> {
   }
 
   void _drawLine(double x, double y, double w, double h) {
-    rl.CoreD.DrawRectangleRec(.rect(x, y, w, h), color);
+    backend.render.drawRectangleRec(.rect(x, y, w, h), color);
   }
 
   @override

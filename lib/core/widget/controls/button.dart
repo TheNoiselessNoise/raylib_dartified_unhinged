@@ -235,8 +235,8 @@ class FButton<T extends App<T>> extends FWidget<T> with
     c.size = size.copy();
 
     _IsWidgetClickable_updateState(
-      hovered: rl.CoreD.CheckCollisionPointRec(
-        app.mouse.position,
+      hovered: backend.collision.pointRectangle(
+        backend.mouse.position,
         .rect(t.position.x, t.position.y, size.x, size.y),
       ),
       usePendingSingleClickMethod: usePendingSingleClickMethod,
@@ -259,10 +259,10 @@ class FButton<T extends App<T>> extends FWidget<T> with
     final colors = resolveStyle();
 
     // fill
-    rl.CoreD.DrawRectangleRounded(rect, roundness, 8, colors.bg);
+    backend.render.drawRectangleRounded(rect, roundness, 8, colors.bg);
 
     // border
-    rl.CoreD.DrawRectangleRoundedLinesEx(rect, roundness, 8, 2, colors.border);
+    backend.render.drawRectangleRoundedLinesEx(rect, roundness, 8, 2, colors.border);
 
     child?._doDraw(dt);
   });

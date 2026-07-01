@@ -81,8 +81,8 @@ class PerformanceScene extends DrawScene<G> {
 
 typedef G = PerformanceTest;
 
-class PerformanceTest extends ExampleApp<G> {
-  PerformanceTest(super.rl);
+class PerformanceTest extends ExampleRaylibApp<G> {
+  PerformanceTest(super.backend);
 
   @override
   void onInit() {
@@ -94,4 +94,4 @@ class PerformanceTest extends ExampleApp<G> {
   }
 }
 
-void main() => runExample((rl) => G(rl));
+void main() => runExample((backend) => G(backend));

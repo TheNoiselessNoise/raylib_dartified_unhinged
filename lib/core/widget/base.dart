@@ -95,14 +95,14 @@ class CWidgetMouseInteractable<T extends App<T>> extends FWidgetComp<T> {
   CWidgetMouseInteractable(super.app);
 
   void externalUpdate(double dt) => widget.on<CRectCollider<T>>((c) {
-    final nowHovered = rl.CoreD.CheckCollisionPointRec(
-      app.mouse.position,
+    final nowHovered = backend.collision.pointRectangle(
+      backend.mouse.position,
       c.rect,
     );
     
-    final nowClicked = app.mouse.btnLeft.pressed;
+    final nowClicked = backend.mouse.btnLeft.pressed;
     
-    final nowHeld = app.mouse.btnLeft.down;
+    final nowHeld = backend.mouse.btnLeft.down;
 
     clicked = nowHovered && nowClicked;
     hovered = nowHovered;

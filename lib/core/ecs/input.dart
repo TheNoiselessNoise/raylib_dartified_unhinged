@@ -6,10 +6,6 @@ class InputSystem<T extends App<T>> extends AppSystem<T> {
   Map<String, int> _mouseMap = {};
   Map<String, bool> _mouseDown = {};
   Map<String, bool> _mousePressed = {};
-  Vector2D _mouseDelta = .zero();
-  Vector2D _mousePosition = .zero();
-  double _mouseWheel = 0;
-  Vector2D _mouseWheelV = .zero();
 
   Map<String, bool> _codesCompleted = {};
   Map<String, int> _codesCorrectIndexes = {};
@@ -48,10 +44,6 @@ class InputSystem<T extends App<T>> extends AppSystem<T> {
   bool isMouseUp(String action) => !isMouseDown(action);
   bool isMousePressed(String action) => _mousePressed[action] ?? false;
   bool isMouseReleased(String action) => !isMousePressed(action);
-  Vector2D get mouseDelta => _mouseDelta;
-  Vector2D get mousePosition => _mousePosition;
-  double get mouseWheel => _mouseWheel;
-  Vector2D get mouseWheelV => _mouseWheelV;
 
   bool isKeyDown(String action) => _keyDown[action] ?? false;
   bool isKeyUp(String action) => !isKeyDown(action);
@@ -70,9 +62,6 @@ class InputSystem<T extends App<T>> extends AppSystem<T> {
     _keyPressed.clear();
     _keyPressedRepeat.clear();
     _mousePressed.clear();
-    _mouseDelta = .zero();
-    _mouseWheel = 0.0;
-    _mouseWheelV = .zero();
     _keyPressedKeycodes.clear();
     _keyPressedUnicodes.clear();
     _poll();
@@ -86,32 +75,27 @@ class InputSystem<T extends App<T>> extends AppSystem<T> {
     // --- Keys ---
     for (final entry in _keyMap.entries) {
       final v = KeyboardKey.fromValue(entry.value);
-      _keyPressed[entry.key] = rl.CoreD.IsKeyPressed(v);
-      _keyPressedRepeat[entry.key] = rl.CoreD.IsKeyPressedRepeat(v);
-      _keyDown[entry.key] = rl.CoreD.IsKeyDown(v);
+      _keyPressed[entry.key] = backend.input.isKeyPressed(v);
+      _keyPressedRepeat[entry.key] = backend.input.isKeyPressedRepeat(v);
+      _keyDown[entry.key] = backend.input.isKeyDown(v);
     }
 
     int key;
-    while ((key = rl.CoreD.GetCharPressed()) != 0) {
+    while ((key = backend.input.getCharPressed()) != 0) {
       _keyPressedKeycodes.add(key);
     }
 
     int id;
-    while ((id = rl.CoreD.GetKeyPressed()) != 0) {
+    while ((id = backend.input.getKeyPressed()) != 0) {
       _keyPressedUnicodes.add(id);
     }
 
     // --- Mouse ---
     for (final entry in _mouseMap.entries) {
       final v = MouseButton.fromValue(entry.value);
-      _mousePressed[entry.key] = rl.CoreD.IsMouseButtonPressed(v);
-      _mouseDown[entry.key] = rl.CoreD.IsMouseButtonDown(v);
+      _mousePressed[entry.key] = backend.input.isMouseButtonPressed(v);
+      _mouseDown[entry.key] = backend.input.isMouseButtonDown(v);
     }
-
-    _mousePosition = rl.CoreD.GetMousePosition();
-    _mouseDelta = rl.CoreD.GetMouseDelta();
-    _mouseWheel = rl.CoreD.GetMouseWheelMove();
-    _mouseWheelV = .vec2(0, _mouseWheel);
 
     // --- Codes ---
     for (final c in _codesCompleted.entries) {
@@ -143,10 +127,6 @@ class InputSystem<T extends App<T>> extends AppSystem<T> {
     c._mouseMap = .from(_mouseMap);
     c._mouseDown = .from(_mouseDown);
     c._mousePressed = .from(_mousePressed);
-    c._mouseDelta = _mouseDelta;
-    c._mousePosition = _mousePosition;
-    c._mouseWheel = _mouseWheel;
-    c._mouseWheelV = _mouseWheelV;
     c._keyMap = .from(_keyMap);
     c._keyDown = .from(_keyDown);
     c._keyPressed = .from(_keyPressed);

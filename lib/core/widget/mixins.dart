@@ -92,8 +92,8 @@ mixin IsWidgetClickable<T extends App<T>, E extends FWidget<T>> on FWidget<T> {
     required bool usePendingSingleClickMethod,
     required double dt,
   }) {
-    final clicked = app.mouse.btnLeft.pressed;
-    final held = app.mouse.btnLeft.down;
+    final clicked = backend.mouse.btnLeft.pressed;
+    final held = backend.mouse.btnLeft.down;
 
     clickState.clicked = hovered && clicked;
     clickState.hovered = hovered;

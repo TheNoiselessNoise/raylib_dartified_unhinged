@@ -8,6 +8,11 @@ import 'package:path/path.dart' as path;
 import 'package:raylib_dartified_web/raylib_dartified_web.dart'
   if (dart.library.ffi) 'package:raylib_dartified/raylib.dart';
 
+// backends
+part 'ecs/backends/base.dart';
+part 'ecs/backends/headless.dart';
+part 'ecs/backends/raylib.dart';
+
 // widget (flutter-like gui)
 part 'widget/base.dart';
 part 'widget/events.dart';
@@ -60,7 +65,6 @@ part 'ecs/scene_systems/transform_sync.dart';
 part 'ecs/app_systems.dart';
 part 'ecs/app.dart';
 part 'ecs/base.dart';
-part 'ecs/assets.dart';
 part 'ecs/clone.dart';
 part 'ecs/commands.dart';
 part 'ecs/components.dart';

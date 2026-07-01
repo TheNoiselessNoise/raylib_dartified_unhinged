@@ -144,12 +144,12 @@ class FSelect<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSe
     // collider covers only the trigger; dropdown is handled manually
     c.size = _interactiveSize.copy();
 
-    final mouse = app.mouse;
+    final mouse = backend.mouse;
     final origin = t.position;
 
     final RectangleD triggerRect = .rect(origin.x, origin.y, controlWidth, controlHeight);
 
-    final hoveredTrigger = rl.CoreD.CheckCollisionPointRec(
+    final hoveredTrigger = backend.collision.pointRectangle(
       mouse.position, triggerRect,
     );
 
@@ -171,7 +171,7 @@ class FSelect<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSe
         controlWidth, _dropdownHeight,
       );
 
-      final hoveredDropdown = rl.CoreD.CheckCollisionPointRec(
+      final hoveredDropdown = backend.collision.pointRectangle(
         mouse.position, dropdownRect,
       );
 
@@ -192,7 +192,7 @@ class FSelect<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSe
       }
 
       // click outside the entire widget → close
-      final hoveredFull = rl.CoreD.CheckCollisionPointRec(
+      final hoveredFull = backend.collision.pointRectangle(
         mouse.position, _fullRect(origin),
       );
       if (!hoveredFull && mouse.btnLeft.pressed) {
@@ -201,17 +201,17 @@ class FSelect<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSe
       }
 
       // keyboard navigation
-      if (rl.CoreD.IsKeyPressed(.KEY_ESCAPE)) {
+      if (backend.input.isKeyPressed(.KEY_ESCAPE)) {
         _isOpen = false;
         _hoveredItemIndex = -1;
       }
-      if (rl.CoreD.IsKeyPressed(.KEY_DOWN)) {
+      if (backend.input.isKeyPressed(.KEY_DOWN)) {
         _hoveredItemIndex = (_hoveredItemIndex + 1).clamp(0, options.length - 1);
       }
-      if (rl.CoreD.IsKeyPressed(.KEY_UP)) {
+      if (backend.input.isKeyPressed(.KEY_UP)) {
         _hoveredItemIndex = (_hoveredItemIndex - 1).clamp(0, options.length - 1);
       }
-      if (rl.CoreD.IsKeyPressed(.KEY_ENTER) || rl.CoreD.IsKeyPressed(.KEY_KP_ENTER)) {
+      if (backend.input.isKeyPressed(.KEY_ENTER) || backend.input.isKeyPressed(.KEY_KP_ENTER)) {
         if (_hoveredItemIndex >= 0) {
           selectedIndex = _hoveredItemIndex;
           onChangeFn?.call(this, selectedIndex, selectedLabel);
@@ -238,23 +238,23 @@ class FSelect<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSe
     final RectangleD rect = .rect(origin.x, origin.y, controlWidth, controlHeight);
 
     // background
-    rl.CoreD.DrawRectangleRounded(
+    backend.render.drawRectangleRounded(
       rect, cornerRadius, 4,
       isHovered ? theme.backgroundHovered : theme.background,
     );
 
     // border
-    rl.CoreD.DrawRectangleRoundedLinesEx(
+    backend.render.drawRectangleRoundedLinesEx(
       rect, cornerRadius, 4, borderWidth,
       _isOpen ? theme.borderOpen : isHovered ? theme.borderHovered : theme.border,
     );
 
     // selected label (clipped manually by keeping it short, no Raylib clip rects here)
-    rl.CoreD.DrawText(
+    backend.render.drawText(
       selectedLabel,
-      (origin.x + _paddingH).toInt(),
-      (origin.y + (controlHeight - fontSize) / 2).toInt(),
-      fontSize.toInt(),
+      origin.x + _paddingH,
+      origin.y + (controlHeight - fontSize) / 2,
+      fontSize,
       theme.text,
     );
 
@@ -264,7 +264,7 @@ class FSelect<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSe
     final hs = 4.0; // half-size
     if (_isOpen) {
       // pointing up
-      rl.CoreD.DrawTriangle(
+      backend.render.drawTriangle(
         .vec2(ax,      ay - hs),
         .vec2(ax + hs, ay + hs),
         .vec2(ax - hs, ay + hs),
@@ -272,7 +272,7 @@ class FSelect<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSe
       );
     } else {
       // pointing down
-      rl.CoreD.DrawTriangle(
+      backend.render.drawTriangle(
         .vec2(ax - hs, ay - hs),
         .vec2(ax + hs, ay - hs),
         .vec2(ax,      ay + hs),
@@ -286,8 +286,8 @@ class FSelect<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSe
 
     // dropdown background + border
     final RectangleD dropRect = .rect(origin.x, dropY, controlWidth, _dropdownHeight);
-    rl.CoreD.DrawRectangleRounded(dropRect, cornerRadius, 4, theme.dropdownBackground);
-    rl.CoreD.DrawRectangleRoundedLinesEx(
+    backend.render.drawRectangleRounded(dropRect, cornerRadius, 4, theme.dropdownBackground);
+    backend.render.drawRectangleRoundedLinesEx(
       dropRect, cornerRadius, 4, borderWidth, theme.dropdownBorder,
     );
 
@@ -308,15 +308,15 @@ class FSelect<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSe
       }
         
       if (color != null) {
-        rl.CoreD.DrawRectangleRounded(itemRect, cornerRadius, 4, color);
-        rl.CoreD.DrawRectangleRoundedLinesEx(itemRect, cornerRadius, 4, borderWidth, color);
+        backend.render.drawRectangleRounded(itemRect, cornerRadius, 4, color);
+        backend.render.drawRectangleRoundedLinesEx(itemRect, cornerRadius, 4, borderWidth, color);
       }
 
-      rl.CoreD.DrawText(
+      backend.render.drawText(
         options[i],
-        (origin.x + _paddingH).toInt(),
-        (itemY + (itemHeight - fontSize) / 2).toInt(),
-        fontSize.toInt(),
+        origin.x + _paddingH,
+        itemY + (itemHeight - fontSize) / 2,
+        fontSize,
         isSelected ? theme.itemSelectedText : theme.itemText,
       );
     }

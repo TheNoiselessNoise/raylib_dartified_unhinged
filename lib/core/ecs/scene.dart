@@ -483,15 +483,15 @@ class DrawScene<T extends App<T>> extends Scene<T> {
 
   @override
   void _doBeginFrame(double dt) {
-    rl.CoreD.BeginDrawing();
-    rl.CoreD.ClearBackground(backgroundColor);
+    backend.render.beginDrawing();
+    backend.render.clearBackground(backgroundColor);
     super._doBeginFrame(dt);
   }
 
   @override
   void _doEndFrame(double dt) {
     super._doEndFrame(dt);
-    rl.CoreD.EndDrawing();
+    backend.render.endDrawing();
   }
 }
 

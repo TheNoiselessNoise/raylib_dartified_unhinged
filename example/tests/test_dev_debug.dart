@@ -39,10 +39,10 @@ class TestDevDebugScene extends DrawScene<G> {
 
 typedef G = TestDevDebugApp;
 
-class TestDevDebugApp extends ExampleApp<G> {
+class TestDevDebugApp extends ExampleRaylibApp<G> {
   late DebugAppSystem<G> debugSystem;
 
-  TestDevDebugApp(super.rl);
+  TestDevDebugApp(super.backend);
 
   @override
   void onInit() {
@@ -64,4 +64,4 @@ class TestDevDebugApp extends ExampleApp<G> {
   }
 }
 
-void main() => runExample((rl) => G(rl));
+void main() => runExample((backend) => G(backend));

@@ -30,8 +30,8 @@ class MyScene extends FWidgetScene<G> {
 
 typedef G = MyApp;
 
-class MyApp extends ExampleApp<G> {
-  MyApp(super.rl);
+class MyApp extends ExampleRaylibApp<G> {
+  MyApp(super.backend);
 
   @override
   void onInit() {
@@ -43,4 +43,4 @@ class MyApp extends ExampleApp<G> {
   }
 }
 
-void main() => runExample((rl) => G(rl));
+void main() => runExample((backend) => G(backend));

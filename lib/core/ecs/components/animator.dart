@@ -120,7 +120,7 @@ class CAnimator<T extends App<T>> extends Comp<T> {
     
     for (final aninName in animationNames) {
       final animPath = path.join(groupPath, '$aninName.$extension');
-      final sheet = app.assets.texture(aninName, path: animPath);
+      final sheet = app.backend.assets.texture(aninName, path: animPath);
       if (frameWidth == null && sheet.width > maxWidth) maxWidth = sheet.width;
       if (frameHeight == null && sheet.height > maxHeight) maxHeight = sheet.height;
       sheets[aninName] = sheet;
@@ -234,7 +234,7 @@ class CAnimator<T extends App<T>> extends Comp<T> {
         anim.frameHeight * t.scale.y / 2,
       );
       
-      rl.CoreD.DrawTexturePro(
+      backend.render.drawTexturePro(
         currentTexture,
         src,
         dest,

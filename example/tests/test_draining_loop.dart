@@ -34,8 +34,8 @@ class TestDrainingLoopScene extends DrawScene<G> {
 
 typedef G = TestDrainingLoopApp;
 
-class TestDrainingLoopApp extends ExampleApp<G> {
-  TestDrainingLoopApp(super.rl);
+class TestDrainingLoopApp extends ExampleRaylibApp<G> {
+  TestDrainingLoopApp(super.backend);
 
   @override
   void onInit() {
@@ -75,4 +75,4 @@ class TestDrainingLoopApp extends ExampleApp<G> {
   }
 }
 
-void main() => runExample((rl) => G(rl));
+void main() => runExample((backend) => G(backend));

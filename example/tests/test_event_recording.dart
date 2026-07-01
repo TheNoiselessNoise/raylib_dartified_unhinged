@@ -205,8 +205,8 @@ extension on HasAppAccess<G> {
   }
 }
 
-class TestEventsApp extends ExampleApp<G> {
-  TestEventsApp(super.rl);
+class TestEventsApp extends ExampleRaylibApp<G> {
+  TestEventsApp(super.backend);
 
   @override
   void onInit() {
@@ -224,4 +224,4 @@ class TestEventsApp extends ExampleApp<G> {
   }
 }
 
-void main() => runExample((rl) => G(rl));
+void main() => runExample((backend) => G(backend));

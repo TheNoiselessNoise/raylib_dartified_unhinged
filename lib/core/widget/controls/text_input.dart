@@ -261,7 +261,7 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
   double _rawXOfCharIndex(int index) {
     if (index <= 0) return _paddingX;
     final slice = _displayText.substring(0, index.clamp(0, _displayText.length));
-    return _paddingX + rl.CoreD.MeasureTextEx(
+    return _paddingX + backend.render.measureTextEx(
       app.defaultFont, slice, fontSize, fontSpacing,
     ).x;
   }
@@ -272,7 +272,7 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
     final disp = _displayText;
     double acc = _paddingX - _scrollOffsetX;
     for (int i = 0; i < disp.length; i++) {
-      final w = rl.CoreD.MeasureTextEx(
+      final w = backend.render.measureTextEx(
         app.defaultFont, disp[i], fontSize, fontSpacing,
       ).x;
       if (localX < acc + w / 2) return i;
@@ -296,7 +296,7 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
 
   @override
   void layout(FConstraints constraints) {
-    final measured = rl.CoreD.MeasureTextEx(
+    final measured = backend.render.measureTextEx(
       app.defaultFont, 'Ag', fontSize, fontSpacing,
     );
 
@@ -322,17 +322,17 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
     c.size = size.copy();
 
     final RectangleD rect = .rect(t.position.x, t.position.y, size.x, size.y);
-    _hovered = rl.CoreD.CheckCollisionPointRec(app.mouse.position, rect);
+    _hovered = backend.collision.pointRectangle(backend.mouse.position, rect);
 
     // focus on click
-    if (_hovered && app.mouse.btnLeft.pressed) {
+    if (_hovered && backend.mouse.btnLeft.pressed) {
       isFocused = true;
-      final localX = app.mouse.position.x - t.position.x;
+      final localX = backend.mouse.position.x - t.position.x;
       _cursorIndex = _charIndexAtX(localX);
       _selectionAnchor = null;
       _cursorBlinkTimer = 0;
       _cursorVisible = true;
-    } else if (!_hovered && app.mouse.btnLeft.pressed) {
+    } else if (!_hovered && backend.mouse.btnLeft.pressed) {
       isFocused = false;
     }
 
@@ -347,11 +347,11 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
 
     // ── keyboard input ────────────────────────────────────────────────────
     final shift =
-      rl.CoreD.IsKeyDown(.KEY_LEFT_SHIFT) ||
-      rl.CoreD.IsKeyDown(.KEY_RIGHT_SHIFT);
+      backend.input.isKeyDown(.KEY_LEFT_SHIFT) ||
+      backend.input.isKeyDown(.KEY_RIGHT_SHIFT);
     final ctrl =
-      rl.CoreD.IsKeyDown(.KEY_LEFT_CONTROL) ||
-      rl.CoreD.IsKeyDown(.KEY_RIGHT_CONTROL);
+      backend.input.isKeyDown(.KEY_LEFT_CONTROL) ||
+      backend.input.isKeyDown(.KEY_RIGHT_CONTROL);
 
     // printable characters
     var charCodes = input.keycodes();
@@ -370,7 +370,7 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
     }
 
     bool isKeyPressedOrRepeat(KeyboardKey key)
-      => rl.CoreD.IsKeyPressed(key) || rl.CoreD.IsKeyPressed(key);
+      => backend.input.isKeyPressed(key) || backend.input.isKeyPressed(key);
 
     // control keys
     if (isKeyPressedOrRepeat(.KEY_BACKSPACE)) {
@@ -426,40 +426,38 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
       _cursorBlinkTimer = 0; _cursorVisible = true;
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_HOME)) {
+    if (backend.input.isKeyPressed(.KEY_HOME)) {
       if (shift) { _selectionAnchor ??= _cursorIndex; } else { _selectionAnchor = null; }
       _cursorIndex = 0;
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_END)) {
+    if (backend.input.isKeyPressed(.KEY_END)) {
       if (shift) { _selectionAnchor ??= _cursorIndex; } else { _selectionAnchor = null; }
       _cursorIndex = _text.length;
     }
 
-    if (ctrl && rl.CoreD.IsKeyPressed(.KEY_A)) {
+    if (ctrl && backend.input.isKeyPressed(.KEY_A)) {
       _selectionAnchor = 0;
       _cursorIndex = _text.length;
     }
 
-    if (ctrl && rl.CoreD.IsKeyPressed(.KEY_C)) {
+    if (ctrl && backend.input.isKeyPressed(.KEY_C)) {
       if (_hasSelection) {
         final (lo, hi) = _selectionRange;
-        rl.CoreD.SetClipboardText(_text.substring(lo, hi));
+        backend.setClipboardText(_text.substring(lo, hi));
       }
     }
 
-    if (ctrl && rl.CoreD.IsKeyPressed(.KEY_X)) {
+    if (ctrl && backend.input.isKeyPressed(.KEY_X)) {
       if (_hasSelection) {
         final (lo, hi) = _selectionRange;
-        rl.CoreD.SetClipboardText(_text.substring(lo, hi));
+        backend.setClipboardText(_text.substring(lo, hi));
         _deleteRange(lo, hi);
       }
     }
 
-    // NOTE: workaround using callback, we can't `GetClipboardText` on web
-    if (ctrl && rl.CoreD.IsKeyPressed(.KEY_V)) {
-      // ignore: deprecated_member_use
-      final clip = getClipboardTextFn?.call() ?? rl.CoreD.GetClipboardText();
+    if (ctrl && backend.input.isKeyPressed(.KEY_V)) {
+      final clip = getClipboardTextFn?.call() ?? backend.getClipboardText();
       if (clip.isNotEmpty) {
         if (_hasSelection) {
           final (lo, hi) = _selectionRange;
@@ -473,14 +471,14 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
     }
 
     if (
-      rl.CoreD.IsKeyPressed(.KEY_ENTER) ||
-      rl.CoreD.IsKeyPressed(.KEY_KP_ENTER)
+      backend.input.isKeyPressed(.KEY_ENTER) ||
+      backend.input.isKeyPressed(.KEY_KP_ENTER)
     ) {
       onSubmitFn?.call(this, _text);
       isFocused = false;
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_ESCAPE)) {
+    if (backend.input.isKeyPressed(.KEY_ESCAPE)) {
       isFocused = false;
     }
 
@@ -497,12 +495,12 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
     const roundness = 0.2;
 
     // background
-    rl.CoreD.DrawRectangleRounded(rect, roundness, 8, colors.bg);
+    backend.render.drawRectangleRounded(rect, roundness, 8, colors.bg);
 
     // ── scissor to inner area so text doesn't bleed out ──────────────────
-    rl.CoreD.BeginScissorMode(
-      t.position.x.toInt(), t.position.y.toInt(),
-      size.x.toInt(), size.y.toInt(),
+    backend.render.beginScissorMode(
+      t.position.x, t.position.y,
+      size.x, size.y,
     );
 
     final textY = t.position.y + (size.y - fontSize) / 2;
@@ -510,7 +508,7 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
 
     if (disp.isEmpty && placeholder.isNotEmpty) {
       // placeholder
-      rl.CoreD.DrawTextEx(
+      backend.render.drawTextEx(
         app.defaultFont, placeholder,
         .vec2(t.position.x + _paddingX, textY),
         fontSize, fontSpacing, colors.placeholder,
@@ -521,14 +519,14 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
         final (lo, hi) = _selectionRange;
         final selStartX = t.position.x + _rawXOfCharIndex(lo) - _scrollOffsetX;
         final selEndX = t.position.x + _rawXOfCharIndex(hi) - _scrollOffsetX;
-        rl.CoreD.DrawRectangleRec(
+        backend.render.drawRectangleRec(
           .rect(selStartX, textY, selEndX - selStartX, fontSize),
           colors.selection,
         );
       }
 
       // text
-      rl.CoreD.DrawTextEx(
+      backend.render.drawTextEx(
         app.defaultFont, disp,
         .vec2(baseX, textY),
         fontSize, fontSpacing, colors.fg,
@@ -538,16 +536,16 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
     // cursor
     if (isFocused && _cursorVisible) {
       final cursorX = t.position.x + _rawXOfCharIndex(_cursorIndex) - _scrollOffsetX;
-      rl.CoreD.DrawRectangleRec(
+      backend.render.drawRectangleRec(
         .rect(cursorX, textY, 2, fontSize),
         colors.cursor,
       );
     }
 
-    rl.CoreD.EndScissorMode();
+    backend.render.endScissorMode();
 
     // border (drawn after scissor so it's always fully visible)
-    rl.CoreD.DrawRectangleRoundedLinesEx(rect, roundness, 8, 2, borderOverride ?? colors.border);
+    backend.render.drawRectangleRoundedLinesEx(rect, roundness, 8, 2, borderOverride ?? colors.border);
   });
 
   // ── clone ─────────────────────────────────────────────────────────────────

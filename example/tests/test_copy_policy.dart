@@ -60,8 +60,8 @@ class MyGameClonePolicy extends ClonePolicy<G> {
 
 typedef G = MyGame;
 
-class MyGame extends ExampleApp<G> {
-  MyGame(super.rl);
+class MyGame extends ExampleRaylibApp<G> {
+  MyGame(super.backend);
 
   @override
   void onInit() {
@@ -79,7 +79,7 @@ class MyGame extends ExampleApp<G> {
   }
 
   @override
-  MyGame createInstance() => .new(rl);
+  MyGame createInstance() => .new(backend);
 }
 
-void main() => runExample((rl) => G(rl));
+void main() => runExample((backend) => G(backend));

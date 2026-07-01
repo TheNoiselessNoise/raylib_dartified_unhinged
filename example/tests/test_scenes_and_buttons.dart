@@ -266,8 +266,8 @@ extension on HasAppAccess<G> {
   void goToGame() => app.command(SetSceneCommand(app, gameScene));
 }
 
-class MyGame extends ExampleApp<G> {
-  MyGame(super.rl);
+class MyGame extends ExampleRaylibApp<G> {
+  MyGame(super.backend);
 
   @override
   void onInit() {
@@ -281,4 +281,4 @@ class MyGame extends ExampleApp<G> {
   }
 }
 
-void main() => runExample((rl) => G(rl));
+void main() => runExample((backend) => G(backend));

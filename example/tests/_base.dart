@@ -1,22 +1,28 @@
 import 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart';
 export 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart';
 
-abstract class ExampleApp<T extends ExampleApp<T>> extends App<T> {
-  ExampleApp(super.rl);
+extension ExampleHasAppAccess on HasAppAccess<ExampleRaylibApp> {
+  Raylib get rl => app.rl;
+}
+
+abstract class ExampleRaylibApp<T extends ExampleRaylibApp<T>> extends App<T> {
+  ExampleRaylibApp(super.backend);
+
+  Raylib get rl => (backend as RaylibBackend).rl;
 
   @override
   bool shouldExit() => rl.CoreD.WindowShouldClose();
 }
 
-class ExampleBridge<T extends ExampleApp<T>> extends UnhingedRaylibGame<ExampleApp<T>> {
-  late T Function(Raylib rl) constructor;
+class ExampleRaylibBridge<T extends ExampleRaylibApp<T>> extends UnhingedRaylibGame<ExampleRaylibApp<T>> {
+  late T Function(UnhingedBackend backend) constructor;
 
   @override
-  T create(Raylib rl) => constructor(rl);
+  T create(UnhingedBackend backend) => constructor(backend);
 }
 
-void runExample<T extends ExampleApp<T>>(T Function(Raylib rl) constructor) {
-  final example = ExampleBridge<T>();
+void runExample<T extends ExampleRaylibApp<T>>(T Function(UnhingedBackend backend) constructor) {
+  final example = ExampleRaylibBridge<T>();
   example.constructor = constructor;
   runRaylib(example, nativeLibPath: 'raylib-5.5_linux_amd64/lib');
 }
@@ -35,7 +41,7 @@ class Message {
   ].join('');
 }
 
-class ExampleMessagesWidget<T extends ExampleApp<T>> extends FWidget<T> {
+class ExampleMessagesWidget<T extends ExampleRaylibApp<T>> extends FWidget<T> {
   ExampleMessagesWidget(super.app);
 
   final List<Message> messages = [];

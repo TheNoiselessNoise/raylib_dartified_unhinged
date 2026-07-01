@@ -25,7 +25,7 @@ class CSprite<T extends App<T>> extends Comp<T> {
 
   @override
   void onDraw(double dt) => entity.onTransform((t) {
-    rl.CoreD.DrawRectanglePro(
+    backend.render.drawRectanglePro(
       rect,
       origin,
       t.rotation * 180.0 / math.pi,

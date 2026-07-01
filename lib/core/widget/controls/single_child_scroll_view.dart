@@ -78,11 +78,11 @@ class FSingleChildScrollView<T extends App<T>> extends FWidget<T> {
   @override
   void onUpdate(double dt) {
     if (defaultScrollSupport) {
-      final y = app.mouse.wheel.scale(defaultScrollSupportSpeed).y * -1;
+      final y = backend.mouse.wheel.scale(defaultScrollSupportSpeed).y * -1;
       if (y == 0) return;
 
       _userScrolled = true;
-      if (rl.CoreD.IsKeyDown(.KEY_LEFT_CONTROL)) {
+      if (backend.input.isKeyDown(.KEY_LEFT_CONTROL)) {
         setState(() => _scrollX += y);
       } else {
         setState(() => _scrollY += y);
@@ -93,9 +93,9 @@ class FSingleChildScrollView<T extends App<T>> extends FWidget<T> {
   @override
   void onDraw(double dt) {
     final r = get<CRectCollider<T>>()!.rect;
-    rl.CoreD.BeginScissorMode(r.x, r.y, r.width, r.height);
+    backend.render.beginScissorMode(r.x, r.y, r.width, r.height);
     child!._doDraw(dt);
-    rl.CoreD.EndScissorMode();
+    backend.render.endScissorMode();
   }
 
   @override

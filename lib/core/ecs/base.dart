@@ -5,11 +5,8 @@ class _GlobalIdCounter {
   static final Map<Type, int> _counters = {};
 
   /// Returns the next ID for [type], incrementing its counter.
-  static int nextIdForType(Type type) {
-    int id = _counters.putIfAbsent(type, () => 0) + 1;
-    _counters[type] = id;
-    return id;
-  }
+  static int nextIdForType(Type type)
+    => _counters[type] = _counters.putIfAbsent(type, () => 0) + 1;
 }
 
 /// Base class for all ECS objects.
@@ -187,10 +184,10 @@ class Bounds {
 abstract class UnhingedRaylibGame<T extends App<T>> extends RaylibGame {
   late T app;
 
-  T create(Raylib rl);
+  T create(RaylibBackend backend);
 
   @override
-  void init(Raylib rl) => app = create(rl)..init();
+  void init(Raylib rl) => app = create(.new(rl))..init();
 
   @override
   bool shouldClose(Raylib rl) => app.shouldAppExit;

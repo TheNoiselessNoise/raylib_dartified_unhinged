@@ -93,10 +93,8 @@ class FCheckbox<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, F
     t.position = worldPosition;
     c.size = _interactiveSize.copy();
 
-    final mouse = app.mouse;
-
-    final hovered = rl.CoreD.CheckCollisionPointRec(
-      mouse.position,
+    final hovered = backend.collision.pointRectangle(
+      backend.mouse.position,
       .rect(t.position.x, t.position.y, boxSize, boxSize),
     );
 
@@ -106,7 +104,7 @@ class FCheckbox<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, F
       dt: dt,
     );
 
-    if (hovered && mouse.btnLeft.pressed) {
+    if (hovered && backend.mouse.btnLeft.pressed) {
       checked = !checked;
       onChangeFn?.call(this, checked);
     }
@@ -119,16 +117,16 @@ class FCheckbox<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, F
     final RectangleD rect = .rect(t.position.x, t.position.y, boxSize, boxSize);
 
     // background
-    rl.CoreD.DrawRectangleRounded(rect, cornerRadius, 4, theme.background);
+    backend.render.drawRectangleRounded(rect, cornerRadius, 4, theme.background);
 
     // border or filled bg when checked
     if (checked) {
-      rl.CoreD.DrawRectangleRounded(
+      backend.render.drawRectangleRounded(
         rect, cornerRadius, 4,
         isHovered ? theme.fillHovered : theme.fill,
       );
     } else {
-      rl.CoreD.DrawRectangleRoundedLinesEx(
+      backend.render.drawRectangleRoundedLinesEx(
         rect, cornerRadius, 4, borderWidth,
         isHovered ? theme.borderHovered : theme.border,
       );
@@ -142,13 +140,13 @@ class FCheckbox<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, F
       // knee of the tick: ~38% across, ~65% down
       final kx = x + boxSize * 0.38;
       final ky = y + boxSize - pad;
-      rl.CoreD.DrawLineEx(
+      backend.render.drawLineEx(
         .vec2(x + pad, y + boxSize * 0.52),
         .vec2(kx,      ky),
         boxSize * 0.12,
         theme.check,
       );
-      rl.CoreD.DrawLineEx(
+      backend.render.drawLineEx(
         .vec2(kx, ky),
         .vec2(x + boxSize - pad, y + pad),
         boxSize * 0.12,

@@ -29,7 +29,7 @@ class FLabel<T extends App<T>> extends FWidget<T> {
 
   @override
   void layout(FConstraints constraints) {
-    _textSize = rl.CoreD.MeasureTextEx(_font, text, fontSize, spacing);
+    _textSize = backend.render.measureTextEx(_font, text, fontSize, spacing);
 
     size = constraints.resolve(_textSize);
   }
@@ -45,7 +45,7 @@ class FLabel<T extends App<T>> extends FWidget<T> {
         .right  => rect.x + (size.x - _textSize.x),
       };
 
-      rl.CoreD.DrawTextPro(
+      backend.render.drawTextPro(
         _font, text,
         .vec2(x, rect.y),
         .zero(),
@@ -55,7 +55,7 @@ class FLabel<T extends App<T>> extends FWidget<T> {
       return;
     }
 
-    rl.CoreD.DrawTextPro(
+    backend.render.drawTextPro(
       _font, text,
       .vec2(rect.x, rect.y),
       .vec2(_textSize.x / 2, _textSize.y / 2),

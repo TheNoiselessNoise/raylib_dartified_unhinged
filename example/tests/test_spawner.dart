@@ -60,8 +60,8 @@ class TestSpawnerScene extends DrawScene<G> {
 
 typedef G = TestSpawner;
 
-class TestSpawner extends ExampleApp<G> {
-  TestSpawner(super.rl);
+class TestSpawner extends ExampleRaylibApp<G> {
+  TestSpawner(super.backend);
 
   @override
   void onInit() {
@@ -73,4 +73,4 @@ class TestSpawner extends ExampleApp<G> {
   }
 }
 
-void main() => runExample((rl) => G(rl));
+void main() => runExample((backend) => G(backend));

@@ -62,7 +62,7 @@ class CImage<T extends App<T>> extends Comp<T> {
 
   @override
   void onDraw(double dt) => entity.onTransform((t) {
-    rl.CoreD.DrawTexturePro(
+    backend.render.drawTexturePro(
       texture,
       source,
       dest,

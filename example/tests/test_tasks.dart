@@ -77,8 +77,8 @@ class TestTasksScene extends FWidgetScene<G> {
 
 typedef G = TestTasksApp;
 
-class TestTasksApp extends ExampleApp<G> {
-  TestTasksApp(super.rl);
+class TestTasksApp extends ExampleRaylibApp<G> {
+  TestTasksApp(super.backend);
 
   @override
   void onInit() {
@@ -90,4 +90,4 @@ class TestTasksApp extends ExampleApp<G> {
   }
 }
 
-void main() => runExample((rl) => G(rl));
+void main() => runExample((backend) => G(backend));
