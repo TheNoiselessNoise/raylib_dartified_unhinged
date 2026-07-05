@@ -208,7 +208,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   /// or draw pass, where mutating the entity set mid-iteration is unsafe.
   /// Returns `this` for chaining.
   Entity<T> removeThis() {
-    scene.command(RemoveEntityCommand(app, self));
+    command(RemoveEntityCommand(app, self));
     return self;
   }
 
@@ -223,7 +223,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   @nonVirtual
   void _doHandleInput() {
     if (isDisabled) return;
-    getComponents().forEach((e) => e._doHandleInput());
+    _components.forEach((e) => e._doHandleInput());
     super._doHandleInput();
   }
 
@@ -233,7 +233,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   @mustCallSuper
   void _doUpdate(double dt) {
     if (isDisabled) return;
-    getComponents().forEach((c) => c._doUpdate(dt));
+    _components.forEach((c) => c._doUpdate(dt));
     super._doUpdate(dt);
   }
 
@@ -243,7 +243,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   @mustCallSuper
   void _doDraw(double dt) {
     if (isDisabled) return;
-    getComponents().forEach((c) => c._doDraw(dt));
+    _components.forEach((c) => c._doDraw(dt));
     super._doDraw(dt);
   }
 
@@ -280,7 +280,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   void _doOnCloneEntityStart(Entity<T> copy, [EntityCloner<T>? cloner]) {
     emit(EventEntityCloning(app, self, copy));
 
-    getComponents().forEach((comp) {
+    _components.forEach((comp) {
       if (!(cloner?.allowComp(copy, comp) ?? true)) return;
 
       _doCloneComp(

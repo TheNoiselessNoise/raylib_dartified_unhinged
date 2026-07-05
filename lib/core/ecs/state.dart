@@ -41,8 +41,6 @@ mixin IsStateHolder<
   S extends StateSnapshot<T, E>
 > on ECSBase<T> {
   
-  // TODO: do we need any hooks here?
-
   // ░██████░███     ░███ ░█████████  ░██         
   //   ░██  ░████   ░████ ░██     ░██ ░██         
   //   ░██  ░██░██ ░██░██ ░██     ░██ ░██         
@@ -127,8 +125,6 @@ mixin IsPersistable<
   S extends StateSnapshot<T, E>
 > on IsStateHolder<T, E, S> {
   
-  // TODO: do we need any hooks here?
-
   // ░██████░███     ░███ ░█████████  ░██         
   //   ░██  ░████   ░████ ░██     ░██ ░██         
   //   ░██  ░██░██ ░██░██ ░██     ░██ ░██         

@@ -213,11 +213,16 @@ class RaylibAssetManager extends AssetManager {
 class RaylibBackend extends UnhingedBackend {
   final Raylib rl;
 
-  RaylibBackend(this.rl) : super(
-    render: RaylibRenderBackend(rl),
-    input: RaylibInputBackend(rl),
-    collision: RaylibCollisionBackend(rl),
-    assets: RaylibAssetManager(rl),
+  RaylibBackend(this.rl, {
+    RaylibRenderBackend? render,
+    RaylibInputBackend? input,
+    RaylibCollisionBackend? collision,
+    RaylibAssetManager? assets,
+  }) : super(
+    render: render ?? RaylibRenderBackend(rl),
+    input: input ?? RaylibInputBackend(rl),
+    collision: collision ?? RaylibCollisionBackend(rl),
+    assets: assets ?? RaylibAssetManager(rl),
   );
   
   @override

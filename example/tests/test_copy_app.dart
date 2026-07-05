@@ -61,7 +61,7 @@ class MyGame extends ExampleRaylibApp<G> {
       final transform = entity.get<CTransform<G>>()!;
       transform.position = transform.position.sub(.vec2(10, 10));
       // NOTE: finally, replace current scene with our new cloned one
-      swapScene(getCurrentScene(), newScene);
+      swapScene(currentScene, newScene);
     }
   }
 

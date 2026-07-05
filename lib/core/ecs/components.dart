@@ -84,7 +84,7 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   @nonVirtual
   void _doHandleInput() {
     if (isDisabled) return;
-    getComponents().forEach((e) => e._doHandleInput());
+    _components.forEach((e) => e._doHandleInput());
     super._doHandleInput();
   }
 
@@ -92,7 +92,7 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   @nonVirtual
   void _doUpdate(double dt) {
     if (isDisabled) return;
-    getComponents().forEach((c) => c._doUpdate(dt));
+    _components.forEach((c) => c._doUpdate(dt));
     super._doUpdate(dt);
   }
 
@@ -100,7 +100,7 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   @nonVirtual
   void _doDraw(double dt) {
     if (isDisabled) return;
-    getComponents().forEach((c) => c._doDraw(dt));
+    _components.forEach((c) => c._doDraw(dt));
     super._doDraw(dt);
   }
 
@@ -122,7 +122,7 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   void _doOnClone(Comp<T> copy, [Cloner<T>? cloner]) {
     emit(EventCompCloning(app, self, copy));
 
-    getComponents().forEach((childComp) {
+    _components.forEach((childComp) {
       if (!(cloner?.allowComp(copy, childComp) ?? true)) return;
 
       _doCloneComp(

@@ -311,6 +311,9 @@ enum CloneStateType {
   /// Event queue state. ([IsEventQueueHolder).
   eventQueue,
 
+  /// Callbackl queue state. ([IsCallbackProcessable]).
+  callbackQueue,
+
   /// Command queue state. ([IsCommandProcessable]).
   commandQueue,
 

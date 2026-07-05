@@ -38,8 +38,8 @@ mixin HasAppAccess<T extends App<T>> {
   /// Shorthand for [App.draw].
   Drawers<T> get draw => app.draw;
 
-  /// Shorthand for [App.getCurrentScene()].
-  Scene<T> get scene => app.getCurrentScene();
+  /// Shorthand for [App.currentScene].
+  Scene<T> get scene => app.currentScene;
 
   /// Shorthand for [App.time].
   AppTime<T> get time => app.time;
@@ -1122,6 +1122,14 @@ mixin IsClonable<
       }
     }
 
+    if (self case IsCallbackProcessable<T, E> from) {
+      if (target case IsCallbackProcessable<T, E> to) {
+        if (allowedState(.callbackQueue)) {
+          to._callbackQueue = .from(from._callbackQueue);
+        }
+      }
+    }
+
     if (self case IsCommandProcessable<T, E> from) {
       if (target case IsCommandProcessable<T, E> to) {
         if (allowedState(.commandQueue)) {
@@ -1608,6 +1616,27 @@ mixin IsCommandProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, H
     bool didSomething = false;
     while (_commandQueue.isNotEmpty) {
       _doCommand(_commandQueue.removeAt(0));
+      didSomething = true;
+    }
+    return didSomething;
+  }
+}
+
+/// Adds a callback processing capabilities to an ECS object.
+///
+/// Callbacks are queued and executed in a controlled pipeline each frame.
+mixin IsCallbackProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasAppAccess<T>, IsEventEmittable<T, E> {
+  List<void Function()> _callbackQueue = [];
+
+  /// Schedules a [callback].
+  @override
+  void callback(void Function() callback) => _callbackQueue.add(callback);
+
+  /// Drains and executes all pending callbacks, then clears the queue.
+  bool _processCallbacks() {
+    bool didSomething = false;
+    while (_callbackQueue.isNotEmpty) {
+      _callbackQueue.removeAt(0)();
       didSomething = true;
     }
     return didSomething;
@@ -2103,7 +2132,7 @@ mixin IsComponentManagable<T extends App<T>, E extends ECSBase<T>> on
     Cloner<T>? cloner,
     bool replaceComponents = true,
   }) {
-    getComponents().forEach((childComp) {
+    _components.forEach((childComp) {
       if (!(cloner?.allowComp(into, childComp) ?? true)) return;
 
       _doCloneComp(
@@ -3608,7 +3637,7 @@ mixin IsSceneManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
 
   Iterable<Scene<T>> getScenes() => _scenes;
 
-  S getCurrentScene<S extends Scene<T>>() => _currentScene as S;
+  Scene<T> get currentScene => _currentScene;
 
   S? getSceneByKey<S extends Scene<T>>(String key) => _scenes.where((s) => s.key == key).firstOrNull as S?;
 
@@ -4285,6 +4314,41 @@ mixin IsSceneTransitionable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   ///
   /// Called after all registered [listenOnAfterSceneTransition] listeners.
   void onAfterSceneTransition(Scene<T> from, Scene<T> to) {}
+}
+
+/// Adds should exitable lifecycle hooks to an ECS object.
+mixin IsShouldExitable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
+
+  List<bool Function(E self)> _shouldExitFns = [];
+
+  List<void Function(E self)> _onExitFns = [];
+
+  @nonVirtual
+  E listenShouldExit(bool Function(E self) fn) {
+    _shouldExitFns.add(fn);
+    return self;
+  }
+
+  @nonVirtual
+  E listenOnExit(void Function(E self) fn) {
+    _onExitFns.add(fn);
+    return self;
+  }
+
+  bool _doShouldExit() {
+    if (_shouldExitFns.any((f) => f(self))) return true;
+    return shouldExit();
+  }
+
+  @nonVirtual
+  void _doExit() {
+    _onExitFns.forEach((f) => f(self));
+    onExit();
+  }
+
+  bool shouldExit() => false;
+
+  void onExit() {}
 }
 
 /// Adds a one-shot start lifecycle hook to an ECS object.

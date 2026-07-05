@@ -137,6 +137,7 @@ class App<T extends App<T>> extends ECSBase<T> with
 
   IsSceneTransitionable<T, T>, // needs to be before `IsSceneManagable`
   IsSceneManagable<T, T>,
+  IsShouldExitable<T, T>,
   IsStateHolder<T, App<T>, AppSnapshot<T>>,
   IsPersistable<T, App<T>, AppSnapshot<T>>
   
@@ -165,10 +166,8 @@ class App<T extends App<T>> extends ECSBase<T> with
     _assignDummyScene();
   }
 
-  Vector2D get _screenSize => .vec2(800, 450);
-  
   @override
-  Vector2D get screenSize => _screenSize;
+  Vector2D get screenSize => .vec2(800, 450);
 
   bool _initialized = false;
   bool _dependenciesAssigned = false;
@@ -176,7 +175,6 @@ class App<T extends App<T>> extends ECSBase<T> with
   late FontD defaultFont = backend.getFontDefault();
 
   bool _exitApp = false; // internal
-  bool shouldExit() => false;
 
   @nonVirtual
   bool get shouldAppExit => _exitApp || _doShouldExit();
@@ -202,7 +200,13 @@ class App<T extends App<T>> extends ECSBase<T> with
     _doEndFrame(time.dt);
   }
 
-  void exit() => _doExit();
+  void exit() {
+    _doOnEvent(EventAppExiting(app));
+    _doExit();
+    _doOnDispose();
+    backend.dispose();
+    _doOnEvent(EventAppExited(app));
+  }
 
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
@@ -212,26 +216,11 @@ class App<T extends App<T>> extends ECSBase<T> with
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  List<bool Function(T self)> _shouldExitFns = [];
-  
   List<void Function(T self, double dt, int frame)> _onFrameFns = [];
   
   List<void Function(T self, int oldFps, int newFps)> _onFPSChangeFns = [];
   
   List<void Function(T self)> _onInitFns = [];
-
-  List<void Function(T self)> _onExitFns = [];
-
-  bool _doShouldExit() {
-    if (_shouldExitFns.any((f) => f(self))) return true;
-    return shouldExit();
-  }
-  
-  @nonVirtual
-  T listenShouldExit(bool Function(T self) fn) {
-    _shouldExitFns.add(fn);
-    return self;
-  }
 
   @nonVirtual
   T listenOnFrame(void Function(T self, double dt, int frame) fn) {
@@ -248,12 +237,6 @@ class App<T extends App<T>> extends ECSBase<T> with
   @nonVirtual
   T listenOnInit(void Function(T self) fn) {
     _onInitFns.add(fn);
-    return self;
-  }
-
-  @nonVirtual
-  T listenOnExit(void Function(T self) fn) {
-    _onExitFns.add(fn);
     return self;
   }
 
@@ -279,23 +262,11 @@ class App<T extends App<T>> extends ECSBase<T> with
     _doOnEvent(EventAppInitialized(app));
   }
 
-  @nonVirtual
-  void _doExit() {
-    _doOnEvent(EventAppExiting(app));
-    _onExitFns.forEach((f) => f(self));
-    onExit();
-    _doOnDispose();
-    backend.dispose();
-    _doOnEvent(EventAppExited(app));
-  }
-
   void onFrame(double dt, int frame) {}
 
   void onFPSChange(int oldFPS, int newFPS) {}
   
   void onInit() {}
-
-  void onExit() {}
 
   // ░██████████ ░██    ░██ ░██████████ ░███    ░██ ░██████████  ░██████   
   // ░██         ░██    ░██ ░██         ░████   ░██     ░██     ░██   ░██  
@@ -329,7 +300,7 @@ class App<T extends App<T>> extends ECSBase<T> with
       if (event.origin == self) {
         _doOnEvent(event);
 
-        for (final s in getSystems()) {
+        for (final s in _systems) {
           if (event.isStopped) return true;
           s._propagate(event);
         }
@@ -348,7 +319,7 @@ class App<T extends App<T>> extends ECSBase<T> with
       if (event.isStopped) return true;
       _doOnEvent(event);
 
-      for (final s in getSystems()) {
+      for (final s in _systems) {
         if (event.isStopped) return true;
         s._propagate(event);
       }
@@ -371,15 +342,15 @@ class App<T extends App<T>> extends ECSBase<T> with
 
   void _doUpdate(double dt) {
     _doFrame(dt, time.frameCount);
-    getCurrentScene()._doUpdate(dt);
+    currentScene._doUpdate(dt);
   }
 
-  void _doDraw(double dt) => getCurrentScene()._doDraw(dt);
+  void _doDraw(double dt) => currentScene._doDraw(dt);
 
   @override
   void _doHandleInput() {
-    getSystems().forEach((s) => s._doHandleInput());
-    getCurrentScene()._doHandleInput();
+    _systems.forEach((s) => s._doHandleInput());
+    currentScene._doHandleInput();
     super._doHandleInput();
   }
 
@@ -388,24 +359,24 @@ class App<T extends App<T>> extends ECSBase<T> with
     backend.beginFrame();
     input._doBeginFrame(dt);
     _doHandleInput();
-    getSystems().forEach((s) => s._doBeginFrame(dt));
-    getCurrentScene()._doBeginFrame(dt);
+    _systems.forEach((s) => s._doBeginFrame(dt));
+    currentScene._doBeginFrame(dt);
     super._doBeginFrame(dt); // observe fully-prepared frame
   }
 
   @override
   void _doEndFrame(double dt) {
     super._doEndFrame(dt); // observe before teardown begins
-    getCurrentScene()._doEndFrame(dt);
-    getSystems().forEach((s) => s._doEndFrame(dt));
+    currentScene._doEndFrame(dt);
+    _systems.forEach((s) => s._doEndFrame(dt));
     input._doEndFrame(dt);
     backend.endFrame();
   }
 
   @override
   void _doOnDispose() {
-    getScenes().forEach((s) => s._doOnDispose());
-    getSystems().forEach((s) => s._doOnDispose());
+    _scenes.forEach((s) => s._doOnDispose());
+    _systems.forEach((s) => s._doOnDispose());
     renderer._doOnDispose();
     input._doOnDispose();
     super._doOnDispose();
@@ -442,12 +413,12 @@ class App<T extends App<T>> extends ECSBase<T> with
 
     _doOnEvent(EventAppCloning(self, self, copy));
 
-    getScenes().forEach((s) {
+    _scenes.forEach((s) {
       if (!(cloner?.allowScene(copy, s) ?? true)) return;
       copy.addScene(s.clone(cloner?.sceneCloner));
     });
 
-    getSystems().forEach((s) {
+    _systems.forEach((s) {
       if (!(cloner?.allowAppSystem(copy, s) ?? true)) return;
       copy.addSystem(s.clone(cloner?.systemCloner));
     });

@@ -74,7 +74,7 @@ class MyGame extends ExampleRaylibApp<G> {
   void onInput() {
     if (rl.CoreD.IsKeyPressed(.KEY_C)) {
       final copy = clone(.AllowAll(MyGameClonePolicy()));
-      swapScene(getCurrentScene(), copy.getScenes().first);
+      swapScene(currentScene, copy.getScenes().first);
     }
   }
 

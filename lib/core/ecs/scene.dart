@@ -90,6 +90,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   IsUpdatable<T, Scene<T>>,
 
   // special
+  IsCallbackProcessable<T, Scene<T>>,
   IsCommandProcessable<T, Scene<T>>,
   IsStateHolder<T, Scene<T>, AnySceneSnapshot<T>>,
   IsPersistable<T, Scene<T>, AnySceneSnapshot<T>>
@@ -98,10 +99,6 @@ class Scene<T extends App<T>> extends ECSBase<T> with
 
   @override
   final T app;
-
-  /// Deferred zero-argument callbacks run during [_doEndFrame], after all
-  /// systems and entities have updated.
-  final List<void Function()> _callbackQueue = [];
 
   /// Unique identifier for this scene within the app's scene registry.
   ///
@@ -127,14 +124,6 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   @override
   InputSystem<T> get input => app.input;
 
-  /// Schedules [callback] to run during the current frame's [_doEndFrame] pass,
-  /// after all update and draw work is complete.
-  ///
-  /// Useful for mutations (entity removal, scene transitions) that must not
-  /// happen mid-iteration.
-  @override
-  void callback(void Function() callback) => _callbackQueue.add(callback);
-
   //   ░██████  ░██           ░██████   ░███    ░██ ░██████████ 
   //  ░██   ░██ ░██          ░██   ░██  ░████   ░██ ░██         
   // ░██        ░██         ░██     ░██ ░██░██  ░██ ░██         
@@ -148,12 +137,12 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   void _doOnClone(Scene<T> copy, [SceneCloner<T>? cloner]) {
     emit(EventSceneCloning(app, self, copy));
 
-    getEntities().forEach((e) {
+    _entities.forEach((e) {
       if (!(cloner?.allowEntity(copy, e) ?? true)) return;
       copy.addEntity(e.clone(cloner?.entityCloner));
     });
 
-    getSystems().forEach((s) {
+    _systems.forEach((s) {
       if (!(cloner?.allowSceneSystem(copy, s) ?? true)) return;
       copy.addSystem(s.clone(cloner?.systemCloner));
     });
@@ -240,8 +229,8 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   @override
   @nonVirtual
   void _doHandleInput() {
-    getSystems().forEach((e) => e._doHandleInput());
-    getEntities().forEach((e) => e._doHandleInput());
+    _systems.forEach((e) => e._doHandleInput());
+    _entities.forEach((e) => e._doHandleInput());
     super._doHandleInput();
   }
 
@@ -348,7 +337,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   @override
   void _doBeginFrame(double dt) {
     super._doBeginFrame(dt);
-    getSystems().forEach((s) => s._doBeginFrame(dt));
+    _systems.forEach((s) => s._doBeginFrame(dt));
   }
 
   void _doDrainLoop() {
@@ -375,20 +364,20 @@ class Scene<T extends App<T>> extends ECSBase<T> with
     _doDrainLoop();
     _processTasks(dt);
     _doDrainLoop();
-    getSystems().forEach((s) => s._doEndFrame(dt));
+    _systems.forEach((s) => s._doEndFrame(dt));
     super._doEndFrame(dt);
   }
 
   /// Calls the update hook on every system for the given [phase].
   void _runUpdateSystems(SystemPhase phase, double dt) 
-    => getSystems().forEach((s) => switch (phase) {
+    => _systems.forEach((s) => switch (phase) {
       .preEntities => s._doPreUpdate(dt),
       .postEntities => s._doPostUpdate(dt),
     });
 
   /// Calls the draw hook on every system for the given [phase].
   void _runDrawSystems(SystemPhase phase, double dt) 
-    => getSystems().forEach((s) => switch (phase) {
+    => _systems.forEach((s) => switch (phase) {
       .preEntities => s._doOnPreDraw(dt),
       .postEntities => s._doOnPostDraw(dt),
     });
@@ -410,7 +399,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
       if (event.origin == self) {
         _doOnEvent(event);
 
-        for (final s in getSystems()) {
+        for (final s in _systems) {
           if (event.isStopped) return true;
           s._propagate(event);
         }
@@ -425,7 +414,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
     if (event.scope != .local) {
       _doOnEvent(event);
 
-      for (final s in getSystems()) {
+      for (final s in _systems) {
         if (event.isStopped) return true;
         s._propagate(event);
       }
@@ -438,7 +427,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
       event.scope != .globalNoEntities &&
       event.scope != .local
     ) {
-      for (final entity in getEntities()) {
+      for (final entity in _entities) {
         if (event.isStopped) return true;
         entity._propagate(event);
       }
@@ -449,20 +438,10 @@ class Scene<T extends App<T>> extends ECSBase<T> with
     return event.origin != self;
   }
 
-  /// Drains and executes all pending callbacks, then clears the queue.
-  bool _processCallbacks() {
-    bool didSomething = false;
-    while (_callbackQueue.isNotEmpty) {
-      _callbackQueue.removeAt(0)();
-      didSomething = true;
-    }
-    return didSomething;
-  }
-
   @override
   void _doOnDispose() {
-    getEntities().forEach((s) => s._doOnDispose());
-    getSystems().forEach((s) => s._doOnDispose());
+    _entities.forEach((s) => s._doOnDispose());
+    _systems.forEach((s) => s._doOnDispose());
     super._doOnDispose();
   }
 }
