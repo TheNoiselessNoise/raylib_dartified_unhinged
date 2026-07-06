@@ -2981,7 +2981,7 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
   /// Null = keep forever.
   double? get eventHistoryRetention => 10.0;
 
-  ECSBase<T> get _eventHolderRoot => app;
+  IsAnyEventHistoryHolder<T> get _eventHolderRoot => app;
 
   @override
   void _doOnEvent(Event<T> event) {
@@ -3015,7 +3015,7 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
     // try to record to app
     // due to event's scope, it will probably never reach the root
     // so that's why we do it here explicitly
-    app._tryToRecordEvent(event);
+    _eventHolderRoot._tryToRecordEvent(event);
   }
 
   void _pruneEventHistory() {
