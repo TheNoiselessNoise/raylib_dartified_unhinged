@@ -374,7 +374,7 @@ abstract class Cloner<T extends App<T>> {
 
   /// Whether [entity] should be included in the clone.
   bool allowEntity(IsEntityManagable<T, ECSBase<T>, Entity<T>> owner, Entity<T> entity)
-    => allow(.entity, payload: entity);
+    => allow(.entity, owner: owner, payload: entity);
 
   /// Whether [comp] should be included in the clone of [owner].
   bool allowComp(IsComponentManagable<T, ECSBase<T>> owner, Comp<T> comp)
