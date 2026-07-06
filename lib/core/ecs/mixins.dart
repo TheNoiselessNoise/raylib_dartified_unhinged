@@ -2719,7 +2719,7 @@ mixin IsEntityManagable<T extends App<T>, E extends ECSBase<T>, I extends Entity
     // remove entity components
     // NOTE: toList() is important
     entity._components.toList().forEach(
-      (c) => entity.removeCompByType(c.runtimeType)
+      (c) => entity._removeComponentInstance(c)
     );
 
     entity._doRemove();
