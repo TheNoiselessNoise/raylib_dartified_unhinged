@@ -1,76 +1,85 @@
 // Run it: dart run test_tasks.dart
 import '_base.dart';
 
-class MessagesWidget extends ExampleMessagesWidget<G> {
-  MessagesWidget(super.app);
-
-  @override
-  get header => FSized(app,
-    heightMode: .flexible,
-    widthMode: .flexible,
-    child: FRow(app,
-      gap: 8,
-      children: [
-        FLabel(app, fontSize: 14, text: 'SPACE = Delayed Task, ENTER = Duration Task, C = Clear Messages'),
-      ],
-    ),
-  );
-
-  @override
-  void addMessage(String message, {bool? isValid}) => setState(() {
-    super.addMessage(message, isValid: isValid);
-  });
-
-  @override
-  void clear() => setState(() => super.clear());
-}
-
 class TestTasksScene extends FWidgetScene<G> {
-  late MessagesWidget messagesWidget;
+  late ExampleMessagesWidget<G> messagesWidget;
 
   TestTasksScene(super.app) {
-    addEntity(messagesWidget = MessagesWidget(app));
+    addEntity(FPadding.LTRB(app, 0, 50, 0, 0,
+      child: messagesWidget = .new(app),
+    ));
+  }
+
+  void addMessage(String message) {
+    print(message);
+    messagesWidget.addMessage(message);
+    messagesWidget.rebuild();
+  }
+
+  void clearMessages() {
+    messagesWidget.clear();
+    messagesWidget.rebuild();
   }
 
   @override
+  void onDrawBackground() => draw.text
+    .fontSize(14)
+    .position(10, 10)
+    .text('[Q]', .ORANGE).text(' = Delayed Task')
+    .gap(8)
+    .text('[W]', .ORANGE).text(' = Duration Task')
+    .gap(8)
+    .text('[E]', .ORANGE).text(' = Interval Task')
+    .gap(8)
+    .text('[C]', .ORANGE).text('= Clear Messages');
+
+  @override
   void onInput() {
-    if (rl.CoreD.IsKeyPressed(.KEY_SPACE)) {
+    if (rl.CoreD.IsKeyPressed(.KEY_Q)) {
       task(DelayTask(app,
         seconds: .2,
-        action: (_) => messagesWidget.addMessage('DelayTask: Executed!'),
+        action: (_) => addMessage('DelayTask: Executed!'),
       ));
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_ENTER)) {
+    if (rl.CoreD.IsKeyPressed(.KEY_W)) {
       task(DurationTask(app,
         seconds: .2,
-        actionUpdate: (_, dt) => messagesWidget.addMessage('DurationTask: Updating!'),
-        actionFinish: (_) => messagesWidget.addMessage('DurationTask: Finished!'),
+        actionUpdate: (_, dt) => addMessage('DurationTask: Updating!'),
+        actionFinish: (_) => addMessage('DurationTask: Finished!'),
       ));
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_C)) {
-      messagesWidget.clear();
+    if (rl.CoreD.IsKeyPressed(.KEY_E)) {
+      task(IntervalTask(app,
+        remaining: .2,
+        interval: .05,
+        triggerImmediately: true,
+        actionUpdate: (_, dt) => addMessage('IntervalTask: Updating $dt!'),
+        actionFinish: (_) => addMessage('IntervalTask: Finished!'),
+      ));
     }
+
+    if (rl.CoreD.IsKeyPressed(.KEY_C)) clearMessages();
   }
 
   @override
   void onTask(Task<G> task) {
-    messagesWidget.addMessage('onTask: $task');
+    addMessage('onTask: $task');
   }
 
   @override
   void onEvent(Event<G> event) {
     if (event case EventTaskStarting e) {
-      messagesWidget.addMessage('onEvent: Starting task ${e.startingTask}');
+      addMessage('onEvent: Starting task ${e.startingTask}');
     }
 
     if (event case EventTaskCancelled e) {
-      messagesWidget.addMessage('onEvent: Cancelled task ${e.cancelledTask}');
+      addMessage('onEvent: Cancelled task ${e.cancelledTask}');
     }
 
     if (event case EventTaskFinished e) {
-      messagesWidget.addMessage('onEvent: Finished task ${e.finishedTask}');
+      addMessage('onEvent: Finished task ${e.finishedTask}');
     }
   }
 }

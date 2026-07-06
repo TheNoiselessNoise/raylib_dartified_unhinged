@@ -4403,7 +4403,8 @@ mixin IsTaskProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasA
     return self;
   }
 
-  bool _cancelTask(Task<T> task) {
+  bool _doCanceledTask(Task<T> task) {
+    if (!task.isCanceled) return false;
     emit(EventTaskCancelled(app, task));
     return true;
   }
@@ -4414,14 +4415,14 @@ mixin IsTaskProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasA
     final isFirstRun = !task._hasStarted;
     task._hasStarted = true;
     if (isFirstRun) dispatch(EventTaskStarting(app, task));
-    if (task.isCanceled) return _cancelTask(task);
+    if (_doCanceledTask(task)) return true;
     for (final f in _onTaskFns) {
-      if (task.isCanceled) return _cancelTask(task);
+      if (_doCanceledTask(task)) return true;
       f(task);
     }
-    if (task.isCanceled) return _cancelTask(task);
+    if (_doCanceledTask(task)) return true;
     if (isFirstRun) onTask(task);
-    if (task.isCanceled) return _cancelTask(task);
+    if (_doCanceledTask(task)) return true;
     final result = task._doUpdate(dt);
     if (result) emit(EventTaskFinished(app, task));
     return result;
