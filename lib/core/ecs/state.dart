@@ -16,7 +16,9 @@ enum SnapshotExtraPolicy {
   remove,
 }
 
-abstract class StateSnapshot<T extends App<T>, R> {
+typedef AnyStateSnapshot<T extends App<T>> = StateSnapshot<T, ECSBase<T>>;
+
+abstract class StateSnapshot<T extends App<T>, R extends ECSBase<T>> {
   late String sourceId;
 
   StateSnapshot(this.sourceId);
@@ -59,8 +61,8 @@ mixin IsStateHolder<
   
   void restoreSnapshot(S snapshot);
 
-  void _restoreSnapshotList<A extends ECSBase<T>, X extends StateSnapshot<T, A>>({
-    required StateSnapshot<T, ECSBase<T>> originSnapshot,
+  void _restoreSnapshotList<A extends ECSBase<T>, X extends AnyStateSnapshot<T>>({
+    required AnyStateSnapshot<T> originSnapshot,
     required List<A> sourceList,
     required List<X> sourceSnapshots,
     required Function(A) onRecreate,
@@ -79,7 +81,7 @@ mixin IsStateHolder<
             continue;
           case .recreate:
             final created = snapshot.createInstance(app);
-            onRecreate(created);
+            onRecreate(created as A);
             restoredIds.add(created.namedId);
         }
         continue;

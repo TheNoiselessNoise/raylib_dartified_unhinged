@@ -312,7 +312,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   AnyEntitySnapshot<T> createSnapshot() => .new(namedId);  
 
   @override
-  @nonVirtual
+  @mustCallSuper
   AnyEntitySnapshot<T> captureSnapshot() {
     final snapshot = createSnapshot();
     snapshot.componentSnapshots = _components
@@ -510,11 +510,49 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
     // if has neither: propagation system will just skip it
   }
 
+  // clone
+
   @override
   EntityGroup<T, E> createInstance() => .new(app);
+
+  // state
+
+  @override
+  AnyEntityGroupSnapshot<T> createSnapshot() => .new(namedId);  
+
+  @override
+  @nonVirtual
+  AnyEntityGroupSnapshot<T> captureSnapshot() {
+    final entitySnapshot = super.captureSnapshot();
+
+    final snapshot = createSnapshot();
+    snapshot.componentSnapshots = entitySnapshot.componentSnapshots;
+    snapshot.entitySnapshots = _entities
+      .map((c) => c.captureSnapshot())
+      .toList();
+
+    return snapshot;
+  }
+
+  @override
+  @mustCallSuper
+  void restoreSnapshot(covariant AnyEntityGroupSnapshot<T> snapshot) {
+    super.restoreSnapshot(snapshot);
+
+    _restoreSnapshotList(
+      originSnapshot: snapshot,
+      sourceList: _entities.toList(),
+      sourceSnapshots: snapshot.entitySnapshots,
+      onRecreate: (x) => addEntity(x),
+      onRestore: (x, s) => x.restoreSnapshot(s),
+      onRemove: removeEntity,
+    );
+  }
 }
 
-abstract class EntityGroupSnapshot<T extends App<T>, E extends AnyEntityGroup<T>> extends StateSnapshot<T, E> {
+typedef AnyEntityGroupSnapshot<T extends App<T>> = EntityGroupSnapshot<T, AnyEntityGroup<T>>;
+
+class EntityGroupSnapshot<T extends App<T>, E extends AnyEntityGroup<T>> extends EntitySnapshot<T, E> {
   List<AnyEntitySnapshot<T>> entitySnapshots = [];
 
   EntityGroupSnapshot(super.namedId);
@@ -522,12 +560,13 @@ abstract class EntityGroupSnapshot<T extends App<T>, E extends AnyEntityGroup<T>
   @override
   E createInstance(T app) => AnyEntityGroup<T>(app) as E;
 
-  void assignEntities(T app, E destination) {
+  E assignEntities(T app, E destination) {
     for (final snap in entitySnapshots) {
       destination.addEntity(snap.reconstruct(app));
     }
+    return destination;
   }
 
   @override
-  E reconstruct(T app);
+  E reconstruct(T app) => assignEntities(app, super.reconstruct(app));
 }
