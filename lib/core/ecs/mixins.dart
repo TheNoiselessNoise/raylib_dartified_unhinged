@@ -2991,7 +2991,7 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
 
   void _recordEvent(Event<T> event) {
     if (!_doOnBeforeEventRecorded(event)) return;
-    _eventHistory.add(_TimestampedEvent(event, app.time.timeScaled));
+    _eventHistory.add(.new(event, app.time.timeScaled));
     _pruneEventHistory();
     _doOnEventRecorded(event);
   }
@@ -3012,7 +3012,7 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
 
     // record to ourselves (origin)
     _recordEvent(event);
-    // try to record to app
+    // try to record to root
     // due to event's scope, it will probably never reach the root
     // so that's why we do it here explicitly
     _eventHolderRoot._tryToRecordEvent(event);
@@ -3062,21 +3062,21 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
         }
 
         if (e.scope != .self && e.scope != .local) {
-          // Scene-or-broader scope with a non-emittable origin: App is the
+          // Scene-or-broader scope with a non-emittable origin: Root is the
           // correct re-entry point, propagation still happens normally from here.
-          app.emit(e);
+          _eventHolderRoot.emit(e);
           continue;
         }
 
         // .self/.local scope with a non-emittable origin: there is no valid
         // replay target. The original emitter could propagate from itself
-        // because it WAS the emittable origin; without that, App can't safely
-        // stand in, since App emitting with .self/.local scope means the event
-        // goes no further than App, which is not what the original emit meant.
+        // because it WAS the emittable origin; without that, Root can't safely
+        // stand in, since Root emitting with .self/.local scope means the event
+        // goes no further than Root, which is not what the original emit meant.
         throw StateError(
           'Cannot replay event ${e.runtimeType} (scope: ${e.scope}): origin '
           '$eventOrigin does not implement IsAnyEventEmittable, and scope '
-          '${e.scope} cannot be safely re-emitted from App.',
+          '${e.scope} cannot be safely re-emitted from Root ($_eventHolderRoot).',
         );
       
       } else if (e._wasDispatched) {
@@ -3087,21 +3087,21 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
         }
 
         if (e.scope != .self && e.scope != .local) {
-          // Scene-or-broader scope with a non-emittable origin: App is the
+          // Scene-or-broader scope with a non-emittable origin: Root is the
           // correct re-entry point, propagation still happens normally from here.
-          app.dispatch(e);
+          _eventHolderRoot.dispatch(e);
           continue;
         }
 
         // .self/.local scope with a non-emittable origin: there is no valid
         // replay target. The original emitter could propagate from itself
-        // because it WAS the emittable origin; without that, App can't safely
-        // stand in, since App dispatching with .self/.local scope means the event
-        // goes no further than App, which is not what the original emit meant.
+        // because it WAS the emittable origin; without that, Root can't safely
+        // stand in, since Root dispatching with .self/.local scope means the event
+        // goes no further than Root, which is not what the original emit meant.
         throw StateError(
           'Cannot replay event ${e.runtimeType} (scope: ${e.scope}): origin '
           '$eventOrigin does not implement IsAnyEventEmittable, and scope '
-          '${e.scope} cannot be safely re-emitted from App.',
+          '${e.scope} cannot be safely re-emitted from Root ($_eventHolderRoot).',
         );
       
       } else {
