@@ -305,10 +305,10 @@ enum CloneStateType {
   /// User-defined variables stored on the object ([HasVars]).
   vars,
 
-  /// Event history state. ([IsEventHistoryHolder).
+  /// Event history state. ([IsEventHistoryHolder]).
   eventHistory,
 
-  /// Event queue state. ([IsEventQueueHolder).
+  /// Event queue state. ([IsEventQueueHolder]).
   eventQueue,
 
   /// Callbackl queue state. ([IsCallbackProcessable]).
