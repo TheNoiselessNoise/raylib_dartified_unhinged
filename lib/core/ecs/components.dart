@@ -61,11 +61,7 @@ class Comp<T extends App<T>> extends ECSBase<T> with
 
   /// Returns a fresh [QueryComponentComponent] scoped to this component's direct children.
   ///
-  /// Entry point for the **Query-like DSL** over components:
-  ///
-  /// ```dart
-  /// component.QueryComp.DoFirstWith<CSlot>((c, slot) => ...);
-  /// ```
+  /// Entry point for the **Query-like DSL** over components.
   QueryComponentComponent<T> get QueryComp => .new(app, this);
 
   /// Returns a fresh [QueryComponentComponentDeep] that searches all descendant

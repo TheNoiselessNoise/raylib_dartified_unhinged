@@ -258,11 +258,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
 
   /// Returns a fresh [QueryEntityComponent] scoped to this entity's direct components.
   ///
-  /// Entry point for the **Query-like DSL** over components:
-  ///
-  /// ```dart
-  /// entity.Query.DoFirstWith<CVelocity>((e, v) => ...);
-  /// ```
+  /// Entry point for the **Query-like DSL** over components.
   QueryEntityComponent<T> get QueryComp => .new(app, this);
 
   /// Returns a fresh [QueryEntityComponentDeep] that searches all components
@@ -448,13 +444,7 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
 
   /// Returns a fresh [QueryEntities] scoped to this entity group.
   ///
-  /// Entry point for the **Query-like DSL**:
-  ///
-  /// ```dart
-  ///   .With<Health>()
-  ///   .Except<Dead>()
-  ///   .DoForEachWith<Health>((e, h) => h.regen(dt));
-  /// ```
+  /// Entry point for the **Query-like DSL**.
   QueryEntities<T, EntityGroup<T, E>> get QueryEntity => .new(app, self);
   
   /// Advances the group itself, then advances each member entity.

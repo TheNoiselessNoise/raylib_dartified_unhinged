@@ -209,13 +209,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
 
   /// Returns a fresh [QueryEntity] scoped to this scene.
   ///
-  /// Entry point for the **Query-like DSL**:
-  ///
-  /// ```dart
-  ///   .With<Health>()
-  ///   .Except<Dead>()
-  ///   .DoForEachWith<Health>((e, h) => h.regen(dt));
-  /// ```
+  /// Entry point for the **Query-like DSL**.
   QueryEntities<T, Scene<T>> get QueryEntity => .new(app, self);
 
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
