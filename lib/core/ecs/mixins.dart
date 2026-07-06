@@ -2699,19 +2699,19 @@ mixin IsEntityManagable<T extends App<T>, E extends ECSBase<T>, I extends Entity
   /// the removal and emits [EventEntityRemoveCancelled]. On success, all
   /// components are removed before the entity is detached, and
   /// [EventEntityRemoved] is emitted. Unregistered entities are ignored.
-  void removeEntity(I entity) {
-    if (!entity.isAdded) return;
+  bool removeEntity(I entity) {
+    if (!entity.isAdded) return false;
 
     emit(EventEntityRemoving(app, this, entity));
 
     if (!_doOnBeforeEntityRemove(entity)) {
       emit(EventEntityRemoveCancelled(app, this, entity));
-      return;
+      return false;
     }
 
     if (!entity._doOnBeforeRemove()) {
       emit(EventEntityRemoveCancelled(app, this, entity));
-      return;
+      return false;
     }
 
     _doOnEntityRemove(entity);
@@ -2728,6 +2728,7 @@ mixin IsEntityManagable<T extends App<T>, E extends ECSBase<T>, I extends Entity
     entity._doOnAfterRemove();
     _doOnAfterEntityRemove(entity);
     emit(EventEntityRemoved(app, this, entity));
+    return true;
   }
 
   /// Calls `_doUpdate` on every entity in the scene.
