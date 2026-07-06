@@ -2133,7 +2133,7 @@ mixin IsComponentManagable<T extends App<T>, E extends ECSBase<T>> on
     bool replaceComponents = true,
   }) {
     _components.forEach((childComp) {
-      if (!(cloner?.allowComp(into, childComp) ?? true)) return;
+      if (!(cloner?.allowComp(into, childComp) ?? false)) return;
 
       _doCloneComp(
         to: into,

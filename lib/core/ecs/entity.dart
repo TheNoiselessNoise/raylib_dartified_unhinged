@@ -277,7 +277,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
     emit(EventEntityCloning(app, self, copy));
 
     _components.forEach((comp) {
-      if (!(cloner?.allowComp(copy, comp) ?? true)) return;
+      if (!(cloner?.allowComp(copy, comp) ?? false)) return;
 
       _doCloneComp(
         to: copy,
@@ -387,7 +387,7 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   Bounds? get bounds {
     Bounds? result;
 
-    for (final entity in getEntities()) {
+    for (final entity in _entities) {
       final b = entity.bounds;
       if (b == null) continue;
 
@@ -404,7 +404,7 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
 
   @override
   void _doRemove() {
-    getEntities().toList().forEach(removeEntity);
+    _entities.toList().forEach(removeEntity);
     super._doRemove();
   }
 
@@ -421,8 +421,8 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
 
     _doOnCloneEntityStart(copy, cloner);
 
-    getEntities().forEach((e) {
-      if (!(cloner?.allowEntity(copy, e) ?? true)) return;
+    _entities.forEach((e) {
+      if (!(cloner?.allowEntity(copy, e) ?? false)) return;
       copy.addEntity(e.clone(cloner));
     });
   }
@@ -472,7 +472,7 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   void _doOnEvent(Event<T> event) {
     super._doOnEvent(event);
     if (event.isStopped) return;
-    getEntities().forEach((e) => e._doOnEvent(event));
+    _entities.forEach((e) => e._doOnEvent(event));
   }
 
   @override

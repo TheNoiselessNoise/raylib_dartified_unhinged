@@ -414,12 +414,12 @@ class App<T extends App<T>> extends ECSBase<T> with
     _doOnEvent(EventAppCloning(self, self, copy));
 
     _scenes.forEach((s) {
-      if (!(cloner?.allowScene(copy, s) ?? true)) return;
+      if (!(cloner?.allowScene(copy, s) ?? false)) return;
       copy.addScene(s.clone(cloner?.sceneCloner));
     });
 
     _systems.forEach((s) {
-      if (!(cloner?.allowAppSystem(copy, s) ?? true)) return;
+      if (!(cloner?.allowAppSystem(copy, s) ?? false)) return;
       copy.addSystem(s.clone(cloner?.systemCloner));
     });
 
