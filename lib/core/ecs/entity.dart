@@ -283,7 +283,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
     emit(EventEntityCloning(app, self, copy));
 
     _components.forEach((comp) {
-      if (!(cloner?.allowComp(copy, comp) ?? false)) return;
+      if (!(cloner?.allowComp(copy, comp) ?? true)) return;
 
       _doCloneComp(
         to: copy,
@@ -428,7 +428,7 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
     _doOnCloneEntityStart(copy, cloner);
 
     _entities.forEach((e) {
-      if (!(cloner?.allowEntity(copy, e) ?? false)) return;
+      if (!(cloner?.allowEntity(copy, e) ?? true)) return;
       copy.addEntity(e.clone(cloner));
     });
   }

@@ -138,12 +138,12 @@ class Scene<T extends App<T>> extends ECSBase<T> with
     emit(EventSceneCloning(app, self, copy));
 
     _entities.forEach((e) {
-      if (!(cloner?.allowEntity(copy, e) ?? false)) return;
+      if (!(cloner?.allowEntity(copy, e) ?? true)) return;
       copy.addEntity(e.clone(cloner?.entityCloner));
     });
 
     _systems.forEach((s) {
-      if (!(cloner?.allowSceneSystem(copy, s) ?? false)) return;
+      if (!(cloner?.allowSceneSystem(copy, s) ?? true)) return;
       copy.addSystem(s.clone(cloner?.systemCloner));
     });
 

@@ -119,7 +119,7 @@ class Comp<T extends App<T>> extends ECSBase<T> with
     emit(EventCompCloning(app, self, copy));
 
     _components.forEach((childComp) {
-      if (!(cloner?.allowComp(copy, childComp) ?? false)) return;
+      if (!(cloner?.allowComp(copy, childComp) ?? true)) return;
 
       _doCloneComp(
         to: copy,
