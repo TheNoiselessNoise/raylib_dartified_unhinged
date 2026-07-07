@@ -2015,13 +2015,14 @@ mixin IsComponentManagable<T extends App<T>, E extends ECSBase<T>> on
 
     _doOnCompRemove(component);
 
+    component._doRemove();
+
     // remove nested components
     // NOTE: toList() is important
     component._components.toList().forEach(
       (c) => component._removeComponentInstance(c)
     );
-
-    component._doRemove();
+    
     _components.remove(component);
 
     component._doOnAfterRemove();
@@ -2716,13 +2717,14 @@ mixin IsEntityManagable<T extends App<T>, E extends ECSBase<T>, I extends Entity
 
     _doOnEntityRemove(entity);
 
+    entity._doRemove();
+
     // remove entity components
     // NOTE: toList() is important
     entity._components.toList().forEach(
       (c) => entity._removeComponentInstance(c)
     );
 
-    entity._doRemove();
     _entities.remove(entity);
 
     entity._doOnAfterRemove();

@@ -35,7 +35,7 @@ abstract class CColliderSnapshot<T extends App<T>, C extends CCollider<T>> exten
 
   CColliderSnapshot(super.namedId);
 
-  void _setSnapshotState(C source) {
+  void _setColliderStateFrom(C source) {
     tag = source.tag;
     enableCollision = source.enableCollision;
     debugDraw = source.debugDraw;
@@ -43,7 +43,7 @@ abstract class CColliderSnapshot<T extends App<T>, C extends CCollider<T>> exten
     debugColor = source.debugColor;
   }
 
-  void _setCompState(C destination) {
+  void _setColliderStateTo(C destination) {
     destination.tag = tag;
     destination.enableCollision = enableCollision;
     destination.debugDraw = debugDraw;
@@ -123,7 +123,7 @@ class CCircleCollider<T extends App<T>> extends CCollider<T> {
   @override
   CCircleColliderSnapshot<T> createSnapshot() {
     final snapshot = CCircleColliderSnapshot<T>(namedId);
-    snapshot._setSnapshotState(this);
+    snapshot._setColliderStateFrom(this);
     snapshot.radius = radius;
     snapshot.center = center.copy();
     return snapshot;
@@ -134,7 +134,7 @@ class CCircleCollider<T extends App<T>> extends CCollider<T> {
   void restoreSnapshot(covariant CCircleColliderSnapshot<T> snapshot) {
     super.restoreSnapshot(snapshot);
     
-    snapshot._setCompState(this);
+    snapshot._setColliderStateTo(this);
     radius = snapshot.radius;
     center = snapshot.center.copy();
   }
@@ -243,7 +243,7 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
   @override
   CRectColliderSnapshot<T> createSnapshot() {
     final snapshot = CRectColliderSnapshot<T>(namedId);
-    snapshot._setSnapshotState(this);
+    snapshot._setColliderStateFrom(this);
     snapshot.size = size?.copy();
     snapshot.rect = rect.copy();
     snapshot.enableRotation = enableRotation;
@@ -255,7 +255,7 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
   void restoreSnapshot(covariant CRectColliderSnapshot<T> snapshot) {
     super.restoreSnapshot(snapshot);
     
-    snapshot._setCompState(this);
+    snapshot._setColliderStateTo(this);
     size = snapshot.size?.copy();
     rect = snapshot.rect.copy();
     enableRotation = snapshot.enableRotation;

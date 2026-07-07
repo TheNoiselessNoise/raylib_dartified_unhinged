@@ -323,32 +323,34 @@ abstract class QueryComponentManagable<
   /// **[Query-like]** Returns the first matching element. Throws if none exist.
   E get First => _resolve().first;
 
-  /// **[Query-like]** Returns the first matching element cast to [X]. Throws
-  /// if none exist or if the element is not a [X].
-  X FirstAs<X extends E>() => _resolve().first as X;
-
-  /// **[Query-like]** Returns the last matching element. Throws if none exist.
-  E get Last => _resolve().last;
-
-  /// **[Query-like]** Returns the last matching element cast to [X]. Throws
-  /// if none exist or if the element is not a [X].
-  X LastAs<X extends E>() => _resolve().last as X;
-
-  /// **[Query-like]** Returns the first matching element, or `null` if the
+    /// **[Query-like]** Returns the first matching element, or `null` if the
   /// result set is empty.
   E? get FirstOrNull => _resolve().firstOrNull;
 
-  /// **[Query-like]** Returns the first matching element cast to [X], or
-  /// `null` if the result set is empty. Throws if the element is not a [X].
-  X? FirstOrNullAs<X extends E>() => _resolve().firstOrNull as X?;
+  /// **[Query-like]** Returns the first element of type [X], skipping any
+  /// non-matching elements. Throws a [StateError] if no element of type
+  /// [X] exists.
+  X FirstAs<X extends E>() => _resolve().whereType<X>().first;
+
+  /// **[Query-like]** Returns the first element of type [X], skipping any
+  /// non-matching elements, or `null` if none exists.
+  X? FirstAsOrNull<X extends E>() => _resolve().whereType<X>().firstOrNull;
+
+  /// **[Query-like]** Returns the last matching element. Throws if none exist.
+  E get Last => _resolve().last;
 
   /// **[Query-like]** Returns the last matching element, or `null` if the
   /// result set is empty.
   E? get LastOrNull => _resolve().lastOrNull;
 
-  /// **[Query-like]** Returns the last matching element cast to [X], or
-  /// `null` if the result set is empty. Throws if the element is not a [X].
-  X? LastOrNullAs<X extends E>() => _resolve().lastOrNull as X?;
+  /// **[Query-like]** Returns the last element of type [X], skipping any
+  /// non-matching elements. Throws a [StateError] if no element of type
+  /// [X] exists.
+  X LastAs<X extends E>() => _resolve().whereType<X>().last;
+
+  /// **[Query-like]** Returns the last element of type [X], skipping any
+  /// non-matching elements, or `null` if none exists.
+  X? LastAsOrNull<X extends E>() => _resolve().whereType<X>().lastOrNull;
 
   /// **[Query-like]** Returns the number of matching elements.
   int get Count => _resolve().length;

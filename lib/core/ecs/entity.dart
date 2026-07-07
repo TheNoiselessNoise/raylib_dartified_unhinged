@@ -179,6 +179,12 @@ class Entity<T extends App<T>> extends ECSBase<T> with
     return null;
   }
 
+  Entity<T> onBounds(void Function(Bounds bounds) fn) {
+    final bounds = this.bounds;
+    if (bounds != null) fn(bounds);
+    return self;
+  }
+
   CTransform<T>? get transform => get<CTransform<T>>();
   Entity<T> onTransform(void Function(CTransform<T> t) fn) => on<CTransform<T>>(fn);
 
@@ -404,8 +410,8 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
 
   @override
   void _doRemove() {
-    _entities.toList().forEach(removeEntity);
     super._doRemove();
+    _entities.toList().forEach(removeEntity);
   }
 
   //   ░██████  ░██           ░██████   ░███    ░██ ░██████████ 
