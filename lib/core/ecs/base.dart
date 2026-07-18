@@ -24,10 +24,10 @@ abstract class ECSBase<T extends App<T>> with HasAppAccess<T> {
   late final String _namedId;
 
   /// Per-type unique String identifier, auto-assigned in the constructor.
-  /// Defaults to `RuntimeType_id`.
+  /// Defaults to `<runtimeType>_<id>`.
   String get namedId => _namedId;
 
-  /// Human-readable name, defaults to `RuntimeType_id`.
+  /// Human-readable name, defaults to `<runtimeType>_<id>`.
   late String name;
 
   /// Returns a key namespaced to this object's [namedId].
@@ -144,6 +144,9 @@ class Bounds {
 
   double get width => (right - left).abs();
   double get height => (bottom - top).abs();
+
+  double get hCenter => left + (width / 2);
+  double get vCenter => top + (height / 2);
 
   factory Bounds.zero() => .new(0, 0, 0, 0);
 

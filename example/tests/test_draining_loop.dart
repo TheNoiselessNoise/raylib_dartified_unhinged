@@ -20,7 +20,7 @@ class MySecondEvent extends Event<G> with IsSourcedEvent {
 extension on HasAppAccess<G> {
   TestDrainingLoopScene get mainScene => app.getScene()!;
   void addMessage(String message, {bool? isValid}) => mainScene.messagesWidget.addMessage(message, isValid: isValid);
-  void rebuildWidget() => mainScene.messagesWidget.rebuild();
+  void rebuildMessages() => mainScene.messagesWidget.rebuild();
 }
 
 class TestDrainingLoopScene extends DrawScene<G> {
@@ -48,7 +48,7 @@ class TestDrainingLoopApp extends ExampleRaylibApp<G> {
 
   void printEvent(IsSourcedEvent event) {
     addMessage('$event at frame ${time.frameCount} from ${event.source}');
-    rebuildWidget();
+    rebuildMessages();
   }
 
   @override

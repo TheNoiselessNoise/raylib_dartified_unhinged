@@ -125,13 +125,13 @@ class TestEventsScene extends FWidgetScene<G> {
       .entity2 => entity2,
     };
 
-    final originEvents = origin.getEvents();
+    final originEvents = origin.getRecordedEvents();
     addMessage('Origin (${selectedType.name}) has ${originEvents.length} events recorded.');
     for (final (i, e) in originEvents.indexed) {
       addMessage('${i+1}) $e');
     }
 
-    final rootEvents = app.getEvents(origin: all ? null : origin);
+    final rootEvents = app.getRecordedEvents(origin: all ? null : origin);
     final originStr = all ? '' : ' (origin: ${selectedType.name})';
     addMessage('Root$originStr has ${rootEvents.length} events recorded.');
     for (final (i, e) in rootEvents.indexed) {
@@ -188,7 +188,7 @@ class TestEventsScene extends FWidgetScene<G> {
     }
 
     if (rl.CoreD.IsKeyPressed(.KEY_E)) {
-      entity2.replayEvents();
+      entity2.replayRecordedEvents();
     }
   }
 }

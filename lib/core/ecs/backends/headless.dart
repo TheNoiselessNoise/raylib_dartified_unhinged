@@ -128,7 +128,10 @@ class HeadlessBackend extends UnhingedBackend {
     input: HeadlessInputBackend(),
     collision: HeadlessCollisionBackend(),
     assets: HeadlessAssetManager(),
-  );
+  ) {
+    RaylibVector2Factories.zeroFactory = Vector2D.zero;
+    RaylibVector2Factories.createFactory = Vector2D.vec2;
+  }
 
   @override
   double getFrameTime() => 1;

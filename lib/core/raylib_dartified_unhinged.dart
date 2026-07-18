@@ -85,7 +85,10 @@ part 'ecs/tasks.dart';
 extension StableSortExtension<T> on List<T> {
   List<T> sortedBy<K extends Comparable<K>>(K Function(T) key) {
     final indexed = asMap().entries.toList();
-    indexed.sort((a, b) => key(a.value).compareTo(key(b.value)));
+    indexed.sort((a, b) {
+      final cmp = key(a.value).compareTo(key(b.value));
+      return cmp != 0 ? cmp : a.key.compareTo(b.key);
+    });
     return indexed.map((e) => e.value).toList();
   }
 }

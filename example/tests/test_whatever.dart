@@ -21,20 +21,34 @@ class CHealth extends Comp<G> {
   }
 }
 
+class _DamagePopup {
+  _DamagePopup(this.amount);
+  final int amount;
+  double age = 0;
+}
+
 class CHealthBar extends Comp<G> {
   CHealthBar(super.app, {
     this.width = 50,
     this.height = 6,
     this.offsetY = 12,
-    this.lerpSpeed = 6.0, // higher = snappier, lower = smoother/slower
+    this.lerpSpeed = 6.0,
+    this.popupDuration = 0.9,   // total lifetime, seconds
+    this.popupRise = 24.0,      // total distance floated upward
+    this.popupFontSize = 14,
   });
 
   final double width;
   final double height;
   final double offsetY;
   final double lerpSpeed;
+  final double popupDuration;
+  final double popupRise;
+  final int popupFontSize;
 
   double? _displayHealth;
+  int? _lastHealth;
+  final List<_DamagePopup> _popups = [];
 
   @override
   void onUpdate(double dt) {
@@ -42,16 +56,28 @@ class CHealthBar extends Comp<G> {
     if (health == null) return;
 
     _displayHealth ??= health.currentHealth.toDouble();
+    _lastHealth ??= health.currentHealth;
+
+    // Detect damage taken since last frame.
+    final delta = _lastHealth! - health.currentHealth;
+    if (delta > 0) {
+      _popups.add(_DamagePopup(delta));
+    }
+    _lastHealth = health.currentHealth;
 
     final target = health.currentHealth.toDouble();
     final diff = target - _displayHealth!;
-
-    // snap when close enough to avoid infinite asymptotic creep
     if (diff.abs() < 0.5) {
       _displayHealth = target;
     } else {
       _displayHealth = _displayHealth! + diff * (1 - math.exp(-lerpSpeed * dt));
     }
+
+    // Age popups, drop the dead ones.
+    for (final p in _popups) {
+      p.age += dt;
+    }
+    _popups.removeWhere((p) => p.age >= popupDuration);
   }
 
   @override
@@ -62,12 +88,24 @@ class CHealthBar extends Comp<G> {
     final shown = _displayHealth ?? health.currentHealth;
     final ratio = (shown / health.maxHealth).clamp(0.0, 1.0);
 
-    rl.CoreD.DrawRectangle(
-      b.left, b.top - offsetY, width, height, .DARKGRAY,
-    );
-    rl.CoreD.DrawRectangle(
-      b.left, b.top - offsetY, width * ratio, height, .GREEN,
-    );
+    rl.CoreD.DrawRectangle(b.left, b.top - offsetY, width, height, .DARKGRAY);
+    rl.CoreD.DrawRectangle(b.left, b.top - offsetY, width * ratio, height, .GREEN);
+
+    for (final p in _popups) {
+      final t = (p.age / popupDuration).clamp(0.0, 1.0);
+
+      // ease-out rise: fast at first, settles near the top
+      final rise = popupRise * (1 - math.pow(1 - t, 2));
+      // fade in fast, hold, fade out over the last third
+      final alpha = t < 0.85 ? 1.0 : (1.0 - t) / 0.15;
+
+      draw.text
+        .fontSize(popupFontSize)
+        .position(b.left + width / 2, b.top - offsetY - rise)
+        .sentence()
+          .text('-${p.amount}', rl.CoreD.Fade(.RED, alpha))
+        .flush(halign: .center, valign: .bottom);
+    }
   });
 }
 
@@ -131,6 +169,8 @@ class Bullet extends Entity<G> {
   static const double _travelDuration = 0.6;
   static const double _wobbleAmplitude = 40;
 
+  int damage = 0;
+
   Vector2D? _start;
   double _elapsed = 0;
 
@@ -168,7 +208,9 @@ class Entity1 extends Entity<G> {
     addComp(CTransform(app, position: ENTITY_SIZE.copy()));
     addComp(CMoveUpDown(app)); // it's here, because `update` is in insertion order
     addComp(CRectCollider(app, tag: TAG_ENTITY1, size: ENTITY_SIZE.copy(), debugColor: .RED, debugDraw: true));
-    addComp(CParticleEmitter(app, rate: 0, factory: (_) => Bullet(app)..addComp(transform!.clone())));
+    addComp(CParticleEmitter<G, Bullet>(app, rate: 0, factory: () =>
+      Bullet(app)..addComp(transform!.clone())
+    ));
   }
 }
 
@@ -191,42 +233,27 @@ class CMoveUpDown extends Comp<G> {
 }
 
 class Entity2 extends Entity<G> {
-  late AnyEntitySnapshot<G> _snapshot;
-
   Entity2(super.app) {
     // BOTTOM-RIGHT CORNER
     addComp(CTransform(app, position: sceneSize.sub(ENTITY_SIZE)));
     addComp(CMoveUpDown(app)..setActive(false)); // it's here, because `update` is in insertion order
     addComp(CRectCollider(app, tag: TAG_ENTITY2, size: ENTITY_SIZE.copy(), debugColor: .GREEN, debugDraw: true));
     addComp(CHealth(app, maxHealth: 100)..onZero = () {
-      get<CMoveUpDown>()?.setActive(false);
+      disableEverything();
       addComp(CDeathAnim(app));
     });
     addComp(CHealthBar(app));
-    _snapshot = captureSnapshot();
   }
 
   @override
   void onAdd(ECSBase<G> parent) => get<CMoveUpDown>()?.setActive(true);
 
-  // NOTE: required, so `createSnapshot` => `Snapshot.createInstance` => `Entity2` type
-  @override
-  Entity2Snapshot createSnapshot() => .new(namedId);
-
   @override
   void onRemove() {
-    final newSelf = _snapshot.reconstruct(app);
+    final newSelf = Entity2(app);
     newSelf.transform!.position = transform!.position.copy();
     command(AddEntityCommand(app, newSelf));
   }
-}
-
-// NOTE: required, so `createSnapshot` => `Snapshot.createInstance` => `Entity2` type
-class Entity2Snapshot extends AnyEntitySnapshot<G> {
-  Entity2Snapshot(super.app);
-
-  @override
-  Entity2 createInstance(G app) => .new(app);
 }
 
 class WhateverCollisionSystem extends CollisionResolverSystem<G> {
@@ -243,7 +270,7 @@ class WhateverCollisionSystem extends CollisionResolverSystem<G> {
     if (bulletEntity2 == null) return;
     final (bullet, entity2) = bulletEntity2;
 
-    entity2.get<CHealth>()?.damage(10);
+    entity2.get<CHealth>()?.damage(bullet.damage);
     command(AddEntityCommand(app, BulletExplosion(bullet.app, bullet.worldPosition)));
     bullet.removeThis();
   }
@@ -252,6 +279,8 @@ class WhateverCollisionSystem extends CollisionResolverSystem<G> {
 class TestWhateverScene extends FWidgetScene<G> {
   TestWhateverScene(super.app);
 
+  int bulletDamage = 10;
+
   @override
   void onStart() {
     addSystem(WhateverCollisionSystem(app));
@@ -259,12 +288,12 @@ class TestWhateverScene extends FWidgetScene<G> {
     addEntity(Entity2(app));
 
     task(IntervalTask(app,
-      interval: 1,
+      interval: 0.5,
       actionUpdate: (_, _) {
         QueryEntity
           .FirstAs<Entity1>()
-          .get<CParticleEmitter<G>>()
-          ?.spawn(count: 1);
+          .get<CParticleEmitter<G, Bullet>>()
+          ?.spawn(count: 1, transform: (b) => b.damage = bulletDamage);
       }
     ));
   }
@@ -276,6 +305,27 @@ class TestWhateverScene extends FWidgetScene<G> {
       rl.CoreD.DrawText('$i) ${e.namedId}', 150, y, 20, .WHITE);
       y += 20;
     }
+
+    draw.text
+      .fontSize(64)
+      .position(screenWidth / 2, screenHeight / 2)
+      .align(.center, .middle)
+      .text('$bulletDamage', .GOLD..a = 100);
+  }
+
+  @override
+  void onInput() {
+    final mouseDelta = rl.CoreD.GetMouseWheelMoveV();
+
+    int up = 0;
+    if (rl.CoreD.IsKeyDown(.KEY_W) && time.frameCount % 20 == 0) up = 1;
+    if (mouseDelta.y > 0) up = (mouseDelta.y * 2).toInt();
+    bulletDamage += up;
+    
+    int down = 0;
+    if (rl.CoreD.IsKeyDown(.KEY_S) && time.frameCount % 20 == 0) down = 1;
+    if (mouseDelta.y < 0) down = -(mouseDelta.y * 2).toInt();
+    bulletDamage -= down;
   }
 }
 

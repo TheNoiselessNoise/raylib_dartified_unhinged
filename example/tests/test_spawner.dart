@@ -19,11 +19,11 @@ class BallEntity extends Entity<G> {
 class SpawnerEntity extends Entity<G> {
   SpawnerEntity(super.app) {
     addComp(CTransform(app, position: screenSize.divideBy(2)));
-    addComp(CParticleEmitter(app, rate: 20, factory: createBall));
+    addComp(CAnyParticleEmitter(app, rate: 20, factory: createBall));
     addComp(CCircleCollider(app, tag: 'spawner', radius: 8, debugDraw: true));
   }
 
-  BallEntity createBall(Scene<G> scene) {
+  BallEntity createBall() {
     final BallEntity ball = .new(app);
 
     // set the position to this spawner entity
@@ -52,7 +52,7 @@ class TestSpawnerScene extends DrawScene<G> {
   void onInput() {
     if (rl.CoreD.IsKeyPressed(.KEY_SPACE)) {
       QueryEntity.DoFirst<SpawnerEntity>((s) {
-        s.get<CParticleEmitter<G>>()!.toggleActive();
+        s.get<CAnyParticleEmitter<G>>()!.toggleActive();
       });
     }
   }

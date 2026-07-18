@@ -7,21 +7,38 @@ abstract class BaseDrawer<T extends App<T>> with HasAppAccess<T> {
   BaseDrawer(this.app);
 }
 
+enum TextDrawerHAlign { left, center, right }
+enum TextDrawerVAlign { top, middle, bottom }
+
 class TextDrawer<T extends App<T>> extends BaseDrawer<T> {
   TextDrawer(super.app) { _recalc(); }
 
   double _startX = 0;
   double _x = 0;
   double _y = 0;
+  TextDrawerHAlign _halign = .left;
+  TextDrawerVAlign _valign = .top;
 
   int _fontSize = 20;
   late double _lineHeight;
   late double _wordSpacing;
 
-  TextDrawer position(double x, double y) {
-    _startX = x;
-    _x = x;
-    _y = y;
+  SentenceDrawer<T> sentence() => .new(this);
+
+  TextDrawer align(TextDrawerHAlign halign, TextDrawerVAlign valign) {
+    _halign = halign;
+    _valign = valign;
+    return this;
+  }
+
+  TextDrawer valign(TextDrawerVAlign align) => this.align(_halign, align);
+  
+  TextDrawer halign(TextDrawerHAlign align) => this.align(align, _valign);
+
+  TextDrawer position(num x, num y) {
+    _startX = x.toDouble();
+    _x = x.toDouble();
+    _y = y.toDouble();
     return this;
   }
 
@@ -37,35 +54,52 @@ class TextDrawer<T extends App<T>> extends BaseDrawer<T> {
     }
   }
 
-  TextDrawer fontSize(int fontSize) {
-    _fontSize = fontSize;
+  TextDrawer fontSize(num fontSize) {
+    _fontSize = fontSize.toInt();
     _recalc();
     return this;
   }
 
-  TextDrawer lineHeight(double lineHeight) {
-    _lineHeight = lineHeight;
+  TextDrawer lineHeight(num lineHeight) {
+    _lineHeight = lineHeight.toDouble();
     _recalc(lineHeight: false);
     return this;
   }
 
-  TextDrawer wordSpacing(double wordSpacing) {
-    _wordSpacing = wordSpacing;
+  TextDrawer wordSpacing(num wordSpacing) {
+    _wordSpacing = wordSpacing.toDouble();
     _recalc(wordSpacing: false);
     return this;
   }
 
   /// Draws [content] at the current cursor and advances horizontally.
   TextDrawer text(String content, [ColorD? color]) {
-    backend.render.drawText(content, _x.toInt(), _y.toInt(), _fontSize, color ?? .WHITE);
     final width = backend.render.measureText(content, _fontSize);
-    _x += width + _wordSpacing;
+
+    final drawX = switch (_halign) {
+      .left => _x,
+      .center => _x - width / 2,
+      .right => _x - width,
+    };
+
+    final drawY = switch (_valign) {
+      .top => _y,
+      .middle => _y - _fontSize / 2,
+      .bottom => _y - _fontSize,
+    };
+
+    backend.render.drawText(content, drawX, drawY, _fontSize, color ?? .WHITE);
+
+    if (_halign == .left) {
+      _x += width + _wordSpacing;
+    }
+
     return this;
   }
 
   /// Adds extra horizontal gap without drawing anything.
-  TextDrawer gap([double? amount]) {
-    _x += amount ?? _wordSpacing;
+  TextDrawer gap([num? amount]) {
+    _x += amount?.toDouble() ?? _wordSpacing;
     return this;
   }
 
@@ -77,10 +111,80 @@ class TextDrawer<T extends App<T>> extends BaseDrawer<T> {
   }
 
   /// Jump the cursor to an arbitrary position (e.g. start of a new block).
-  TextDrawer at(double x, double y) {
-    _x = x;
-    _y = y;
+  TextDrawer at(num x, num y) {
+    _x = x.toDouble();
+    _y = y.toDouble();
     return this;
+  }
+}
+
+sealed class _Segment {}
+
+class _TextSegment extends _Segment {
+  _TextSegment(this.content, this.color, this.width);
+  final String content;
+  final ColorD? color;
+  final int width;
+}
+
+class _GapSegment extends _Segment {
+  _GapSegment(this.width);
+  final double width;
+}
+
+class SentenceDrawer<T extends App<T>> {
+  SentenceDrawer(this._parent);
+
+  final TextDrawer<T> _parent;
+  final List<_Segment> _segments = [];
+  double _totalWidth = 0;
+
+  SentenceDrawer<T> text(String content, [ColorD? color]) {
+    final width = _parent.backend.render.measureText(content, _parent._fontSize);
+    _segments.add(_TextSegment(content, color, width));
+    _totalWidth += width;
+    return this;
+  }
+
+  SentenceDrawer<T> gap([double? amount]) {
+    final width = amount ?? _parent._wordSpacing;
+    _segments.add(_GapSegment(width));
+    _totalWidth += width;
+    return this;
+  }
+
+  /// Draws the buffered segments aligned relative to the parent's
+  /// current cursor, then advances the parent past the sentence.
+  TextDrawer<T> flush({
+    TextDrawerHAlign halign = .left,
+    TextDrawerVAlign valign = .top,
+  }) {
+    final startX = switch (halign) {
+      .left => _parent._x,
+      .center => _parent._x - _totalWidth / 2,
+      .right => _parent._x - _totalWidth,
+    };
+
+    final drawY = switch (valign) {
+      .top => _parent._y,
+      .middle => _parent._y - _parent._fontSize / 2,
+      .bottom => _parent._y - _parent._fontSize,
+    };
+
+    var x = startX;
+    for (final seg in _segments) {
+      if (seg is _TextSegment) {
+        _parent.backend.render.drawText(
+          seg.content, x, drawY, _parent._fontSize, seg.color ?? .WHITE,
+        );
+        x += seg.width;
+      } else if (seg is _GapSegment) {
+        x += seg.width;
+      }
+    }
+
+    _parent._x = halign == .left ? x : _parent._x;
+    return _parent;
   }
 }
 

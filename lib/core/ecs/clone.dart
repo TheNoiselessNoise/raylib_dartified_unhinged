@@ -323,6 +323,9 @@ enum CloneStateType {
   /// Source list within a [QueryComponentManagable].
   querySourceList,
 
+  /// Pending task queue state. ([IsTaskProcessable]).
+  pendingTaskQueue,
+
   /// Task queue state. ([IsTaskProcessable]).
   taskQueue,
 }

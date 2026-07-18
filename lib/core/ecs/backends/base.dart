@@ -105,7 +105,7 @@ abstract class UnhingedBackend {
     required this.assets,
   });
 
-  MouseInfo<Vector2D> mouse = .new();
+  late MouseInfo<Vector2D> mouse = .new();
 
   void beginFrame() {}
   

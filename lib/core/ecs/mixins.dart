@@ -71,6 +71,8 @@ mixin HasSceneAccess<T extends App<T>> on ECSBase<T> {
   void callback(void Function() callback) => scene.callback(callback);
 
   void task(Task<T> task) => scene.task(task);
+
+  void run(Task<T> task) => scene.run(task);
 }
 
 /// Provides access to the [Entity] this object belongs to.
@@ -1450,6 +1452,10 @@ mixin IsClonable<
 
     if (self case IsTaskProcessable<T, E> from) {
       if (target case IsTaskProcessable<T, E> to) {
+        if (allowedState(.pendingTaskQueue)) {
+          to._pendingTaskQueue = .from(from._pendingTaskQueue);
+        }
+
         if (allowedState(.taskQueue)) {
           to._taskQueue = .from(from._taskQueue);
         }
@@ -1805,19 +1811,19 @@ mixin IsComponentManagable<T extends App<T>, E extends ECSBase<T>> on
 
   @override
   bool _doEventLocal(Event<T> event) {
-    if (_doEventLocalCheck(event)) return true;
+    if (_doEventVisitedCheck(event)) return true;
+    if (event.isStopped) return true;
 
     if (event.scope == .sceneOnly) return false;
 
-    if (event.scope == .self) {
-      if (event.origin == self) _doOnEvent(event);
-      return true;
-    }
+    if (_doEventSelfCheck(event)) return true;
+    if (event.isStopped) return true;
 
     if (event.scope == .local) {
       _doOnEvent(event);
 
       if (event.origin == self) {
+        
         for (final c in _components) {
           if (event.isStopped) return true;
           c._propagate(event);
@@ -2751,12 +2757,15 @@ mixin IsEntityManagable<T extends App<T>, E extends ECSBase<T>, I extends Entity
   }
 }
 
+// TODO: remove HasSceneAccess<T> on every `on` within the mixin and move it to `ECSBase`
+//       (because `ECSBase` already implements `HasAppAccess` and this implies it also `HasSceneAccess`)
+
 typedef IsAnyEventEmittable<T extends App<T>> = IsEventEmittable<T, ECSBase<T>>;
 
 /// Adds event emitting and handling capabilities to an ECS object.
 ///
 /// Provides two emission modes:
-/// - [emit] => queued; added to the scene's event queue and processed in order
+/// - [emit] => queued; added to the root's (App) event queue and processed in order
 /// - [dispatch] => immediate; bypasses the queue and fires synchronously
 ///
 /// Incoming events are propagated via [_doOnEvent], which notifies all registered
@@ -2809,8 +2818,9 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasSc
   /// No-op if the event is already stopped. Sets [Event.parent] to `self`
   /// if not already assigned.
   void _doOnEvent(Event<T> event) {
-    if (event.isStopped) return;
     event.origin ??= self;
+
+    if (event.isStopped) return;
 
     if (!_doOnBeforeEvent(event)) return;
 
@@ -2842,20 +2852,12 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasSc
   //   ░██  ░██       ░██ ░██         ░██         
   // ░██████░██       ░██ ░██         ░██████████ 
 
-  bool _eventEmittingDisabled = false;
-
-  void whileEmittingDisabled(void Function() fn) {
-    _eventEmittingDisabled = true;
-    fn();
-    _eventEmittingDisabled = false;
-  }
-
   /// Queues an [event] into the central application event queue for asynchronous processing.
   ///
   /// Stitches the [Event.origin] to `this` if it wasn't already set.
   void emit(Event<T> event, {EventScope scope = .local}) {
-    if (_eventEmittingDisabled) return;
     event._reset();
+    event.origin ??= self;
     event.scope ??= scope;
     event._wasEmitted = true;
     event._emitOrDispatchScope = event.scope!;
@@ -2866,8 +2868,8 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasSc
   ///
   /// Stitches the [Event.origin] to `this` if it wasn't already set.
   void dispatch(Event<T> event, {EventScope scope = .local}) {
-    if (_eventEmittingDisabled) return;
     event._reset();
+    event.origin ??= self;
     event.scope ??= scope;
     event._wasDispatched = true;
     event._emitOrDispatchScope = event.scope!;
@@ -2876,7 +2878,24 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasSc
 
   void _propagate(Event<T> event) {
     assert(event.scope != null);
-    if (_doEventLocal(event)) return; // Intercepted or bound locally
+
+    // First hop of a .local/.self event that didn't start here: jump
+    // straight to the true origin instead of walking down from `self`.
+    // Gated on `_visited.isEmpty` so this only fires once, later hops
+    // (origin walking back down its own subtree) must not re-redirect,
+    // or they'd bounce back to origin and get eaten by the visited-check.
+    if (
+      event._visited.isEmpty &&
+      (event.scope == .local || event.scope == .self) &&
+      event.origin != self
+    ) {
+      if (event.origin case IsAnyEventEmittable<T> origin) {
+        origin._propagate(event);
+        return;
+      }
+    }
+
+    if (_doEventLocal(event)) return; // intercepted or bound locally
     _dispatchEvent(event);
   }
 
@@ -2887,10 +2906,17 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasSc
   /// Returns `false` if the event is free to continue to the queue or a broader cascade.
   bool _doEventLocal(Event<T> event);
 
-  bool _doEventLocalCheck(Event<T> event) {
-    if (!event._visited.add(self)) return true; // already processed by `self`
+  // already processed by `self`
+  bool _doEventVisitedCheck(Event<T> event) => !event._visited.add(self);
 
-    event.origin ??= self;
+  bool _doEventSelfCheck(Event<T> event) {
+    if (event.scope == .self) {
+      if (event.origin == self) {
+        _doOnEvent(event);
+  
+        return true; // 'self'
+      }
+    }
 
     return false;
   }
@@ -2903,12 +2929,6 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasSc
 }
 
 typedef IsAnyEventHistoryHolder<T extends App<T>> = IsEventHistoryHolder<T, ECSBase<T>>;
-
-class _TimestampedEvent<T extends App<T>> {
-  _TimestampedEvent(this.event, this.simTime);
-  final Event<T> event;
-  final double simTime;
-}
 
 /// Records dispatched events for time-windowed queries and replay.
 /// Mixed in alongside IsEventQueueHolder on root App.
@@ -2977,7 +2997,9 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
   //   ░██  ░██       ░██ ░██         ░██         
   // ░██████░██       ░██ ░██         ░██████████ 
 
-  List<_TimestampedEvent<T>> _eventHistory = [];
+  List<Event<T>> _eventHistory = [];
+
+  List<Event<T>> get eventHistory => _eventHistory;
 
   /// How long (in sim-scaled seconds) to retain events before pruning.
   /// Null = keep forever.
@@ -2993,7 +3015,7 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
 
   void _recordEvent(Event<T> event) {
     if (!_doOnBeforeEventRecorded(event)) return;
-    _eventHistory.add(.new(event, app.time.timeScaled));
+    _eventHistory.add(event..simTime = app.time.timeScaled);
     _pruneEventHistory();
     _doOnEventRecorded(event);
   }
@@ -3031,23 +3053,35 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
 
   /// Events dispatched within the last [duration] sim-scaled seconds,
   /// optionally filtered to a specific origin.
-  List<Event<T>> getEvents({double? duration, ECSBase<T>? origin}) {
-    var events = _eventHistory
-      .where((e) => origin == null || e.event.origin == origin);
+  List<Event<T>> getRecordedEvents({
+    double? duration,
+    ECSBase<T>? origin,
+    bool Function(Event<T> event)? filter,
+  }) {
+    var events = _eventHistory.where((e) => origin == null || e.origin == origin);
 
     if (duration != null) {
       final cutoff = app.time.timeScaled - duration;
       events = events.where((e) => e.simTime >= cutoff);
     }
 
-    return events.map((e) => e.event).toList();
+    if (filter != null) {
+      events = events.where(filter);
+    }
+
+    return events.toList();
   }
 
   /// Re-dispatches events from [fromTime] sim-scaled seconds ago to now.
-  void replayEvents({double? fromTime, ECSBase<T>? origin}) {
-    final events = getEvents(
+  void replayRecordedEvents({
+    double? fromTime,
+    ECSBase<T>? origin,
+    bool Function(Event<T> event)? filter,
+  }) {
+    final events = getRecordedEvents(
       duration: fromTime != null ? -fromTime : null,
-      origin: origin
+      origin: origin,
+      filter: filter,
     );
 
     for (final e in events) {
@@ -3099,11 +3133,11 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
         // replay target. The original emitter could propagate from itself
         // because it WAS the emittable origin; without that, Root can't safely
         // stand in, since Root dispatching with .self/.local scope means the event
-        // goes no further than Root, which is not what the original emit meant.
+        // goes no further than Root, which is not what the original dispatch meant.
         throw StateError(
           'Cannot replay event ${e.runtimeType} (scope: ${e.scope}): origin '
           '$eventOrigin does not implement IsAnyEventEmittable, and scope '
-          '${e.scope} cannot be safely re-emitted from Root ($_eventHolderRoot).',
+          '${e.scope} cannot be safely re-dispatched from Root ($_eventHolderRoot).',
         );
       
       } else {
@@ -3135,6 +3169,14 @@ mixin IsEventQueueHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmitt
     }
     return didSomething;
   }
+
+  /// Synchronously drains the pending event queue.
+  ///
+  /// Intended for tests that need deterministic control over when queued
+  /// events are processed, decoupled from [Scene._doDrainLoop]'s callback/
+  /// command interleaving. Not meant for production code.
+  @visibleForTesting
+  bool processQueuedEventsForTest() => _processEvents();
 }
 
 /// Adds an input handling hook to an ECS object.
@@ -4395,7 +4437,14 @@ mixin IsStartable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
 /// Tasks are queued and executed in a controlled pipeline each frame.
 /// Listeners can intercept and cancel tasks before they reach [onTask] or execute.
 mixin IsTaskProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasAppAccess<T>, IsEventEmittable<T, E> {
-  List<Task<T>> _taskQueue = [];
+  
+  // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
+  // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
+  // ░██     ░██ ░██     ░██ ░██     ░██ ░██   ░██   ░██         
+  // ░██████████ ░██     ░██ ░██     ░██ ░███████     ░████████  
+  // ░██     ░██ ░██     ░██ ░██     ░██ ░██   ░██           ░██ 
+  // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
+  // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
   List<void Function(Task<T> task)> _onTaskFns = [];
 
@@ -4417,7 +4466,7 @@ mixin IsTaskProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasA
   bool _doTask(Task<T> task, double dt) {
     final isFirstRun = !task._hasStarted;
     task._hasStarted = true;
-    if (isFirstRun) dispatch(EventTaskStarting(app, task));
+    if (isFirstRun) emit(EventTaskStarting(app, task));
     if (_doCanceledTask(task)) return true;
     for (final f in _onTaskFns) {
       if (_doCanceledTask(task)) return true;
@@ -4437,11 +4486,55 @@ mixin IsTaskProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasA
   /// The task can be canceled here via [Task.cancel].
   void onTask(Task<T> task) {}
 
-  /// Enqueues [task] for execution at the end of the current frame.
-  @override
-  void task(Task<T> task) => _taskQueue.add(task);
+  // ░██████░███     ░███ ░█████████  ░██         
+  //   ░██  ░████   ░████ ░██     ░██ ░██         
+  //   ░██  ░██░██ ░██░██ ░██     ░██ ░██         
+  //   ░██  ░██ ░████ ░██ ░█████████  ░██         
+  //   ░██  ░██  ░██  ░██ ░██         ░██         
+  //   ░██  ░██       ░██ ░██         ░██         
+  // ░██████░██       ░██ ░██         ░██████████ 
 
-  void _processTasks(double dt) => _taskQueue.removeWhere((task) => _doTask(task, dt));
+  Set<Task<T>> _taskQueue = {};
+  
+  Set<Task<T>> _pendingTaskQueue = {};
+
+  /// Enqueues [task] for execution starting at the end of the current frame.
+  @override
+  void task(Task<T> task) {
+    if (task._isQueued) return;
+    task._isQueued = true;
+    task._reset();
+    _pendingTaskQueue.add(task);
+  }
+
+  /// Enqueues [task] and executes it immediately at the end of the current frame,
+  /// if it isn't already running.
+  @override
+  E run(Task<T> task) {
+    if (task._isQueued) return self;
+    task._isQueued = true;
+    task._reset();
+    _pendingTaskQueue.add(task);
+
+    final done = _doTask(task, time.dt);
+    if (done) {
+      _pendingTaskQueue.remove(task);
+      task._isQueued = false;
+    }
+    return self;
+  }
+
+  void _processTasks(double dt) {
+    if (_pendingTaskQueue.isNotEmpty) {
+      _taskQueue.addAll(_pendingTaskQueue);
+      _pendingTaskQueue.clear();
+    }
+    _taskQueue.removeWhere((task) {
+      final done = _doTask(task, dt);
+      if (done) task._isQueued = false;
+      return done;
+    });
+  }
 }
 
 /// Adds an update lifecycle hook to an ECS object.

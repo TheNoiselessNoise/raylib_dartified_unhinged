@@ -285,17 +285,12 @@ class App<T extends App<T>> extends ECSBase<T> with
 
   @override
   bool _doEventLocal(Event<T> event) {
-    if (_doEventLocalCheck(event)) return true;
+    if (_doEventVisitedCheck(event)) return true;
+    if (event.isStopped) return true;
 
-    // `self` check
-    if (event.scope == .self) {
-      if (event.origin == self) {
-        _doOnEvent(event);
-      }
-      return true; // 'self'
-    }
+    if (_doEventSelfCheck(event)) return true;
+    if (event.isStopped) return true;
 
-    // `local` check
     if (event.scope == .local) {
       if (event.origin == self) {
         _doOnEvent(event);
@@ -307,12 +302,10 @@ class App<T extends App<T>> extends ECSBase<T> with
 
         return true;
       }
-
-      _doOnEvent(event);
     }
 
     if (
-      event.scope != .local &&
+      event.scope != .self &&
       event.scope != .scene &&
       event.scope != .sceneOnly
     ) {

@@ -55,7 +55,7 @@ class BallEntityFollowingMouse extends Entity<G> {
     addComp(CTransform(app));
     addComp(CCircleCollider(app, radius: radius, debugColor: .AZURE, debugDraw: true));
     addComp(CPulse(app, speed: 10));
-    addComp(CParticleEmitter(app, rate: 20, factory: (_) =>
+    addComp(CAnyParticleEmitter(app, rate: 20, factory: () =>
       ParticleEntity(app).replaceComp(transform!.clone())
     ));
   }
@@ -147,7 +147,7 @@ extension on HasAppAccess<G> {
 
 /// The application.
 class MyApp extends App<G> {
-  MyApp(super.rl);
+  MyApp(super.backend);
 
   @override
   bool shouldExit() => rl.CoreD.WindowShouldClose();

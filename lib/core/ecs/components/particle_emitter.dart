@@ -1,12 +1,14 @@
 part of '../../raylib_dartified_unhinged.dart';
 
-typedef ParticleFactory<T extends App<T>> = Entity<T> Function(Scene<T> scene);
-typedef ParticleInitializer<T extends App<T>> = void Function(Entity<T> e);
+typedef ParticleFactory<T extends App<T>, E extends Entity<T>> = E Function();
+typedef ParticleTransform<T extends App<T>, E extends Entity<T>> = void Function(E instance);
 
-class CParticleEmitter<T extends App<T>> extends Comp<T> {
+typedef CAnyParticleEmitter<T extends App<T>> = CParticleEmitter<T, Entity<T>>;
+
+class CParticleEmitter<T extends App<T>, E extends Entity<T>> extends Comp<T> {
 
   double rate;
-  ParticleFactory<T> factory;
+  ParticleFactory<T, E> factory;
   double _acc = 0;
 
   CParticleEmitter(super.app, {
@@ -14,11 +16,16 @@ class CParticleEmitter<T extends App<T>> extends Comp<T> {
     required this.factory,
   });
 
-  void spawn({int count = 1}) {
+  void spawn({
+    int count = 1,
+    ParticleFactory<T, E>? factory,
+    ParticleTransform<T, E>? transform,
+  }) {
     if (isDisabled) return;
-    for (var i = 0; i < count; i++) {
-      _spawnOne();
-    }
+    for (var i = 0; i < count; i++) _spawnOne(
+      factory: factory ?? this.factory,
+      transform: transform,
+    );
   }
 
   @override
@@ -27,20 +34,24 @@ class CParticleEmitter<T extends App<T>> extends Comp<T> {
     _acc += dt * rate;
     while (_acc >= 1) {
       _acc -= 1;
-      _spawnOne();
+      _spawnOne(factory: factory);
     }
   }
 
-  void _spawnOne() {
+  void _spawnOne({
+    required ParticleFactory<T, E> factory,
+    ParticleTransform<T, E>? transform,
+  }) {
     if (isDisabled) return;
-    final e = factory(scene);
-    command(AddEntityCommand(app, e));
+    final instance = factory();
+    transform?.call(instance);
+    command(AddEntityCommand(app, instance));
   }
 
   // clone
 
   @override
-  CParticleEmitter<T> createInstance() => .new(app,
+  CParticleEmitter<T, E> createInstance() => .new(app,
     rate: rate,
     factory: factory,
   );
@@ -48,8 +59,8 @@ class CParticleEmitter<T extends App<T>> extends Comp<T> {
   // state
 
   @override
-  CParticleEmitterSnapshot<T> createSnapshot() {
-    final snapshot = CParticleEmitterSnapshot<T>(namedId);
+  CParticleEmitterSnapshot<T, E> createSnapshot() {
+    final snapshot = CParticleEmitterSnapshot<T, E>(namedId);
     snapshot.rate = rate;
     snapshot.factory = factory;
     snapshot._acc = _acc;
@@ -58,7 +69,7 @@ class CParticleEmitter<T extends App<T>> extends Comp<T> {
 
   @override
   @mustCallSuper
-  void restoreSnapshot(covariant CParticleEmitterSnapshot<T> snapshot) {
+  void restoreSnapshot(covariant CParticleEmitterSnapshot<T, E> snapshot) {
     super.restoreSnapshot(snapshot);
     
     rate = snapshot.rate;
@@ -67,16 +78,16 @@ class CParticleEmitter<T extends App<T>> extends Comp<T> {
   }
 }
 
-class CParticleEmitterSnapshot<T extends App<T>> extends CompSnapshot<T, CParticleEmitter<T>> {
+class CParticleEmitterSnapshot<T extends App<T>, E extends Entity<T>> extends CompSnapshot<T, CParticleEmitter<T, E>> {
   late double rate;
-  late ParticleFactory<T> factory;
+  late ParticleFactory<T, E> factory;
   late double _acc;
   
   CParticleEmitterSnapshot(super.namedId);
 
   @override
-  CParticleEmitter<T> createInstance(T app) {
-    final c = CParticleEmitter<T>(app,
+  CParticleEmitter<T, E> createInstance(T app) {
+    final c = CParticleEmitter<T, E>(app,
       rate: rate,
       factory: factory,
     );

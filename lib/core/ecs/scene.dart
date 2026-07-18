@@ -102,7 +102,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
 
   /// Unique identifier for this scene within the app's scene registry.
   ///
-  /// Defaults to `'$runtimeType.$id'` if not provided at construction.
+  /// Defaults to [ECSBase.namedId] if not provided at construction.
   late final String key;
 
   /// Creates a new scene bound to [app].
@@ -110,7 +110,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   /// Automatically registers a [TransformSyncSystem] and emits
   /// [EventSceneInitialized].
   Scene(this.app, {String? key}) {
-    this.key = key ?? '$runtimeType.$id';
+    this.key = key ?? namedId;
     addSystem(TransformSyncSystem(app));
     emit(EventSceneInitialized(app, this));
   }
@@ -347,6 +347,31 @@ class Scene<T extends App<T>> extends ECSBase<T> with
     } while (hadWork && iterations < maxIterations);
   }
 
+  /// Synchronously runs the drain loop.
+  ///
+  /// Intended for tests. Not meant for production code.
+  @visibleForTesting
+  void processDrainLoopForTest() => _doDrainLoop();
+
+  @visibleForTesting
+  bool get isDrainLoopEmptyForTest => (
+    _callbackQueue.isEmpty &&
+    app._eventQueue.isEmpty &&
+    _commandQueue.isEmpty
+  );
+
+  @visibleForTesting
+  bool get isTaskQueueEmptyForTest => (
+    _taskQueue.isEmpty &&
+    _pendingTaskQueue.isEmpty
+  );
+
+  /// Synchronously processes the task queue.
+  ///
+  /// Intended for tests. Not meant for production code.
+  @visibleForTesting
+  void processTaskQueueForTest() => _processTasks(app.time.dt);
+
   /// Called by the app at the very end of each frame, after update and render.
   ///
   /// Drains the callback queue, then processes pending tasks and lastly commands.
@@ -378,15 +403,11 @@ class Scene<T extends App<T>> extends ECSBase<T> with
 
   @override
   bool _doEventLocal(Event<T> event) {
-    if (_doEventLocalCheck(event)) return true;
+    if (_doEventVisitedCheck(event)) return true;
+    if (event.isStopped) return true;
 
-    // `self` check
-    if (event.scope == .self) {
-      if (event.origin == self) {
-        _doOnEvent(event);
-      }
-      return true; // 'self'
-    }
+    if (_doEventSelfCheck(event)) return true;
+    if (event.isStopped) return true;
 
     // `local` check
     if (event.scope == .local) {
@@ -400,12 +421,13 @@ class Scene<T extends App<T>> extends ECSBase<T> with
 
         return true;
       }
-
-      _doOnEvent(event);
     }
 
     // Scene Systems
-    if (event.scope != .local) {
+    if (
+      event.scope != .self &&
+      event.scope != .local
+    ) {
       _doOnEvent(event);
 
       for (final s in _systems) {
@@ -417,9 +439,9 @@ class Scene<T extends App<T>> extends ECSBase<T> with
     // defer to Entities
     if (event.isStopped) return true;
     if (
+      event.scope != .local &&
       event.scope != .sceneOnly &&
-      event.scope != .globalNoEntities &&
-      event.scope != .local
+      event.scope != .globalNoEntities
     ) {
       for (final entity in _entities) {
         if (event.isStopped) return true;

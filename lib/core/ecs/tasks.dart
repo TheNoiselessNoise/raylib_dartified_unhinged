@@ -12,12 +12,17 @@ abstract class Task<T extends App<T>> extends ECSBase<T> with
 
   bool _hasStarted = false;
 
+  bool _isQueued = false;
+
   bool update(double dt);
 
   bool _doUpdate(double dt) {
     if (isCanceled) return true;
     return update(dt);
   }
+
+  /// Reset this task's cancellation state so it can be reused.
+  void _reset() => _isCanceled = false;
 }
 
 class DelayTask<T extends App<T>> extends Task<T> {
