@@ -13,7 +13,10 @@ class _GlobalIdCounter {
 ///
 /// Provides a per-type auto-incrementing [id] and a default [name] derived from it
 /// and an optional [parent] reference for tree traversal.
-abstract class ECSBase<T extends App<T>> with HasAppAccess<T> {
+abstract class ECSBase<T extends App<T>> with
+  HasAppAccess<T>,
+  HasSceneAccess<T>
+{
   /// See [id].
   late final int _id;
 

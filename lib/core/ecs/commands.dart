@@ -1,5 +1,8 @@
 part of '../raylib_dartified_unhinged.dart';
 
+// TODO: think about removing whole `Command` system
+//       (isn't it useless if we have `Callback` system?)
+
 abstract class Command<T extends App<T>> extends ECSBase<T> with
   Self<Command<T>>,
   IsCancelable<T, Command<T>>
@@ -10,11 +13,11 @@ abstract class Command<T extends App<T>> extends ECSBase<T> with
   
   Command(this.app);
 
-  void execute();
+  void executeThis();
 
   void _doExecute() {
     if (isCanceled) return;
-    execute();
+    executeThis();
   }
 }
 
@@ -24,7 +27,7 @@ class AddEntityCommand<T extends App<T>> extends Command<T> {
   AddEntityCommand(super.app, this.entity);
 
   @override
-  void execute() => app.scene.addEntity(entity);
+  void executeThis() => app.scene.addEntity(entity);
 }
 
 class RemoveEntityCommand<T extends App<T>> extends Command<T> {
@@ -33,21 +36,21 @@ class RemoveEntityCommand<T extends App<T>> extends Command<T> {
   RemoveEntityCommand(super.app, this.entity);
 
   @override
-  void execute() => app.scene.removeEntity(entity);
+  void executeThis() => app.scene.removeEntity(entity);
 }
 
 class NextSceneCommand<T extends App<T>> extends Command<T> {
   NextSceneCommand(super.app);
 
   @override
-  void execute() => app.nextScene();
+  void executeThis() => app.nextScene();
 }
 
 class PrevSceneCommand<T extends App<T>> extends Command<T> {
   PrevSceneCommand(super.app);
 
   @override
-  void execute() => app.previousScene();
+  void executeThis() => app.previousScene();
 }
 
 class SetSceneCommand<T extends App<T>> extends Command<T> {
@@ -56,7 +59,7 @@ class SetSceneCommand<T extends App<T>> extends Command<T> {
   SetSceneCommand(super.app, this.nextScene);
 
   @override
-  void execute() => app.setScene(nextScene);
+  void executeThis() => app.setScene(nextScene);
 }
 
 class SetSceneKeyCommand<T extends App<T>> extends Command<T> {
@@ -65,12 +68,12 @@ class SetSceneKeyCommand<T extends App<T>> extends Command<T> {
   SetSceneKeyCommand(super.app, this.key);
 
   @override
-  void execute() => app.setSceneByKey(key);
+  void executeThis() => app.setSceneByKey(key);
 }
 
 class ExitAppCommand<T extends App<T>> extends Command<T> {
   ExitAppCommand(super.app);
 
   @override
-  void execute() => app._exitApp = true;
+  void executeThis() => app._exitApp = true;
 }

@@ -55,7 +55,7 @@ mixin HasAppAccess<T extends App<T>> {
 }
 
 /// Provides access to the [Scene] this object belongs to.
-mixin HasSceneAccess<T extends App<T>> on ECSBase<T> {
+mixin HasSceneAccess<T extends App<T>> on HasAppAccess<T> {
   Bounds get sceneBounds => scene.sceneBounds;
 
   Vector2D get sceneSize => sceneBounds.size;
@@ -2491,7 +2491,7 @@ mixin IsEnterable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
 ///
 /// Note: this mixin bypasses the standard [Self] pattern due to [Entity] baking
 /// in `Self<Entity<T>>` unconditionally. See [self] for details.
-mixin IsEntityManagable<T extends App<T>, E extends ECSBase<T>, I extends Entity<T>> on HasAppAccess<T>, HasSceneAccess<T> {
+mixin IsEntityManagable<T extends App<T>, E extends ECSBase<T>, I extends Entity<T>> on ECSBase<T> {
   // [Entity<T>] bakes in [Self<Entity<T>>] unconditionally, so its `self`
   // getter is always typed as [Entity<T>], not [E]. We can't override it with
   // a more specific type due to contravariance, so we bypass it entirely with
@@ -2757,9 +2757,6 @@ mixin IsEntityManagable<T extends App<T>, E extends ECSBase<T>, I extends Entity
   }
 }
 
-// TODO: remove HasSceneAccess<T> on every `on` within the mixin and move it to `ECSBase`
-//       (because `ECSBase` already implements `HasAppAccess` and this implies it also `HasSceneAccess`)
-
 typedef IsAnyEventEmittable<T extends App<T>> = IsEventEmittable<T, ECSBase<T>>;
 
 /// Adds event emitting and handling capabilities to an ECS object.
@@ -2771,7 +2768,7 @@ typedef IsAnyEventEmittable<T extends App<T>> = IsEventEmittable<T, ECSBase<T>>;
 /// Incoming events are propagated via [_doOnEvent], which notifies all registered
 /// listeners before invoking the [onEvent] override. Any listener or the event
 /// itself may stop propagation early via [Event.stopPropagation].
-mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasSceneAccess<T>, ECSBase<T> {
+mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBase<T> {
 
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
