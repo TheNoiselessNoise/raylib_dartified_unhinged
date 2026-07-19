@@ -308,7 +308,7 @@ class CAnimator<T extends App<T>> extends Comp<T> {
 
   @override
   CAnimatorSnapshot<T> createSnapshot() {
-    final snapshot = CAnimatorSnapshot<T>(namedId);
+    final snapshot = CAnimatorSnapshot<T>(id);
 
     snapshot.sheet = sheet?.copy();
     snapshot.sheets = sheets == null ? null : .from(sheets!);
@@ -348,6 +348,12 @@ class CAnimator<T extends App<T>> extends Comp<T> {
     dest = snapshot.dest.copy();
     origin = snapshot.origin.copy();
   }
+
+  // persistence
+
+  static const typeId = '__comp__CAnimator';
+  
+  @override String get persistentTypeId => typeId;
 }
 
 class CAnimatorSnapshot<T extends App<T>> extends CompSnapshot<T, CAnimator<T>> {
@@ -366,7 +372,7 @@ class CAnimatorSnapshot<T extends App<T>> extends CompSnapshot<T, CAnimator<T>> 
   late RectangleD dest;
   late Vector2D origin;
 
-  CAnimatorSnapshot(super.namedId);
+  CAnimatorSnapshot(super.id);
   
   @override
   CAnimator<T> createInstance(T app) {

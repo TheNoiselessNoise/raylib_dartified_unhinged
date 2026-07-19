@@ -10,7 +10,7 @@ class MyComponent extends Comp<G> {
 
 // NOTE: this is optional, only for custom state `compField`
   @override
-  MyComponentSnapshot createSnapshot() => .new(namedId, compField);
+  MyComponentSnapshot createSnapshot() => .new(id, compField);
 
 // NOTE: this is optional, only for custom state `compField`
   @override
@@ -47,7 +47,7 @@ class MyEntity extends Entity<G> {
 
   // NOTE: this is optional, only for custom state `entityField`
   @override
-  MyEntitySnapshot createSnapshot() => .new(namedId, entityField);
+  MyEntitySnapshot createSnapshot() => .new(id, entityField);
 
   // NOTE: this is optional, only for custom state `entityField`
   @override

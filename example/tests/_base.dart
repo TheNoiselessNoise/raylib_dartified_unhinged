@@ -11,6 +11,9 @@ abstract class ExampleRaylibApp<T extends ExampleRaylibApp<T>> extends App<T> {
   Raylib get rl => (backend as RaylibBackend).rl;
 
   @override
+  void onInit() => rl.CoreD.InitWindow(screenWidth, screenHeight, 'Example App');
+
+  @override
   bool shouldExit() => rl.CoreD.WindowShouldClose();
 }
 

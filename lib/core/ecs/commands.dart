@@ -13,11 +13,11 @@ abstract class Command<T extends App<T>> extends ECSBase<T> with
   
   Command(this.app);
 
-  void executeThis();
+  void executeCommand();
 
-  void _doExecute() {
+  void _doExecuteCommand() {
     if (isCanceled) return;
-    executeThis();
+    executeCommand();
   }
 }
 
@@ -27,7 +27,7 @@ class AddEntityCommand<T extends App<T>> extends Command<T> {
   AddEntityCommand(super.app, this.entity);
 
   @override
-  void executeThis() => app.scene.addEntity(entity);
+  void executeCommand() => app.scene.addEntity(entity);
 }
 
 class RemoveEntityCommand<T extends App<T>> extends Command<T> {
@@ -36,21 +36,21 @@ class RemoveEntityCommand<T extends App<T>> extends Command<T> {
   RemoveEntityCommand(super.app, this.entity);
 
   @override
-  void executeThis() => app.scene.removeEntity(entity);
+  void executeCommand() => app.scene.removeEntity(entity);
 }
 
 class NextSceneCommand<T extends App<T>> extends Command<T> {
   NextSceneCommand(super.app);
 
   @override
-  void executeThis() => app.nextScene();
+  void executeCommand() => app.nextScene();
 }
 
 class PrevSceneCommand<T extends App<T>> extends Command<T> {
   PrevSceneCommand(super.app);
 
   @override
-  void executeThis() => app.previousScene();
+  void executeCommand() => app.previousScene();
 }
 
 class SetSceneCommand<T extends App<T>> extends Command<T> {
@@ -59,7 +59,7 @@ class SetSceneCommand<T extends App<T>> extends Command<T> {
   SetSceneCommand(super.app, this.nextScene);
 
   @override
-  void executeThis() => app.setScene(nextScene);
+  void executeCommand() => app.setScene(nextScene);
 }
 
 class SetSceneKeyCommand<T extends App<T>> extends Command<T> {
@@ -68,12 +68,12 @@ class SetSceneKeyCommand<T extends App<T>> extends Command<T> {
   SetSceneKeyCommand(super.app, this.key);
 
   @override
-  void executeThis() => app.setSceneByKey(key);
+  void executeCommand() => app.setSceneByKey(key);
 }
 
 class ExitAppCommand<T extends App<T>> extends Command<T> {
   ExitAppCommand(super.app);
 
   @override
-  void executeThis() => app._exitApp = true;
+  void executeCommand() => app._exitApp = true;
 }

@@ -2,6 +2,10 @@ part of '../../raylib_dartified_unhinged.dart';
 
 // velocity
 class CVelocity<T extends App<T>> extends Comp<T> {
+  static const double _defaultAngularVelocity = 0;
+  static const double _defaultLinearDamping = 0;
+  static const double _defaultAngularDamping = 0;
+
   Vector2D velocity;      // units per second
   double angularVelocity; // radians per second
 
@@ -13,10 +17,11 @@ class CVelocity<T extends App<T>> extends Comp<T> {
   double? maxVelocity;
 
   CVelocity(super.app, {
+    super.populateDefaults,
     Vector2D? velocity,
-    this.angularVelocity = 0,
-    this.linearDamping = 0,
-    this.angularDamping = 0,
+    this.angularVelocity = _defaultAngularVelocity,
+    this.linearDamping = _defaultLinearDamping,
+    this.angularDamping = _defaultAngularDamping,
     this.maxVelocity,
   }) : velocity = velocity ?? .zero();
 
@@ -63,7 +68,7 @@ class CVelocity<T extends App<T>> extends Comp<T> {
 
   @override
   CVelocitySnapshot<T> createSnapshot() {
-    final snapshot = CVelocitySnapshot<T>(namedId);
+    final snapshot = CVelocitySnapshot<T>(id);
     snapshot.velocity = velocity.copy();
     snapshot.angularVelocity = angularVelocity;
     snapshot.linearDamping = linearDamping;
@@ -83,6 +88,37 @@ class CVelocity<T extends App<T>> extends Comp<T> {
     angularDamping = snapshot.angularDamping;
     maxVelocity = snapshot.maxVelocity;
   }
+
+  // persistence
+
+  static const typeId = '__comp__CVelocity';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'velocity': velocity.getPersistableData(),
+    'angularVelocity': angularVelocity,
+    'linearDamping': linearDamping,
+    'angularDamping': angularDamping,
+    'maxVelocity': maxVelocity,
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    final velocityData = data.getList<double>('velocity');
+    velocity.restorePersistableData(velocityData);
+
+    angularVelocity = data.getDouble('angularVelocity', _defaultAngularVelocity);
+    linearDamping = data.getDouble('linearDamping', _defaultLinearDamping);
+    angularDamping = data.getDouble('angularDamping', _defaultAngularDamping);
+    maxVelocity = data.getDoubleOrNull('maxVelocity');
+  }
 }
 
 class CVelocitySnapshot<T extends App<T>> extends CompSnapshot<T, CVelocity<T>> {
@@ -92,7 +128,7 @@ class CVelocitySnapshot<T extends App<T>> extends CompSnapshot<T, CVelocity<T>> 
   late double angularDamping;
   late double? maxVelocity;
   
-  CVelocitySnapshot(super.namedId);
+  CVelocitySnapshot(super.id);
 
   @override
   CVelocity<T> createInstance(T app) => .new(app,

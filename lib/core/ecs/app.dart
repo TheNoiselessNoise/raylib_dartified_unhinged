@@ -138,11 +138,10 @@ class App<T extends App<T>> extends ECSBase<T> with
   IsSceneTransitionable<T, T>, // needs to be before `IsSceneManagable`
   IsSceneManagable<T, T>,
   IsShouldExitable<T, T>,
-  IsStateHolder<T, App<T>, AppSnapshot<T>>,
-  IsPersistable<T, App<T>, AppSnapshot<T>>
+  IsStateHolder<T, T, AppSnapshot<T>>,
+  IsPersistable<T, T, AppSnapshot<T>>
   
 {
-  
   @override
   late Renderer<T> renderer = .new(self);
   
@@ -161,9 +160,13 @@ class App<T extends App<T>> extends ECSBase<T> with
   @override
   late AppTime<T> time;
 
-  App(this.backend) {
+  App(this.backend, {
+    bool populateDefaults = true,
+  }) {
+    this.populateDefaults = populateDefaults;
     time = .new(self);
     _assignDummyScene();
+    factories._registerBuiltins();
   }
 
   @override
@@ -404,16 +407,18 @@ class App<T extends App<T>> extends ECSBase<T> with
     // NOTE: we can call cloneInto without createInstance()
     _doCloneDependencies(copy);
 
+    copy.init();
+
     _doOnEvent(EventAppCloning(self, self, copy));
 
     _scenes.forEach((s) {
       if (!(cloner?.allowScene(copy, s) ?? true)) return;
-      copy.addScene(s.clone(cloner?.sceneCloner));
+      copy.replaceScene(s.clone(cloner?.sceneCloner));
     });
 
     _systems.forEach((s) {
       if (!(cloner?.allowAppSystem(copy, s) ?? true)) return;
-      copy.addSystem(s.clone(cloner?.systemCloner));
+      copy.replaceSystem(s.clone(cloner?.systemCloner));
     });
 
     super._doOnClone(copy, cloner);
@@ -426,8 +431,17 @@ class App<T extends App<T>> extends ECSBase<T> with
     app._doOnEvent(EventAppCloned(app, self, target));
   }
 
+  // clone
+
   @override
-  AppSnapshot<T> createSnapshot() => .new(namedId);  
+  T createInstance() => throw StateError(
+    'To enable cloning for whole `App` you need to override `createInstance` method.'
+  );
+
+  // state
+
+  @override
+  AppSnapshot<T> createSnapshot() => .new(id);
 
   @override
   @nonVirtual
@@ -463,36 +477,53 @@ class App<T extends App<T>> extends ECSBase<T> with
       onRemove: removeScene,
     );
   }
+
+  // persistence
+
+  late final ECSFactoryRegistry<T> factories = .new();
+
+  static const typeId = '__app__';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+
+    ECSPersistentKeys.appSystems: _storePersistableJsonObjectMap(_systems, force: force),
+    ECSPersistentKeys.scenes: _storePersistableJsonObjectMap(_scenes, force: force),
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    _restorePersistableJsonObjectMap(
+      data: data,
+      key: ECSPersistentKeys.appSystems,
+      factory: app.factories.appSystem,
+      onRestored: addSystem,
+    );
+
+    _restorePersistableJsonObjectMap(
+      data: data,
+      key: ECSPersistentKeys.scenes,
+      factory: app.factories.scene,
+      onRestored: addScene,
+    );
+
+    onRestorePersistableData(data, id: id);
+  }
 }
 
 class AppSnapshot<T extends App<T>> extends StateSnapshot<T, T> {
   late List<AnyAppSystemSnapshot<T>> systemSnapshots;
   late List<AnySceneSnapshot<T>> sceneSnapshots;
 
-  AppSnapshot(super.namedId);
+  AppSnapshot(super.id);
 
   @override
   T createInstance(T app) => App<T>(app.backend) as T;
-
-  T assignSystems(T app, T destination) {
-    for (final snap in systemSnapshots) {
-      destination.addSystem(snap.reconstruct(app));
-    }
-    return destination;
-  }
-
-  T assignScenes(T app, T destination) {
-    for (final snap in sceneSnapshots) {
-      destination.addScene(snap.reconstruct(app));
-    }
-    return destination;
-  }
-
-  @override
-  T reconstruct(T app) {
-    final s = createInstance(app);
-    assignSystems(app, s);
-    assignScenes(app, s);
-    return s;
-  }
 }

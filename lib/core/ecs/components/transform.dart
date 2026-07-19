@@ -2,6 +2,8 @@ part of '../../raylib_dartified_unhinged.dart';
 
 // world position, scale and rotation
 class CTransform<T extends App<T>> extends Comp<T> {
+  static const double _defaultRotation = 0;
+
   late Vector2D prevPosition;
 
   Vector2D position; // CENTER position in world space
@@ -9,8 +11,9 @@ class CTransform<T extends App<T>> extends Comp<T> {
   Vector2D scale;    // 1,1 is identity
 
   CTransform(super.app, {
+    super.populateDefaults,
     Vector2D? position,
-    this.rotation = 0,
+    this.rotation = _defaultRotation,
     Vector2D? scale,
   }) :
     position = position ?? .zero(),
@@ -43,7 +46,7 @@ class CTransform<T extends App<T>> extends Comp<T> {
 
   @override
   CTransformSnapshot<T> createSnapshot() {
-    final snapshot = CTransformSnapshot<T>(namedId);
+    final snapshot = CTransformSnapshot<T>(id);
     snapshot.position = position.copy();
     snapshot.rotation = rotation;
     snapshot.scale = scale.copy();
@@ -59,6 +62,35 @@ class CTransform<T extends App<T>> extends Comp<T> {
     rotation = snapshot.rotation;
     scale = snapshot.scale.copy();
   }
+
+  // persistence
+
+  static const typeId = '__comp__CTransform';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'position': position.getPersistableData(),
+    'rotation': rotation,
+    'scale': scale.getPersistableData(),
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    final positionData = data.getList<double>('position');
+    position.restorePersistableData(positionData);
+
+    rotation = data.getDouble('rotation', _defaultRotation);
+
+    final scaleData = data.getList<double>('scale');
+    scale.restorePersistableData(scaleData);
+  }
 }
 
 class CTransformSnapshot<T extends App<T>> extends CompSnapshot<T, CTransform<T>> {
@@ -66,7 +98,7 @@ class CTransformSnapshot<T extends App<T>> extends CompSnapshot<T, CTransform<T>
   late double rotation;
   late Vector2D scale;
   
-  CTransformSnapshot(super.namedId);
+  CTransformSnapshot(super.id);
 
   @override
   CTransform<T> createInstance(T app) => .new(app,

@@ -1,7 +1,7 @@
 part of '../../raylib_dartified_unhinged.dart';
 
 class CImage<T extends App<T>> extends Comp<T> {
-  TextureD texture;
+  TextureD? texture;
 
   /// If provided, draws a sub-rect from the texture (sprite sheet).
   /// If null, draws the full texture.
@@ -18,9 +18,9 @@ class CImage<T extends App<T>> extends Comp<T> {
   /// If null, we try CSprite.size; if absent, we fall back to texture size.
   Vector2D? size;
 
-  CImage(
-    super.app, {
-    required this.texture,
+  CImage(super.app, {
+    super.populateDefaults,
+    this.texture,
     this.sourceRect,
     this.tint,
     this.size,
@@ -32,7 +32,8 @@ class CImage<T extends App<T>> extends Comp<T> {
     if (sprite != null) return sprite.size;
 
     // Fallback to texture dimensions (assuming your Texture2D exposes width/height)
-    return .vec2(texture.width, texture.height);
+    if (texture == null) return .zero();
+    return .vec2(texture!.width, texture!.height);
   }
 
   @override
@@ -41,7 +42,7 @@ class CImage<T extends App<T>> extends Comp<T> {
     if (sourceRect != null) {
       source = sourceRect!.copy();
     } else {
-      source.set(0, 0, texture.width, texture.height);
+      source.set(0, 0, texture?.width ?? 0, texture?.height ?? 0);
     }
 
     // Dest rect: centered on transform.position, scaled by transform.scale
@@ -62,8 +63,10 @@ class CImage<T extends App<T>> extends Comp<T> {
 
   @override
   void onDraw(double dt) => entity.onTransform((t) {
+    if (texture == null) return;
+
     backend.render.drawTexturePro(
-      texture,
+      texture!,
       source,
       dest,
       origin,
@@ -93,8 +96,8 @@ class CImage<T extends App<T>> extends Comp<T> {
 
   @override
   CImageSnapshot<T> createSnapshot() {
-    final snapshot = CImageSnapshot<T>(namedId);
-    snapshot.texture = texture.copy();
+    final snapshot = CImageSnapshot<T>(id);
+    snapshot.texture = texture?.copy();
     snapshot.sourceRect = sourceRect?.copy();
     snapshot.tint = tint?.copy();
     snapshot.source = source.copy();
@@ -109,7 +112,7 @@ class CImage<T extends App<T>> extends Comp<T> {
   void restoreSnapshot(covariant CImageSnapshot<T> snapshot) {
     super.restoreSnapshot(snapshot);
     
-    texture = snapshot.texture.copy();
+    texture = snapshot.texture?.copy();
     sourceRect = snapshot.sourceRect?.copy();
     tint = snapshot.tint?.copy();
     source = snapshot.source.copy();
@@ -117,10 +120,54 @@ class CImage<T extends App<T>> extends Comp<T> {
     origin = snapshot.origin.copy();
     size = snapshot.size?.copy();
   }
+
+  // persistence
+
+  static const typeId = '__comp__CImage';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'sourceRect': sourceRect?.getPersistableData(),
+    'tint': tint?.getPersistableData(),
+    'source': source.getPersistableData(),
+    'dest': dest.getPersistableData(),
+    'origin': origin.getPersistableData(),
+    'size': size?.getPersistableData(),
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    // NOTE: `texture` needs to be reassigned elsewhere
+
+    final sourceRectData = data.getListOrNull<double>('sourceRect');
+    if (sourceRectData != null) sourceRect?.restorePersistableData(sourceRectData);
+
+    final tintData = data.getListOrNull<int>('tint');
+    if (tintData != null) tint?.restorePersistableData(tintData);
+
+    final sourceData = data.getList<double>('source');
+    source.restorePersistableData(sourceData);
+
+    final destData = data.getList<double>('dest');
+    dest.restorePersistableData(destData);
+
+    final originData = data.getList<double>('origin');
+    origin.restorePersistableData(originData);
+
+    final sizeData = data.getListOrNull<double>('size');
+    if (sizeData != null) size?.restorePersistableData(sizeData);
+  }
 }
 
 class CImageSnapshot<T extends App<T>> extends CompSnapshot<T, CImage<T>> {
-  late TextureD texture;
+  late TextureD? texture;
   late RectangleD? sourceRect;
   late ColorD? tint;
   late RectangleD source;
@@ -128,7 +175,7 @@ class CImageSnapshot<T extends App<T>> extends CompSnapshot<T, CImage<T>> {
   late Vector2D origin;
   late Vector2D? size;
   
-  CImageSnapshot(super.namedId);
+  CImageSnapshot(super.id);
 
   @override
   CImage<T> createInstance(T app) {

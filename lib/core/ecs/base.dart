@@ -185,6 +185,16 @@ class Bounds {
   String toString() => '$runtimeType(top=$top, left=$left, bottom=$bottom, right=$right)';
 
   Bounds copy() => .new(top, left, bottom, right);
+
+  List<double> getPersistableData() => [top, left, bottom, right];
+
+  void restorePersistableData(List<double> data) {
+    // ignore: prefer_is_empty
+    top = data.length < 1 ? 0 : data[0];
+    left = data.length < 2 ? 0 : data[1];
+    bottom = data.length < 3 ? 0 : data[2];
+    right = data.length < 4 ? 0 : data[3];
+  }
 }
 
 abstract class UnhingedRaylibGame<T extends App<T>> extends RaylibGame {

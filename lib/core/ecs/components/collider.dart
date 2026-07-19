@@ -3,6 +3,11 @@ part of '../../raylib_dartified_unhinged.dart';
 abstract class CCollider<T extends App<T>> extends Comp<T> with
   IsCollidable<T, Comp<T>, CCollider<T>>
 {
+  static const String _defaultTag = 'default';
+  static const bool _defaultEnableCollision = true;
+  static const bool _defaultDebugDraw = false;
+  static const double _defaultLinesThick = 1;
+
   String tag;
   bool enableCollision;
   bool debugDraw;
@@ -10,10 +15,11 @@ abstract class CCollider<T extends App<T>> extends Comp<T> with
   ColorD? debugColor;
 
   CCollider(super.app, {
-    this.tag = 'default',
-    this.enableCollision = true,
-    this.debugDraw = false,
-    this.debugLinesThick = 1,
+    super.populateDefaults,
+    this.tag = _defaultTag,
+    this.enableCollision = _defaultEnableCollision,
+    this.debugDraw = _defaultDebugDraw,
+    this.debugLinesThick = _defaultLinesThick,
     this.debugColor,
 
     bool Function(Comp<T> self, CCollider<T> other)? onBeforeCollisionFn,
@@ -24,6 +30,33 @@ abstract class CCollider<T extends App<T>> extends Comp<T> with
     if (onCollisionFn != null) listenOnCollision(onCollisionFn);
     if (onAfterCollisionFn != null) listenOnAfterCollision(onAfterCollisionFn);
   }
+
+  // persistence
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'tag': tag,
+    'enableCollision': enableCollision,
+    'debugDraw': debugDraw,
+    'debugLinesThick': debugLinesThick,
+    'debugColor': debugColor?.getPersistableData(),
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    tag = data.getString('tag', _defaultTag);
+    enableCollision = data.getBool('enableCollision', _defaultEnableCollision);
+    debugDraw = data.getBool('debugDraw', _defaultDebugDraw);
+    debugLinesThick = data.getDouble('debugLinesThick', _defaultLinesThick);
+
+    final debugColorData = data.getListOrNull<int>('debugColor');
+    if (debugColorData != null) debugColor?.restorePersistableData(debugColorData);
+  }
 }
 
 abstract class CColliderSnapshot<T extends App<T>, C extends CCollider<T>> extends CompSnapshot<T, C> {
@@ -33,7 +66,7 @@ abstract class CColliderSnapshot<T extends App<T>, C extends CCollider<T>> exten
   late double debugLinesThick;
   late ColorD? debugColor;
 
-  CColliderSnapshot(super.namedId);
+  CColliderSnapshot(super.id);
 
   void _setColliderStateFrom(C source) {
     tag = source.tag;
@@ -53,13 +86,16 @@ abstract class CColliderSnapshot<T extends App<T>, C extends CCollider<T>> exten
 }
 
 class CCircleCollider<T extends App<T>> extends CCollider<T> {
-  final double baseRadius;
+  static const double _defaultRadius = 0;
+
+  double baseRadius;
   double radius;
 
   Vector2D center = .zero();
 
   CCircleCollider(super.app, {
-    required double radius,
+    super.populateDefaults,
+    this.radius = _defaultRadius,
     super.tag,
     super.enableCollision,
     super.debugDraw,
@@ -68,9 +104,7 @@ class CCircleCollider<T extends App<T>> extends CCollider<T> {
     super.onBeforeCollisionFn,
     super.onCollisionFn,
     super.onAfterCollisionFn,
-  }) :
-    baseRadius = radius,
-    radius = radius;
+  }) : baseRadius = radius;
 
   @override
   void onUpdate(double dt) => entity.onTransform((t) {
@@ -122,7 +156,7 @@ class CCircleCollider<T extends App<T>> extends CCollider<T> {
 
   @override
   CCircleColliderSnapshot<T> createSnapshot() {
-    final snapshot = CCircleColliderSnapshot<T>(namedId);
+    final snapshot = CCircleColliderSnapshot<T>(id);
     snapshot._setColliderStateFrom(this);
     snapshot.radius = radius;
     snapshot.center = center.copy();
@@ -138,13 +172,40 @@ class CCircleCollider<T extends App<T>> extends CCollider<T> {
     radius = snapshot.radius;
     center = snapshot.center.copy();
   }
+
+  // persistence
+
+  static const typeId = '__comp__CCircleCollider';
+  
+  @override String get persistentTypeId => typeId;
+  
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'baseRadius': baseRadius,
+    'radius': radius,
+    'center': center.getPersistableData(),
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    baseRadius = data.getDouble('baseRadius');
+    radius = data.getDouble('radius', _defaultRadius);
+
+    final centerData = data.getList<double>('center');
+    center.restorePersistableData(centerData);
+  }
 }
 
 class CCircleColliderSnapshot<T extends App<T>> extends CColliderSnapshot<T, CCircleCollider<T>> {
   late double radius;
   late Vector2D center;
 
-  CCircleColliderSnapshot(super.namedId);
+  CCircleColliderSnapshot(super.id);
   
   @override
   CCircleCollider<T> createInstance(T app) => CCircleCollider<T>(app,
@@ -158,14 +219,17 @@ class CCircleColliderSnapshot<T extends App<T>> extends CColliderSnapshot<T, CCi
 }
 
 class CRectCollider<T extends App<T>> extends CCollider<T> {
+  static const bool _defaultEnableRotation = false;
+
   Vector2D? size;
 
   RectangleD rect = .zero();
   bool enableRotation;
 
   CRectCollider(super.app, {
+    super.populateDefaults,
     this.size,
-    this.enableRotation = false,
+    this.enableRotation = _defaultEnableRotation,
     super.tag,
     super.enableCollision,
     super.debugDraw,
@@ -242,7 +306,7 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
 
   @override
   CRectColliderSnapshot<T> createSnapshot() {
-    final snapshot = CRectColliderSnapshot<T>(namedId);
+    final snapshot = CRectColliderSnapshot<T>(id);
     snapshot._setColliderStateFrom(this);
     snapshot.size = size?.copy();
     snapshot.rect = rect.copy();
@@ -260,6 +324,34 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
     rect = snapshot.rect.copy();
     enableRotation = snapshot.enableRotation;
   }
+
+  // persistence
+
+  static const typeId = '__comp__CRectCollider';
+
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'size': size?.getPersistableData(),
+    'rect': rect.getPersistableData(),
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    final sizeData = data.getListOrNull<double>('size');
+    if (sizeData != null) size?.restorePersistableData(sizeData);
+
+    final rectData = data.getList<double>('rect');
+    rect.restorePersistableData(rectData);
+
+    enableRotation = data.getBool('enableRotation', _defaultEnableRotation);
+  }
 }
 
 class CRectColliderSnapshot<T extends App<T>> extends CColliderSnapshot<T, CRectCollider<T>> {
@@ -267,7 +359,7 @@ class CRectColliderSnapshot<T extends App<T>> extends CColliderSnapshot<T, CRect
   late RectangleD rect;
   late bool enableRotation;
   
-  CRectColliderSnapshot(super.namedId);
+  CRectColliderSnapshot(super.id);
 
   @override
   CRectCollider<T> createInstance(T app) {

@@ -245,14 +245,50 @@ class RaylibBackend extends UnhingedBackend {
     => rl.CoreD.GetClipboardText();
 
   @override
-  void setTargetFPS(int fps) => rl.CoreD.SetTargetFPS(fps);
+  void setTargetFPS(int fps)
+    => rl.CoreD.SetTargetFPS(fps);
 
   @override
-  FontD getFontDefault() => rl.CoreD.GetFontDefault();
+  FontD getFontDefault()
+    => rl.CoreD.GetFontDefault();
 
   @override
   void dispose() {
     super.dispose();
     rl.dispose();
+  }
+}
+
+extension on Vector2D {
+  List<double> getPersistableData() => [x, y];
+
+  void restorePersistableData(List<double> data) {
+    // ignore: prefer_is_empty
+    x = data.length < 1 ? 0 : data[0];
+    y = data.length < 2 ? 0 : data[1];
+  }
+}
+
+extension on RectangleD {
+  List<double> getPersistableData() => [x, y, width, height];
+
+  void restorePersistableData(List<double> data) {
+    // ignore: prefer_is_empty
+    x = data.length < 1 ? 0 : data[0];
+    y = data.length < 2 ? 0 : data[1];
+    width = data.length < 3 ? 0 : data[2];
+    height = data.length < 4 ? 0 : data[3];
+  }
+}
+
+extension on ColorD {
+  List<int> getPersistableData() => [r, g, b, a];
+
+  void restorePersistableData(List<int> data) {
+    // ignore: prefer_is_empty
+    r = data.length < 1 ? 0 : data[0];
+    g = data.length < 2 ? 0 : data[1];
+    b = data.length < 3 ? 0 : data[2];
+    a = data.length < 4 ? 0 : data[3];
   }
 }

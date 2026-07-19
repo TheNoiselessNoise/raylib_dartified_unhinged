@@ -2,12 +2,16 @@ part of '../../raylib_dartified_unhinged.dart';
 
 // keep the entity inside the bounds
 class CBoundsConstraint<T extends App<T>> extends Comp<T> {
+  List<double> get _defaultArea => [0, 0, screenHeight, screenWidth];
+
   late Bounds area;
 
   CBoundsConstraint(super.app, {
+    super.populateDefaults,
     Bounds? area,
   }) {
-    this.area = area ?? .bounds(0, 0, screenHeight, screenWidth);
+    final a = _defaultArea;
+    this.area = area ?? .bounds(a[0], a[1], a[2], a[3]);
   }
 
   @override
@@ -44,7 +48,7 @@ class CBoundsConstraint<T extends App<T>> extends Comp<T> {
 
   @override
   CBoundsConstraintSnapshot<T> createSnapshot() {
-    final snapshot = CBoundsConstraintSnapshot<T>(namedId);
+    final snapshot = CBoundsConstraintSnapshot<T>(id);
     snapshot.area = area.copy();
     return snapshot;
   }
@@ -56,12 +60,34 @@ class CBoundsConstraint<T extends App<T>> extends Comp<T> {
     
     area = snapshot.area.copy();
   }
+
+  // persistence
+
+  static const typeId = '__comp__CBoundsConstraint';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'area': area.getPersistableData(),
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    final areaData = data.getList<double>('area', _defaultArea);
+    area.restorePersistableData(areaData);
+  }
 }
 
 class CBoundsConstraintSnapshot<T extends App<T>> extends CompSnapshot<T, CBoundsConstraint<T>> {
   late Bounds area;
   
-  CBoundsConstraintSnapshot(super.namedId);
+  CBoundsConstraintSnapshot(super.id);
 
   @override
   CBoundsConstraint<T> createInstance(T app) => .new(app,

@@ -381,7 +381,7 @@ class DebugWidget<T extends App<T>> extends FWidget<T> {
     watchWidget = .new(app, this);
 
     // always render at the top
-    addComp(CRenderLayer<T>(app, RenderLayers.debug.name));
+    addComp(CRenderLayer<T>(app, layer: RenderLayers.debug.name));
   }
 
   bool hidden = false;

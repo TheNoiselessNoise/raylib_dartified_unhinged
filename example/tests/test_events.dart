@@ -2,8 +2,8 @@
 import '_base.dart';
 import '../../test/ecs/test_events.dart'
   show
-    TestEventsAppSystem,
-    TestEventsScene,
+    TestAppSystem,
+    TestScene,
     EventMethod,
     EmitterType,
     IsTestingApp,
@@ -61,7 +61,7 @@ extension on HasAppAccess<G> {
   void rebuildWidget() => testScene.messagesWidget.rebuild();
 }
 
-class TestEventsGuiScene extends TestEventsScene<G> {
+class TestEventsGuiScene extends TestScene<G> {
   late MessagesWidget messagesWidget;
 
   TestEventsGuiScene(super.app);
@@ -161,7 +161,7 @@ class TestEventsGuiScene extends TestEventsScene<G> {
 typedef G = TestEventsGuiApp;
 
 class TestEventsGuiApp extends ExampleRaylibApp<G> with IsTestingApp<G> {
-  @override late TestEventsAppSystem<G> appSystem;
+  @override late TestAppSystem<G> appSystem;
   @override late TestEventsGuiScene testScene;
 
   TestEventsGuiApp(super.backend);

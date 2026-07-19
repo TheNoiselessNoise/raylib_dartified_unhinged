@@ -1,10 +1,15 @@
 part of '../../raylib_dartified_unhinged.dart';
 
 class CLifetime<T extends App<T>> extends Comp<T> {
+  static const double _defaultTimeLeft = 0;
+
   double timeLeft;
   bool _enqueued = false;
 
-  CLifetime(super.app, this.timeLeft);
+  CLifetime(super.app, {
+    super.populateDefaults,
+    this.timeLeft = _defaultTimeLeft,
+  });
 
   @override
   void onUpdate(double dt) {
@@ -19,15 +24,16 @@ class CLifetime<T extends App<T>> extends Comp<T> {
   // clone
 
   @override
-  CLifetime<T> createInstance() => .new(app, timeLeft);
+  CLifetime<T> createInstance() => .new(app,
+    timeLeft: timeLeft,
+  );
 
   // state
 
   @override
   CLifetimeSnapshot<T> createSnapshot() {
-    final snapshot = CLifetimeSnapshot<T>(namedId);
+    final snapshot = CLifetimeSnapshot<T>(id);
     snapshot.timeLeft = timeLeft;
-    snapshot._enqueued = _enqueued;
     return snapshot;
   }
 
@@ -37,20 +43,37 @@ class CLifetime<T extends App<T>> extends Comp<T> {
     super.restoreSnapshot(snapshot);
     
     timeLeft = snapshot.timeLeft;
-    _enqueued = snapshot._enqueued;
+  }
+
+  // persistence
+
+  static const typeId = '__comp__CLifetime';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'timeLeft': timeLeft,
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    timeLeft = data.getDouble('timeLeft', _defaultTimeLeft);
   }
 }
 
 class CLifetimeSnapshot<T extends App<T>> extends CompSnapshot<T, CLifetime<T>> {
   late double timeLeft;
-  late bool _enqueued;
   
-  CLifetimeSnapshot(super.namedId);
+  CLifetimeSnapshot(super.id);
 
   @override
-  CLifetime<T> createInstance(T app) {
-    final c = CLifetime<T>(app, timeLeft);
-    c._enqueued = _enqueued;
-    return c;
-  }
+  CLifetime<T> createInstance(T app) => .new(app,
+    timeLeft: timeLeft,
+  );
 }

@@ -3,17 +3,40 @@ part of '../../raylib_dartified_unhinged.dart';
 typedef ParticleFactory<T extends App<T>, E extends Entity<T>> = E Function();
 typedef ParticleTransform<T extends App<T>, E extends Entity<T>> = void Function(E instance);
 
+/// See [CParticleEmitter].
 typedef CAnyParticleEmitter<T extends App<T>> = CParticleEmitter<T, Entity<T>>;
 
+/// ***WARNING***:
+/// CParticleEmitter cannot be fully restored from persistable data because
+/// its factory is a closure.
+/// 
+/// Either:
+/// - Extend this class and override `onRestorePersistableData` to reassign
+/// `factory` there.
+/// 
+/// - Listen on `factories.comp` (see [App.factories], [ECSFactoryRegistry.comp])
+///   and reassign `factory` when the restored instance matches your type.
+/// 
+/// ```dart
+/// MyApp(super.backend) {
+///   factories.comp.listen((typeId, instance) {
+///     if (instance is MyParticleEmitter) {
+///       instance.factory = ...;
+///     }
+///   });
+/// }
+/// ```
 class CParticleEmitter<T extends App<T>, E extends Entity<T>> extends Comp<T> {
-
+  static const double _defaultRate = 0;
+  
   double rate;
-  ParticleFactory<T, E> factory;
+  ParticleFactory<T, E>? factory;
   double _acc = 0;
 
   CParticleEmitter(super.app, {
-    required this.rate,
-    required this.factory,
+    super.populateDefaults,
+    this.rate = _defaultRate,
+    this.factory,
   });
 
   void spawn({
@@ -22,8 +45,10 @@ class CParticleEmitter<T extends App<T>, E extends Entity<T>> extends Comp<T> {
     ParticleTransform<T, E>? transform,
   }) {
     if (isDisabled) return;
+    final f = factory ?? this.factory;
+    if (f == null) return;
     for (var i = 0; i < count; i++) _spawnOne(
-      factory: factory ?? this.factory,
+      factory: f,
       transform: transform,
     );
   }
@@ -34,7 +59,8 @@ class CParticleEmitter<T extends App<T>, E extends Entity<T>> extends Comp<T> {
     _acc += dt * rate;
     while (_acc >= 1) {
       _acc -= 1;
-      _spawnOne(factory: factory);
+      if (factory == null) continue;
+      _spawnOne(factory: factory!);
     }
   }
 
@@ -60,7 +86,7 @@ class CParticleEmitter<T extends App<T>, E extends Entity<T>> extends Comp<T> {
 
   @override
   CParticleEmitterSnapshot<T, E> createSnapshot() {
-    final snapshot = CParticleEmitterSnapshot<T, E>(namedId);
+    final snapshot = CParticleEmitterSnapshot<T, E>(id);
     snapshot.rate = rate;
     snapshot.factory = factory;
     snapshot._acc = _acc;
@@ -76,14 +102,37 @@ class CParticleEmitter<T extends App<T>, E extends Entity<T>> extends Comp<T> {
     factory = snapshot.factory;
     _acc = snapshot._acc;
   }
+
+  // persistence
+
+  static const typeId = '__comp__CParticleEmitter';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'rate': rate,
+    '_acc': _acc,
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    rate = data.getDouble('rate', _defaultRate);
+    _acc = data.getDouble('_acc');
+  }
 }
 
 class CParticleEmitterSnapshot<T extends App<T>, E extends Entity<T>> extends CompSnapshot<T, CParticleEmitter<T, E>> {
   late double rate;
-  late ParticleFactory<T, E> factory;
+  late ParticleFactory<T, E>? factory;
   late double _acc;
   
-  CParticleEmitterSnapshot(super.namedId);
+  CParticleEmitterSnapshot(super.id);
 
   @override
   CParticleEmitter<T, E> createInstance(T app) {

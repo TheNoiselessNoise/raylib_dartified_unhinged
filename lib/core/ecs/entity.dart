@@ -64,11 +64,13 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   IsStateHolder<T, Entity<T>, AnyEntitySnapshot<T>>,
   IsPersistable<T, Entity<T>, AnyEntitySnapshot<T>>
 {
-  
   @override
   final T app;
 
-  Entity(this.app) {
+  Entity(this.app, {
+    bool populateDefaults = true,
+  }) {
+    this.populateDefaults = populateDefaults;
     emit(EventEntityInitialized(app, this));
   }
 
@@ -153,8 +155,8 @@ class Entity<T extends App<T>> extends ECSBase<T> with
     final image = get<CImage<T>>();
     if (image != null) {
       final size = image.size ?? .vec2(
-        image.texture.width,
-        image.texture.height
+        image.texture?.width ?? 0,
+        image.texture?.height ?? 0
       );
       final half = size.divideBy(2);
       return .new(
@@ -315,7 +317,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   // state
 
   @override
-  AnyEntitySnapshot<T> createSnapshot() => .new(namedId);  
+  AnyEntitySnapshot<T> createSnapshot() => .new(id);  
 
   @override
   @mustCallSuper
@@ -339,6 +341,35 @@ class Entity<T extends App<T>> extends ECSBase<T> with
       onRemove: _removeComponentInstance,
     );
   }
+
+  // persistence
+
+  static const typeId = '__entity__';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    
+    ECSPersistentKeys.components: _storePersistableJsonObjectMap(_components, force: force),
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    _restorePersistableJsonObjectMap(
+      data: data,
+      key: ECSPersistentKeys.components,
+      factory: app.factories.comp,
+      onRestored: addComp,
+    );
+
+    onRestorePersistableData(data, id: id);
+  }
 }
 
 typedef AnyEntitySnapshot<T extends App<T>> = EntitySnapshot<T, Entity<T>>;
@@ -350,16 +381,6 @@ class EntitySnapshot<T extends App<T>, E extends Entity<T>> extends StateSnapsho
 
   @override
   E createInstance(T app) => Entity<T>(app) as E;
-
-  E assignComponents(T app, E destination) {
-    for (final snap in componentSnapshots) {
-      destination.addComp(snap.reconstruct(app));
-    }
-    return destination;
-  }
-
-  @override
-  E reconstruct(T app) => assignComponents(app, createInstance(app));
 }
 
 typedef AnyEntityGroup<T extends App<T>> = EntityGroup<T, Entity<T>>;
@@ -386,7 +407,6 @@ typedef AnyEntityGroup<T extends App<T>> = EntityGroup<T, Entity<T>>;
 class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   IsEntityManagable<T, EntityGroup<T, E>, E>
 {
-  
   EntityGroup(super.app);
 
   @override
@@ -524,7 +544,7 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   // state
 
   @override
-  AnyEntityGroupSnapshot<T> createSnapshot() => .new(namedId);  
+  AnyEntityGroupSnapshot<T> createSnapshot() => .new(id);  
 
   @override
   @nonVirtual
@@ -554,6 +574,39 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
       onRemove: removeEntity,
     );
   }
+
+  // persistence
+
+  static const typeId = '__entityGroup__';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+
+    ECSPersistentKeys.entities: _storePersistableJsonObjectMap(_entities, force: force),
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    _restorePersistableJsonObjectMap(
+      data: data,
+      key: ECSPersistentKeys.entities,
+      factory: app.factories.entity,
+      onRestored: (entity) {
+        if (entity is! E) {
+          throw StateError('EntityGroup expected entity of type $E, but got ${entity.runtimeType}');
+        }
+
+        addEntity(entity);
+      },
+    );
+  }
 }
 
 typedef AnyEntityGroupSnapshot<T extends App<T>> = EntityGroupSnapshot<T, AnyEntityGroup<T>>;
@@ -561,18 +614,8 @@ typedef AnyEntityGroupSnapshot<T extends App<T>> = EntityGroupSnapshot<T, AnyEnt
 class EntityGroupSnapshot<T extends App<T>, E extends AnyEntityGroup<T>> extends EntitySnapshot<T, E> {
   List<AnyEntitySnapshot<T>> entitySnapshots = [];
 
-  EntityGroupSnapshot(super.namedId);
+  EntityGroupSnapshot(super.id);
 
   @override
   E createInstance(T app) => AnyEntityGroup<T>(app) as E;
-
-  E assignEntities(T app, E destination) {
-    for (final snap in entitySnapshots) {
-      destination.addEntity(snap.reconstruct(app));
-    }
-    return destination;
-  }
-
-  @override
-  E reconstruct(T app) => assignEntities(app, super.reconstruct(app));
 }

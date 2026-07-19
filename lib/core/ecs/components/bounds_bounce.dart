@@ -2,6 +2,8 @@ part of '../../raylib_dartified_unhinged.dart';
 
 // bounce the entity from bounds edges
 class CBoundsBounce<T extends App<T>> extends Comp<T> {
+  static const double _defaultRestitution = 1;
+
   late Bounds area;
   double restitution; // 1.0 = perfect bounce, <1 = energy loss
   bool left;
@@ -10,8 +12,9 @@ class CBoundsBounce<T extends App<T>> extends Comp<T> {
   bool bottom;
 
   CBoundsBounce(super.app, {
+    super.populateDefaults,
     Bounds? area,
-    this.restitution = 1,
+    this.restitution = _defaultRestitution,
     this.left = true,
     this.top = true,
     this.right = true,
@@ -78,7 +81,7 @@ class CBoundsBounce<T extends App<T>> extends Comp<T> {
 
   @override
   CBoundsBounceSnapshot<T> createSnapshot() {
-    final snapshot = CBoundsBounceSnapshot<T>(namedId);
+    final snapshot = CBoundsBounceSnapshot<T>(id);
     snapshot.restitution = restitution;
     snapshot.left = left;
     snapshot.top = top;
@@ -97,6 +100,39 @@ class CBoundsBounce<T extends App<T>> extends Comp<T> {
     right = snapshot.right;
     bottom = snapshot.bottom;
   }
+
+  // persistence
+
+  static const typeId = '__comp__CBoundsBounce';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'area': area.getPersistableData(),
+    'restitution': restitution,
+    'left': left,
+    'top': top,
+    'right': right,
+    'bottom': bottom,
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    final areaData = data.getList<double>('area');
+    area.restorePersistableData(areaData);
+
+    restitution = data.getDouble('restitution', _defaultRestitution);
+    left = data.getBool('left');
+    top = data.getBool('top');
+    right = data.getBool('right');
+    bottom = data.getBool('bottom');
+  }
 }
 
 class CBoundsBounceSnapshot<T extends App<T>> extends CompSnapshot<T, CBoundsBounce<T>> {
@@ -106,7 +142,7 @@ class CBoundsBounceSnapshot<T extends App<T>> extends CompSnapshot<T, CBoundsBou
   late bool right;
   late bool bottom;
   
-  CBoundsBounceSnapshot(super.namedId);
+  CBoundsBounceSnapshot(super.id);
 
   @override
   CBoundsBounce<T> createInstance(T app) => .new(app,

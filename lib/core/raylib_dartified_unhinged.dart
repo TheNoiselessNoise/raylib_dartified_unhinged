@@ -7,6 +7,7 @@ import 'package:path/path.dart' as path;
 
 import 'package:raylib_dartified_web/raylib_dartified_web.dart'
   if (dart.library.ffi) 'package:raylib_dartified/raylib.dart';
+import 'package:uuid/uuid.dart';
 
 // backends
 part 'ecs/backends/base.dart';
@@ -62,7 +63,7 @@ part 'ecs/scene_systems/collision_resolver.dart';
 part 'ecs/scene_systems/gravity.dart';
 part 'ecs/scene_systems/screen_bounce.dart';
 part 'ecs/scene_systems/transform_sync.dart';
-part 'ecs/app_systems.dart';
+part 'ecs/app_system.dart';
 part 'ecs/app.dart';
 part 'ecs/base.dart';
 part 'ecs/clone.dart';
@@ -73,11 +74,13 @@ part 'ecs/drawers.dart';
 part 'ecs/entity.dart';
 part 'ecs/events.dart';
 part 'ecs/extras.dart';
+part 'ecs/factories.dart';
 part 'ecs/input.dart';
+part 'ecs/map.dart';
 part 'ecs/mixins.dart';
 part 'ecs/query.dart';
 part 'ecs/renderer.dart';
-part 'ecs/scene_systems.dart';
+part 'ecs/scene_system.dart';
 part 'ecs/scene.dart';
 part 'ecs/state.dart';
 part 'ecs/tasks.dart';

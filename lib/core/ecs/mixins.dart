@@ -389,6 +389,14 @@ mixin IsAppSystemManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, E
 
   Iterable<AppSystem<T>> getSystems() => _systems;
 
+  /// Replaces the first app system whose `runtimeType == system.runtimeType` with [system].
+  E replaceSystem(AppSystem<T> system) {
+    final old = _systems.where((c) => c.runtimeType == system.runtimeType).firstOrNull;
+    if (old != null) _removeAppSystemInstance(old);
+    addSystem(system);
+    return self;
+  }
+
   /// Moves the first found system of type [S] to the specified [index].
   /// No-op if no system of type [S] is found.
   /// Clamps [index] to the valid range of the list.
@@ -1306,6 +1314,18 @@ mixin IsClonable<
       }
     }
 
+    if (self case IsPersistableBase<T, E> from) {
+      if (target case IsPersistableBase<T, E> to) {
+        if (allowedHook(.onBeforeStorePersistable)) {
+          to._onBeforeStorePersistableFns = .from(from._onBeforeStorePersistableFns);
+        }
+
+        if (allowedHook(.onStorePersistable)) {
+          to._onStorePersistableFns = .from(from._onStorePersistableFns);
+        }
+      }
+    }
+
     if (self case IsPrePostDrawable<T, E> from) {
       if (target case IsPrePostDrawable<T, E> to) {
         if (allowedHook(.onPreDraw)) {
@@ -1600,7 +1620,7 @@ mixin IsCommandProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, H
     if (cmd.isCanceled) return;
     onCommand(cmd);
     if (cmd.isCanceled) return;
-    cmd._doExecute();
+    cmd._doExecuteCommand();
     emit(EventCommandExecuted(app, cmd));
   }
 
@@ -1626,6 +1646,9 @@ mixin IsCommandProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, H
     }
     return didSomething;
   }
+
+  /// Clears command queue.
+  void clearCommandQueue() => _commandQueue.clear();
 }
 
 /// Adds a callback processing capabilities to an ECS object.
@@ -1642,11 +1665,14 @@ mixin IsCallbackProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, 
   bool _processCallbacks() {
     bool didSomething = false;
     while (_callbackQueue.isNotEmpty) {
-      _callbackQueue.removeAt(0)();
+      _callbackQueue.removeAt(0).call();
       didSomething = true;
     }
     return didSomething;
   }
+
+  /// Clears callback queue.
+  void clearCallbackQueue() => _callbackQueue.clear();
 }
 
 typedef IsAnyComponentManagable<T extends App<T>> = IsComponentManagable<T, ECSBase<T>>;
@@ -3046,6 +3072,7 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
     _eventHistory.removeWhere((e) => e.simTime < cutoff);
   }
 
+  /// Clears history of recorded events.
   void clearEventHistory() => _eventHistory.clear();
 
   /// Events dispatched within the last [duration] sim-scaled seconds,
@@ -3157,7 +3184,7 @@ mixin IsEventQueueHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmitt
     _eventQueue = _eventQueue.sortedBy((e) => e.priority);
   }
 
-  /// Drains [_eventQueue] in priority order, dispatching each event.
+  /// Drains event queue in priority order, dispatching each event.
   bool _processEvents() {
     bool didSomething = false;
     while (_eventQueue.isNotEmpty) {
@@ -3166,6 +3193,9 @@ mixin IsEventQueueHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmitt
     }
     return didSomething;
   }
+
+  /// Clears event queue.
+  void clearEventQueue() => _eventQueue.clear();
 
   /// Synchronously drains the pending event queue.
   ///
@@ -3622,14 +3652,6 @@ mixin IsSceneManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
   bool _dummyScenePresent = true;
   late Scene<T> _currentScene;
 
-  void removeDummyScene() {
-    if (!_dummyScenePresent) return;
-    _dummyScenePresent = false;
-    _currentScene = .new(app);
-    _scenes.clear();
-    _scenes.add(_currentScene);
-  }
-
   void _assignDummyScene() {
     final dummyScene = FWidgetScene<T>(app);
 
@@ -3680,6 +3702,14 @@ mixin IsSceneManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
   Iterable<Scene<T>> getScenes() => _scenes;
 
   Scene<T> get currentScene => _currentScene;
+
+  /// Replaces the first scene whose `runtimeType == scene.runtimeType` with [scene].
+  E replaceScene(Scene<T> scene) {
+    final old = _scenes.where((c) => c.runtimeType == scene.runtimeType).firstOrNull;
+    if (old != null) removeScene(old);
+    addScene(scene);
+    return self;
+  }
 
   S? getSceneByKey<S extends Scene<T>>(String key) => _scenes.where((s) => s.key == key).firstOrNull as S?;
 
@@ -4022,6 +4052,14 @@ mixin IsSceneSystemManagable<T extends App<T>, E extends ECSBase<T>>
 
   /// Returns all systems currently registered in this scene.
   Iterable<SceneSystem<T>> getSystems() => _systems;
+
+  /// Replaces the first scene system whose `runtimeType == system.runtimeType` with [system].
+  E replaceSystem(SceneSystem<T> system) {
+    final old = _systems.where((c) => c.runtimeType == system.runtimeType).firstOrNull;
+    if (old != null) _removeSceneSystemInstance(old);
+    addSystem(system);
+    return self;
+  }
 
   /// Moves the first found system of type [S] to the specified [index].
   /// No-op if no system of type [S] is found.
@@ -4531,6 +4569,12 @@ mixin IsTaskProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasA
       if (done) task._isQueued = false;
       return done;
     });
+  }
+
+  /// Clears task queue.
+  void clearTaskQueue() {
+    _taskQueue.clear();
+    _pendingTaskQueue.clear();
   }
 }
 

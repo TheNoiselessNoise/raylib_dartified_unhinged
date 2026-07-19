@@ -45,9 +45,6 @@ class TestHeadlessBackendApp extends App<G> {
 }
 
 // void main() {
-//   // NOTE: weird, but okay
-//   RaylibVector2Factories.zeroFactory = Vector2D.zero;
-
 //   final headless = HeadlessBackend();
 //   final app = TestHeadlessBackendApp(headless);
 //   app.init();

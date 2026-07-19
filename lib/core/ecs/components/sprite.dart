@@ -2,6 +2,8 @@ part of '../../raylib_dartified_unhinged.dart';
 
 // simple colored rect
 class CSprite<T extends App<T>> extends Comp<T> {
+  static const List<double> _defaultSize = [50, 50];
+
   Vector2D size; // unscaled local size
   ColorD? color;
 
@@ -10,9 +12,10 @@ class CSprite<T extends App<T>> extends Comp<T> {
   Vector2D origin = .zero(); // origin relative to rec (usually center)
 
   CSprite(super.app, {
+    super.populateDefaults,
     Vector2D? size,
     this.color,
-  }) : size = size ?? .vec2(50, 50);
+  }) : size = size ?? .vec2(_defaultSize[0], _defaultSize[1]);
 
   @override
   void onUpdate(double dt) => entity.onTransform((t) {
@@ -50,7 +53,7 @@ class CSprite<T extends App<T>> extends Comp<T> {
 
   @override
   CSpriteSnapshot<T> createSnapshot() {
-    final snapshot = CSpriteSnapshot<T>(namedId);
+    final snapshot = CSpriteSnapshot<T>(id);
     snapshot.size = size.copy();
     snapshot.color = color?.copy();
     snapshot.rect = rect.copy();
@@ -68,6 +71,40 @@ class CSprite<T extends App<T>> extends Comp<T> {
     rect = snapshot.rect.copy();
     origin = snapshot.origin.copy();
   }
+
+  // persistence
+
+  static const typeId = '__comp__CSprite';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'size': size,
+    'color': color?.getPersistableData(),
+    'rect': rect.getPersistableData(),
+    'origin': origin.getPersistableData(),
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    final sizeData = data.getList<double>('size', _defaultSize);
+    size.restorePersistableData(sizeData);
+
+    final colorData = data.getListOrNull<int>('color');
+    if (colorData != null) color?.restorePersistableData(colorData);
+
+    final rectData = data.getList<double>('rect');
+    rect.restorePersistableData(rectData);
+
+    final originData = data.getList<double>('origin');
+    origin.restorePersistableData(originData);
+  }
 }
 
 class CSpriteSnapshot<T extends App<T>> extends CompSnapshot<T, CSprite<T>> {
@@ -76,7 +113,7 @@ class CSpriteSnapshot<T extends App<T>> extends CompSnapshot<T, CSprite<T>> {
   late RectangleD rect;
   late Vector2D origin;
   
-  CSpriteSnapshot(super.namedId);
+  CSpriteSnapshot(super.id);
 
   @override
   CSprite<T> createInstance(T app) {

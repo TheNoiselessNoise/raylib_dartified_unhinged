@@ -133,6 +133,9 @@ class MTV {
 }
 
 class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
+  static const double _defaultRestitution = 1;
+  static const double _defaultGridCellSize = 64;
+
   double restitution;
   late SpatialGrid<T> spatialGrid;
   
@@ -140,21 +143,19 @@ class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
   final List<_EntityColliderData<T>> _bodies = [];
   final Set<int> _checkedPairs = {};
   
-  late double? _gridCellSize;
+  double gridCellSize;
 
   bool enableEventEmitting;
 
-  CollisionResolverSystem(
-    super.app, {
-    this.restitution = 1.0,
-    double? gridCellSize,
+  CollisionResolverSystem(super.app, {
+    super.populateDefaults,
+    this.restitution = _defaultRestitution,
+    this.gridCellSize = _defaultGridCellSize,
     this.enableEventEmitting = true,
   }) {
-    _gridCellSize = gridCellSize;
-
     // Cell size should be roughly 2x your largest collider radius
     // For 8-radius balls, 20-32 is a good default
-    spatialGrid = .new(gridCellSize ?? 64.0);
+    spatialGrid = .new(gridCellSize);
   }
 
   @override
@@ -580,7 +581,7 @@ class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
 
   @override
   CollisionResolverSystem<T> createInstance() => .new(app,
-    gridCellSize: _gridCellSize,
+    gridCellSize: gridCellSize,
     restitution: restitution,
     enableEventEmitting: enableEventEmitting,
   );
@@ -589,10 +590,10 @@ class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
 
   @override
   CollisionResolverSystemSnapshot<T> createSnapshot() {
-    final snapshot = CollisionResolverSystemSnapshot<T>(namedId);
+    final snapshot = CollisionResolverSystemSnapshot<T>(id);
     snapshot.restitution = restitution;
     snapshot.enableEventEmitting = enableEventEmitting;
-    snapshot.gridCellSize = _gridCellSize;
+    snapshot.gridCellSize = gridCellSize;
     return snapshot;
   }
 
@@ -602,21 +603,48 @@ class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
     super.restoreSnapshot(snapshot);
     restitution = snapshot.restitution;
     enableEventEmitting = snapshot.enableEventEmitting;
-    _gridCellSize = snapshot.gridCellSize;
+    gridCellSize = snapshot.gridCellSize;
     // Rebuild derived state rather than restore it directly
-    spatialGrid = .new(_gridCellSize ?? 64.0);
+    spatialGrid = .new(gridCellSize);
     // Scratch buffers are transient, clear rather than restore
     _bodies.clear();
     _checkedPairs.clear();
+  }
+
+  // persistence
+  
+  static const typeId = '__sceneSystem__CollisionResolverSystem';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'restitution': restitution,
+    'enableEventEmitting': enableEventEmitting,
+    'gridCellSize': gridCellSize,
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    restitution = data.getDouble('restitution', 1.0);
+    enableEventEmitting = data.getBool('enableEventEmitting', true);
+
+    gridCellSize = data.getDouble('gridCellSize', _defaultGridCellSize);
+    spatialGrid = .new(gridCellSize);
   }
 }
 
 class CollisionResolverSystemSnapshot<T extends App<T>> extends SceneSystemSnapshot<T, CollisionResolverSystem<T>> {
   late double restitution;
   late bool enableEventEmitting;
-  late double? gridCellSize;
+  late double gridCellSize;
   
-  CollisionResolverSystemSnapshot(super.namedId);
+  CollisionResolverSystemSnapshot(super.id);
 
   @override
   CollisionResolverSystem<T> createInstance(T app) => .new(app,

@@ -1,11 +1,11 @@
 part of '../../raylib_dartified_unhinged.dart';
 
 class CInput<T extends App<T>> extends Comp<T> {
-    
   Map<String, MouseButton> mouseMap;
   Map<String, KeyboardKey> keyMap;
 
   CInput(super.app, {
+    super.populateDefaults,
     Map<String, MouseButton>? mouseMap,
     Map<String, KeyboardKey>? keyMap,
   }) :
@@ -36,7 +36,7 @@ class CInput<T extends App<T>> extends Comp<T> {
 
   @override
   CInputSnapshot<T> createSnapshot() {
-    final snapshot = CInputSnapshot<T>(namedId);
+    final snapshot = CInputSnapshot<T>(id);
     snapshot.mouseMap = .from(mouseMap);
     snapshot.keyMap = .from(keyMap);
     return snapshot;
@@ -50,13 +50,43 @@ class CInput<T extends App<T>> extends Comp<T> {
     mouseMap = .from(snapshot.mouseMap);
     keyMap = .from(snapshot.keyMap);
   }
+
+  // persistence
+
+  static const typeId = '__comp__CInput';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'mouseMap': mouseMap.map((k, v) => .new(k, v.value)),
+    'keyMap': keyMap.map((k, v) => .new(k, v.value)),
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    final mouseMapData = data.getMap<int>('mouseMap');
+    for (final e in mouseMapData.entries) {
+      mouseMap[e.key] = .fromValue(e.value);
+    }
+
+    final keyMapData = data.getMap<int>('keyMap');
+    for (final e in keyMapData.entries) {
+      keyMap[e.key] = .fromValue(e.value);
+    }
+  }
 }
 
 class CInputSnapshot<T extends App<T>> extends CompSnapshot<T, CInput<T>> {
   late Map<String, MouseButton> mouseMap;
   late Map<String, KeyboardKey> keyMap;
   
-  CInputSnapshot(super.namedId);
+  CInputSnapshot(super.id);
 
   @override
   CInput<T> createInstance(T app) => CInput<T>(app,

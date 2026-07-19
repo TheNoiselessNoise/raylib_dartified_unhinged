@@ -12,6 +12,7 @@ dependencies:
   raylib_dartified_base: '>=5.5.0 <6.0.0'
   raylib_dartified_web: '>=5.5.0 <6.0.0'
   raylib_dartified: '>=5.5.0 <6.0.0'
+  uuid: ^4.6.0
 
 dev_dependencies:
   lints: ^6.0.0

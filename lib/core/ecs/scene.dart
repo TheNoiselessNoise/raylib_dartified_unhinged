@@ -96,7 +96,6 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   IsPersistable<T, Scene<T>, AnySceneSnapshot<T>>
 
 {
-
   @override
   final T app;
 
@@ -109,9 +108,15 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   ///
   /// Automatically registers a [TransformSyncSystem] and emits
   /// [EventSceneInitialized].
-  Scene(this.app, {String? key}) {
+  Scene(this.app, {
+    String? key,
+    bool populateDefaults = true,
+  }) {
+    this.populateDefaults = populateDefaults;
     this.key = key ?? namedId;
-    addSystem(TransformSyncSystem(app));
+    if (populateDefaults) {
+      addSystem(TransformSyncSystem(app));
+    }
     emit(EventSceneInitialized(app, this));
   }
 
@@ -144,7 +149,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
 
     _systems.forEach((s) {
       if (!(cloner?.allowSceneSystem(copy, s) ?? true)) return;
-      copy.addSystem(s.clone(cloner?.systemCloner));
+      copy.replaceSystem(s.clone(cloner?.systemCloner));
     });
 
     super._doOnClone(copy, cloner);
@@ -157,11 +162,15 @@ class Scene<T extends App<T>> extends ECSBase<T> with
     emit(EventSceneCloned(app, self, target));
   }
 
+  // clone
+
   @override
   Scene<T> createInstance() => .new(app);
 
+  // state
+
   @override
-  AnySceneSnapshot<T> createSnapshot() => .new(namedId);  
+  AnySceneSnapshot<T> createSnapshot() => .new(id);  
 
   @override
   @nonVirtual
@@ -196,6 +205,43 @@ class Scene<T extends App<T>> extends ECSBase<T> with
       onRestore: (x, s) => x.restoreSnapshot(s),
       onRemove: removeEntity,
     );
+  }
+
+  // persistence
+
+  static const typeId = '__scene__';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+
+    ECSPersistentKeys.sceneSystems: _storePersistableJsonObjectMap(_systems, force: force),
+    ECSPersistentKeys.entities: _storePersistableJsonObjectMap(_entities, force: force),
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    _restorePersistableJsonObjectMap(
+      data: data,
+      key: ECSPersistentKeys.sceneSystems,
+      factory: app.factories.sceneSystem,
+      onRestored: addSystem,
+    );
+
+    _restorePersistableJsonObjectMap(
+      data: data,
+      key: ECSPersistentKeys.entities,
+      factory: app.factories.entity,
+      onRestored: addEntity,
+    );
+
+    onRestorePersistableData(data, id: id);
   }
 
   //   ░██████   ░██     ░██ ░██████████ ░█████████  ░██     ░██ 
@@ -496,30 +542,8 @@ class SceneSnapshot<T extends App<T>, S extends Scene<T>> extends StateSnapshot<
   late List<AnySceneSystemSnapshot<T>> systemSnapshots;
   late List<AnyEntitySnapshot<T>> entitySnapshots;
 
-  SceneSnapshot(super.namedId);
+  SceneSnapshot(super.id);
 
   @override
   S createInstance(T app) => Scene<T>(app) as S;
-
-  S assignSystems(T app, S destination) {
-    for (final snap in systemSnapshots) {
-      destination.addSystem(snap.reconstruct(app));
-    }
-    return destination;
-  }
-
-  S assignEntities(T app, S destination) {
-    for (final snap in entitySnapshots) {
-      destination.addEntity(snap.reconstruct(app));
-    }
-    return destination;
-  }
-
-  @override
-  S reconstruct(T app) {
-    final s = createInstance(app);
-    assignSystems(app, s);
-    assignEntities(app, s);
-    return s;
-  }
 }

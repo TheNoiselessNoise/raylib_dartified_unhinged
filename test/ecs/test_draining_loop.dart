@@ -1,6 +1,5 @@
 import 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart';
 import 'package:test/test.dart';
-import '../mocks.dart';
 
 typedef G = TestApp;
 
@@ -74,7 +73,7 @@ void main() {
     late TestApp app;
 
     setUp(() {
-      app = buildApp(factory: () => TestApp(HeadlessBackend()), clearInitEvents: true);
+      app = TestApp(HeadlessBackend())..init()..clearEventQueue();
       eventSources = [];
       callbackFireCount = 0;
       app.reentrantCallbackMode = false;

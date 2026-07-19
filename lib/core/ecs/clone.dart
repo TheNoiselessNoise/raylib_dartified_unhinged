@@ -199,6 +199,13 @@ enum CloneHookType {
   /// [IsDisposable]
   onDispose,
 
+  // IsPersistable
+
+  /// [IsPersistable]
+  onBeforeStorePersistable,
+  /// [IsPersistable]
+  onStorePersistable,
+
   // IsPrePostDrawable
 
   /// [IsPrePostDrawable]

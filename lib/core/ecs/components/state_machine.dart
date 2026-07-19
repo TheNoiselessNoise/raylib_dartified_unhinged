@@ -17,6 +17,30 @@ class CStateMachineTransition {
   CStateMachineTransition(this.from, this.to, this.when);
 }
 
+/// ***WARNING***:
+/// CStateMachine cannot be fully restored from persistable data because its
+/// states and transitions contain closures (`onEnter`, `onExit`, `onUpdate`,
+/// and `when`).
+///
+/// Either:
+/// - Extend this class and override `onRestorePersistableData` to set up
+///   states and transitions there.
+///
+/// - Listen on `factories.comp` (see [App.factories], [ECSFactoryRegistry.comp])
+///   and rebuild states/transitions when the restored instance matches your type.
+///
+/// ```dart
+/// MyApp(super.backend) {
+///   factories.comp.listen((typeId, instance) {
+///     if (instance is MyStateMachine) {
+///       instance
+///         ..addState('idle', onEnter: ...)
+///         ..transition('idle', 'moving', when: ...)
+///         ..start('idle');
+///     }
+///   });
+/// }
+/// ```
 class CStateMachine<T extends App<T>> extends Comp<T> {
   Map<String, CStateMachineStateDef> _states = {};
   List<CStateMachineTransition> _transitions = [];
@@ -28,9 +52,10 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
 
   String? get currentState => _current;
   double get timeInState => _timeInState;
-  bool get isStarted => _started;
+  bool get hasStarted => _started;
 
   CStateMachine(super.app, {
+    super.populateDefaults,
     Map<String, CStateMachineStateDef>? states,
     List<CStateMachineTransition>? transitions,
   }) :
@@ -40,7 +65,7 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
   /// Define a state. Must be called before [start]. Calling after start
   /// throws, because addState defines the machine's shape once; it's not meant
   /// to be mutated while running.
-  CStateMachine addState(
+  CStateMachine<T> addState(
     String name, {
     void Function()? onEnter,
     void Function()? onExit,
@@ -66,7 +91,7 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
   /// Define a transition. [when] is checked every [onUpdate] while the
   /// machine is in [from]; first matching transition wins, evaluated in
   /// the order they were added.
-  CStateMachine transition(
+  CStateMachine<T> transition(
     String from,
     String to, {
     required bool Function() when,
@@ -83,7 +108,7 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
   }
 
   /// Start the machine in [initialState]. Fires that state's onEnter.
-  CStateMachine start(String initialState) {
+  CStateMachine<T> start(String initialState) {
     if (_started) {
       throw StateError('start() called twice.');
     }
@@ -155,7 +180,7 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
 
   @override
   CStateMachineSnapshot<T> createSnapshot() {
-    final snapshot = CStateMachineSnapshot<T>(namedId);
+    final snapshot = CStateMachineSnapshot<T>(id);
     snapshot._states = .from(_states);
     snapshot._transitions = .from(_transitions);
     snapshot._current = _current;
@@ -176,6 +201,33 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
     _started = snapshot._started;
     _entered = snapshot._entered;
   }
+
+  // persistence
+
+  static const typeId = '__comp__CStateMachine';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    '_current': _current,
+    '_timeInState': _timeInState,
+    '_started': _started,
+    '_entered': _entered,
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    _current = data.getString('_current');
+    _timeInState = data.getDouble('_timeInState');
+    _started = data.getBool('_started');
+    _entered = data.getBool('_entered');
+  }
 }
 
 class CStateMachineSnapshot<T extends App<T>> extends CompSnapshot<T, CStateMachine<T>> {
@@ -186,7 +238,7 @@ class CStateMachineSnapshot<T extends App<T>> extends CompSnapshot<T, CStateMach
   late bool _started;
   late bool _entered;
   
-  CStateMachineSnapshot(super.namedId);
+  CStateMachineSnapshot(super.id);
 
   @override
   CStateMachine<T> createInstance(T app) {

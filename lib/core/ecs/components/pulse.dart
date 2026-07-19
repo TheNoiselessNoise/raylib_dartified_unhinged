@@ -5,6 +5,10 @@ mixin IsComponentScaleMutable<T extends App<T>> on Comp<T> {}
 class CPulse<T extends App<T>> extends Comp<T> with
   IsComponentScaleMutable<T>
 {
+  static const double _defaultMinScale = 0.8;
+  static const double _defaultMaxScale = 1.2;
+  static const double _defaultSpeed = 2;
+
   double minScale;
   double maxScale;
   double speed;
@@ -13,9 +17,10 @@ class CPulse<T extends App<T>> extends Comp<T> with
   double currentScale = 0;
 
   CPulse(super.app, {
-    this.minScale = 0.8,
-    this.maxScale = 1.2,
-    this.speed = 2.0,
+    super.populateDefaults,
+    this.minScale = _defaultMinScale,
+    this.maxScale = _defaultMaxScale,
+    this.speed = _defaultSpeed,
     double? time,
   }) : pulseTime = time ?? 0;
 
@@ -48,7 +53,7 @@ class CPulse<T extends App<T>> extends Comp<T> with
 
   @override
   CPulseSnapshot<T> createSnapshot() {
-    final snapshot = CPulseSnapshot<T>(namedId);
+    final snapshot = CPulseSnapshot<T>(id);
     snapshot.minScale = minScale;
     snapshot.maxScale = maxScale;
     snapshot.speed = speed;
@@ -68,6 +73,35 @@ class CPulse<T extends App<T>> extends Comp<T> with
     pulseTime = snapshot.pulseTime;
     currentScale = snapshot.currentScale;
   }
+
+  // persistence
+
+  static const typeId = '__comp__CPulse';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'minScale': minScale,
+    'maxScale': maxScale,
+    'speed': speed,
+    'pulseTime': pulseTime,
+    'currentScale': currentScale,
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    minScale = data.getDouble('minScale', _defaultMinScale);
+    maxScale = data.getDouble('maxScale', _defaultMaxScale);
+    speed = data.getDouble('speed', _defaultSpeed);
+    pulseTime = data.getDouble('pulseTime');
+    currentScale = data.getDouble('currentScale');
+  }
 }
 
 class CPulseSnapshot<T extends App<T>> extends CompSnapshot<T, CPulse<T>> {
@@ -77,7 +111,7 @@ class CPulseSnapshot<T extends App<T>> extends CompSnapshot<T, CPulse<T>> {
   late double pulseTime;
   late double currentScale;
   
-  CPulseSnapshot(super.namedId);
+  CPulseSnapshot(super.id);
 
   @override
   CPulse<T> createInstance(T app) {

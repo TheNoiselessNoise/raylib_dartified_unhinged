@@ -28,11 +28,14 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   IsPersistable<T, Comp<T>, AnyCompSnapshot<T>>
 
 {
-  
   @override
   final T app;
 
-  Comp(this.app);
+  Comp(this.app, {
+    bool populateDefaults = true,
+  }) {
+    this.populateDefaults = populateDefaults;
+  }
 
   @override
   late Entity<T> entity;
@@ -147,7 +150,7 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   // state
 
   @override
-  AnyCompSnapshot<T> createSnapshot() => .new(namedId);  
+  AnyCompSnapshot<T> createSnapshot() => .new(id);  
 
   @override
   @nonVirtual
@@ -171,6 +174,35 @@ class Comp<T extends App<T>> extends ECSBase<T> with
       onRemove: _removeComponentInstance,
     );
   }
+  
+  // persistence
+
+  static const typeId = '__comp__';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+
+    ECSPersistentKeys.components: _storePersistableJsonObjectMap(_components, force: force),
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    _restorePersistableJsonObjectMap(
+      data: data,
+      key: ECSPersistentKeys.components,
+      factory: app.factories.comp,
+      onRestored: addComp,
+    );
+
+    onRestorePersistableData(data, id: id);
+  }
 }
 
 typedef AnyCompSnapshot<T extends App<T>> = CompSnapshot<T, Comp<T>>;
@@ -182,16 +214,4 @@ class CompSnapshot<T extends App<T>, C extends Comp<T>> extends StateSnapshot<T,
 
   @override
   C createInstance(T app) => Comp<T>(app) as C;
-
-  @nonVirtual
-  C assignComponents(T app, C destination) {
-    for (final snap in componentSnapshots) {
-      destination.addComp(snap.reconstruct(app));
-    }
-    return destination;
-  }
-
-  @override
-  @nonVirtual
-  C reconstruct(T app) => assignComponents(app, createInstance(app));
 }

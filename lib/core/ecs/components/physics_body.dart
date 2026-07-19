@@ -2,6 +2,10 @@ part of '../../raylib_dartified_unhinged.dart';
 
 // physics stuff
 class CPhysicsBody<T extends App<T>> extends Comp<T> {
+  static const double _defaultMass = 1;
+  static const double _defaultRestitution = 1;
+  static const bool _defaultTransferVelocity = true;
+
   /// 0 = infinite mass (immovable)
   double mass;
 
@@ -12,9 +16,10 @@ class CPhysicsBody<T extends App<T>> extends Comp<T> {
   bool transferVelocity;
 
   CPhysicsBody(super.app, {
-    this.mass = 1.0,
-    this.restitution = 1.0,
-    this.transferVelocity = true,
+    super.populateDefaults,
+    this.mass = _defaultMass,
+    this.restitution = _defaultRestitution,
+    this.transferVelocity = _defaultTransferVelocity,
   });
 
   factory CPhysicsBody.kinematic(T app, {
@@ -42,7 +47,7 @@ class CPhysicsBody<T extends App<T>> extends Comp<T> {
 
   @override
   CPhysicsBodySnapshot<T> createSnapshot() {
-    final snapshot = CPhysicsBodySnapshot<T>(namedId);
+    final snapshot = CPhysicsBodySnapshot<T>(id);
     snapshot.mass = mass;
     snapshot.restitution = restitution;
     snapshot.transferVelocity = transferVelocity;
@@ -58,6 +63,31 @@ class CPhysicsBody<T extends App<T>> extends Comp<T> {
     restitution = snapshot.restitution;
     transferVelocity = snapshot.transferVelocity;
   }
+
+  // persistence
+
+  static const typeId = '__comp__CPhysicsBody';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'mass': mass,
+    'restitution': restitution,
+    'transferVelocity': transferVelocity,
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    mass = data.getDouble('mass', _defaultMass);
+    restitution = data.getDouble('restitution', _defaultRestitution);
+    transferVelocity = data.getBool('transferVelocity', _defaultTransferVelocity);
+  }
 }
 
 class CPhysicsBodySnapshot<T extends App<T>> extends CompSnapshot<T, CPhysicsBody<T>> {
@@ -65,7 +95,7 @@ class CPhysicsBodySnapshot<T extends App<T>> extends CompSnapshot<T, CPhysicsBod
   late double restitution;
   late bool transferVelocity;
   
-  CPhysicsBodySnapshot(super.namedId);
+  CPhysicsBodySnapshot(super.id);
 
   @override
   CPhysicsBody<T> createInstance(T app) => .new(app,

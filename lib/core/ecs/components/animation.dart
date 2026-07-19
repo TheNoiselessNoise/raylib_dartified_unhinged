@@ -44,7 +44,7 @@ class CAnimation<T extends App<T>, X> extends Comp<T> {
   /// [get] if omitted) to [to] over [duration] seconds.
   ///
   /// Calling this again for a property that's already animating overrides
-  /// it — the new tween replaces the old one outright, consistent with
+  /// it, the new tween replaces the old one outright, consistent with
   /// "last call wins" rather than queueing or stacking. If you want
   /// queueing, chain a second .animate() call after onComplete instead.
   CAnimation<T, X> property(
@@ -58,7 +58,7 @@ class CAnimation<T extends App<T>, X> extends Comp<T> {
     // "Override" semantics: same setter reference (by identity via a
     // wrapping key) replaces any existing tween targeting it. We key on
     // the Setter function identity rather than a string field name, since
-    // that's what was actually passed in — no reflection, no magic.
+    // that's what was actually passed in, no reflection, no magic.
     _tweens.removeWhere((tw) => tw.set == set);
     _tweens.add(.new(
       set: set,
@@ -121,7 +121,7 @@ class CAnimation<T extends App<T>, X> extends Comp<T> {
 
   @override
   CAnimationSnapshot<T, X> createSnapshot() {
-    final snapshot = CAnimationSnapshot<T, X>(namedId);
+    final snapshot = CAnimationSnapshot<T, X>(id);
     snapshot._tweens = .from(_tweens);
     snapshot._onCompleteCallbacks = .from(_onCompleteCallbacks);
     snapshot._completedFired = _completedFired;
@@ -136,6 +136,12 @@ class CAnimation<T extends App<T>, X> extends Comp<T> {
     _onCompleteCallbacks = .from(snapshot._onCompleteCallbacks);
     _completedFired = snapshot._completedFired;
   }
+
+  // persistence
+
+  static const typeId = '__comp__CAnimation';
+  
+  @override String get persistentTypeId => typeId;
 }
 
 class CAnimationSnapshot<T extends App<T>, X> extends CompSnapshot<T, CAnimation<T, X>> {
@@ -144,7 +150,7 @@ class CAnimationSnapshot<T extends App<T>, X> extends CompSnapshot<T, CAnimation
   late List<void Function()> _onCompleteCallbacks;
   late bool _completedFired;
   
-  CAnimationSnapshot(super.namedId);
+  CAnimationSnapshot(super.id);
 
   @override
   CAnimation<T, X> createInstance(T app) {

@@ -1,18 +1,21 @@
 part of '../../raylib_dartified_unhinged.dart';
 
 class ScreenBounceSystem<T extends App<T>> extends SceneSystem<T> {
+  static const double _defaultRestitution = 1;
+
   double restitution; // 1.0 = perfect bounce, <1 = energy loss
-  bool left;
   bool top;
-  bool right;
+  bool left;
   bool bottom;
+  bool right;
 
   ScreenBounceSystem(super.app, {
-    this.restitution = 1,
-    this.left = true,
+    super.populateDefaults,
+    this.restitution = _defaultRestitution,
     this.top = true,
-    this.right = true,
+    this.left = true,
     this.bottom = true,
+    this.right = true,
   });
 
   @override
@@ -32,20 +35,6 @@ class ScreenBounceSystem<T extends App<T>> extends SceneSystem<T> {
       double rx = bounds.width / 2;
       double ry = bounds.height / 2;
 
-      // LEFT
-      final minX = rx;
-      if (left && pos.x < minX) {
-        pos.x = minX;
-        if (vel.x < 0) vel.x = isKinematic ? 0 : -vel.x * restitution;
-      }
-
-      // RIGHT
-      final maxX = screen.x - rx;
-      if (right && pos.x > maxX) {
-        pos.x = maxX;
-        if (vel.x > 0) vel.x = isKinematic ? 0 : -vel.x * restitution;
-      }
-
       // TOP
       final minY = ry;
       if (top && pos.y < minY) {
@@ -53,11 +42,25 @@ class ScreenBounceSystem<T extends App<T>> extends SceneSystem<T> {
         if (vel.y < 0) vel.y = isKinematic ? 0 : -vel.y * restitution;
       }
 
+      // LEFT
+      final minX = rx;
+      if (left && pos.x < minX) {
+        pos.x = minX;
+        if (vel.x < 0) vel.x = isKinematic ? 0 : -vel.x * restitution;
+      }
+
       // BOTTOM
       final maxY = screen.y - ry;
       if (bottom && pos.y > maxY) {
         pos.y = maxY;
         if (vel.y > 0) vel.y = isKinematic ? 0 : -vel.y * restitution;
+      }
+
+      // RIGHT
+      final maxX = screen.x - rx;
+      if (right && pos.x > maxX) {
+        pos.x = maxX;
+        if (vel.x > 0) vel.x = isKinematic ? 0 : -vel.x * restitution;
       }
     });
   }
@@ -67,22 +70,22 @@ class ScreenBounceSystem<T extends App<T>> extends SceneSystem<T> {
   @override
   ScreenBounceSystem<T> createInstance() => .new(app,
     restitution: restitution,
-    left: left,
     top: top,
-    right: right,
+    left: left,
     bottom: bottom,
+    right: right,
   );
   
   // state
 
   @override
   ScreenBounceSystemSnapshot<T> createSnapshot() {
-    final snapshot = ScreenBounceSystemSnapshot<T>(namedId);
+    final snapshot = ScreenBounceSystemSnapshot<T>(id);
     snapshot.restitution = restitution;
-    snapshot.left = left;
     snapshot.top = top;
-    snapshot.right = right;
+    snapshot.left = left;
     snapshot.bottom = bottom;
+    snapshot.right = right;
     return snapshot;
   }
 
@@ -91,28 +94,57 @@ class ScreenBounceSystem<T extends App<T>> extends SceneSystem<T> {
   void restoreSnapshot(covariant ScreenBounceSystemSnapshot<T> snapshot) {
     super.restoreSnapshot(snapshot);
     restitution = snapshot.restitution;
-    left = snapshot.left;
     top = snapshot.top;
-    right = snapshot.right;
+    left = snapshot.left;
     bottom = snapshot.bottom;
+    right = snapshot.right;
+  }
+
+  // persistence
+  
+  static const typeId = '__sceneSystem__ScreenBounceSystem';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'restitution': restitution,
+    'top': top,
+    'left': left,
+    'bottom': bottom,
+    'right': right,
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    restitution = data.getDouble('restitution', _defaultRestitution);
+    top = data.getBool('top');
+    left = data.getBool('left');
+    bottom = data.getBool('bottom');
+    right = data.getBool('right');
   }
 }
 
 class ScreenBounceSystemSnapshot<T extends App<T>> extends SceneSystemSnapshot<T, ScreenBounceSystem<T>> {
   late double restitution;
-  late bool left;
   late bool top;
-  late bool right;
+  late bool left;
   late bool bottom;
+  late bool right;
   
-  ScreenBounceSystemSnapshot(super.namedId);
+  ScreenBounceSystemSnapshot(super.id);
 
   @override
   ScreenBounceSystem<T> createInstance(T app) => .new(app,
     restitution: restitution,
-    left: left,
     top: top,
-    right: right,
+    left: left,
     bottom: bottom,
+    right: right,
   );
 }

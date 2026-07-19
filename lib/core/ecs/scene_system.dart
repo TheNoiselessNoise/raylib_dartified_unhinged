@@ -30,11 +30,14 @@ class SceneSystem<T extends App<T>> extends ECSBase<T> with
   IsPersistable<T, SceneSystem<T>, AnySceneSystemSnapshot<T>>
 
 {
-
   @override
   final T app;
 
-  SceneSystem(this.app);
+  SceneSystem(this.app, {
+    bool populateDefaults = true,
+  }) {
+    this.populateDefaults = populateDefaults;
+  }
 
   @override
   bool _doEventLocal(Event<T> event) {
@@ -82,11 +85,15 @@ class SceneSystem<T extends App<T>> extends ECSBase<T> with
     emit(EventSceneSystemCloned(app, self, target));
   }
 
+  // clone
+
   @override
   SceneSystem<T> createInstance() => .new(app);
 
+  // state
+
   @override
-  AnySceneSystemSnapshot<T> createSnapshot() => .new(namedId);  
+  AnySceneSystemSnapshot<T> createSnapshot() => .new(id);  
 
   @override
   @nonVirtual
@@ -95,6 +102,26 @@ class SceneSystem<T extends App<T>> extends ECSBase<T> with
   @override
   @mustCallSuper
   void restoreSnapshot(covariant AnySceneSystemSnapshot<T> snapshot) {}
+
+  // persistence
+
+  static const typeId = '__sceneSystem__';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    onRestorePersistableData(data, id: id);
+  }
 }
 
 typedef IsAnySceneSystemStateHolder<T extends App<T>> = IsStateHolder<T, SceneSystem<T>, AnySceneSystemSnapshot<T>>;
@@ -106,7 +133,4 @@ class SceneSystemSnapshot<T extends App<T>, S extends SceneSystem<T>> extends St
 
   @override
   S createInstance(T app) => SceneSystem<T>(app) as S;
-
-  @override
-  S reconstruct(T app) => createInstance(app);
 }

@@ -1,8 +1,9 @@
 part of '../../raylib_dartified_unhinged.dart';
 
 class TransformSyncSystem<T extends App<T>> extends SceneSystem<T> {
-
-  TransformSyncSystem(super.app);
+  TransformSyncSystem(super.app, {
+    super.populateDefaults,
+  });
 
   void _syncGroup(AnyEntityGroup<T> group) {
     final groupTransform = group.transform;
@@ -42,11 +43,17 @@ class TransformSyncSystem<T extends App<T>> extends SceneSystem<T> {
   // state
 
   @override
-  TransformSyncSystemSnapshot<T> createSnapshot() => .new(namedId);
+  TransformSyncSystemSnapshot<T> createSnapshot() => .new(id);
+
+  // persistence
+  
+  static const typeId = '__sceneSystem__TransformSyncSystem';
+  
+  @override String get persistentTypeId => typeId;
 }
 
 class TransformSyncSystemSnapshot<T extends App<T>> extends SceneSystemSnapshot<T, TransformSyncSystem<T>> {
-  TransformSyncSystemSnapshot(super.namedId);
+  TransformSyncSystemSnapshot(super.id);
 
   @override
   TransformSyncSystem<T> createInstance(T app) => .new(app);

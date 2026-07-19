@@ -1,7 +1,9 @@
 part of '../raylib_dartified_unhinged.dart';
 
 class FMouseSystem<T extends App<T>> extends SceneSystem<T> {
-  FMouseSystem(super.app);
+  FMouseSystem(super.app, {
+    super.populateDefaults,
+  });
 
   MouseCursor cursor = .MOUSE_CURSOR_DEFAULT;
 
@@ -14,19 +16,35 @@ class FMouseSystem<T extends App<T>> extends SceneSystem<T> {
   void onPreDraw(double dt) {
     backend.setMouseCursor(cursor);
   }
+
+  // persistence
+
+  static const typeId = '__sceneSystem__FMouseSystem';
+  
+  @override String get persistentTypeId => typeId;
 }
 
 class FWidgetSystem<T extends App<T>> extends SceneSystem<T> {
-  FWidgetSystem(super.app);
+  FWidgetSystem(super.app, {
+    super.populateDefaults,
+  });
 
   void rebuildWidgets() => scene.QueryEntity.DoForEach<FWidget<T>>((e) {
     // only root widgets
     if (e.parentWidget == null) e.rebuild();
   });
+
+  // persistence
+
+  static const typeId = '__sceneSystem__FWidgetSystem';
+  
+  @override String get persistentTypeId => typeId;
 }
 
 class FWidgetDebugSystem<T extends App<T>> extends SceneSystem<T> {
-  FWidgetDebugSystem(super.app);
+  FWidgetDebugSystem(super.app, {
+    super.populateDefaults,
+  });
 
   void _enableDebugWidget(FWidget<T> widget, bool enable) {
     final rect = widget.get<CRectCollider<T>>()!;
@@ -42,10 +60,18 @@ class FWidgetDebugSystem<T extends App<T>> extends SceneSystem<T> {
   void enableDebug(bool enable) => scene.QueryEntity.DoForEach<FWidget<T>>((e) {
     _enableDebugWidget(e, enable);
   });
+
+  // persistence
+
+  static const typeId = '__sceneSystem__FWidgetDebugSystem';
+  
+  @override String get persistentTypeId => typeId;
 }
 
 class FValidateWidgetsSystem<T extends App<T>> extends SceneSystem<T> {
-  FValidateWidgetsSystem(super.app);
+  FValidateWidgetsSystem(super.app, {
+    super.populateDefaults,
+  });
 
   bool _runOnce = false;
 
@@ -112,4 +138,10 @@ class FValidateWidgetsSystem<T extends App<T>> extends SceneSystem<T> {
 
     scene.QueryEntity.DoForEach<FWidget<T>>(validate);
   }
+
+  // persistence
+
+  static const typeId = '__sceneSystem__FValidateWidgetsSystem';
+  
+  @override String get persistentTypeId => typeId;
 }

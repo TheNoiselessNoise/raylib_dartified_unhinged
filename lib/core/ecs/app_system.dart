@@ -32,11 +32,14 @@ class AppSystem<T extends App<T>> extends ECSBase<T> with
   IsPersistable<T, AppSystem<T>, AnyAppSystemSnapshot<T>>
 
 {
-
   @override
   final T app;
   
-  AppSystem(this.app);
+  AppSystem(this.app, {
+    bool populateDefaults = true,
+  }) {
+    this.populateDefaults = populateDefaults;
+  }
 
   @override
   bool _doEventLocal(Event<T> event) {
@@ -88,11 +91,15 @@ class AppSystem<T extends App<T>> extends ECSBase<T> with
     app._doOnEvent(EventAppSystemCloned(app, self, target));
   }
 
+  // clone
+
   @override
   AppSystem<T> createInstance() => .new(app);
 
+  // state
+
   @override
-  AnyAppSystemSnapshot<T> createSnapshot() => .new(namedId);  
+  AnyAppSystemSnapshot<T> createSnapshot() => .new(id);  
 
   @override
   @nonVirtual
@@ -101,16 +108,33 @@ class AppSystem<T extends App<T>> extends ECSBase<T> with
   @override
   @mustCallSuper
   void restoreSnapshot(covariant AnyAppSystemSnapshot<T> snapshot) {}
+
+  // persistence
+
+  static const typeId = '__appSystem__';
+  
+  @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+  };
+
+  @override
+  @mustCallSuper
+  void restorePersistableData(MapTraversable data, {String? id}) {
+    super.restorePersistableData(data, id: id);
+
+    onRestorePersistableData(data, id: id);
+  }
 }
 
 typedef AnyAppSystemSnapshot<T extends App<T>> = AppSystemSnapshot<T, AppSystem<T>>;
 
 class AppSystemSnapshot<T extends App<T>, S extends AppSystem<T>> extends StateSnapshot<T, S> {
-  AppSystemSnapshot(super.namedId);
+  AppSystemSnapshot(super.id);
 
   @override
   S createInstance(T app) => AppSystem<T>(app) as S;
-
-  @override
-  S reconstruct(T app) => createInstance(app);
 }
