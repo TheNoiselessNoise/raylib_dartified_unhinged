@@ -308,7 +308,7 @@ class CAnimator<T extends App<T>> extends Comp<T> {
 
   @override
   CAnimatorSnapshot<T> createSnapshot() {
-    final snapshot = CAnimatorSnapshot<T>(id);
+    final snapshot = CAnimatorSnapshot<T>(namedId);
 
     snapshot.sheet = sheet?.copy();
     snapshot.sheets = sheets == null ? null : .from(sheets!);

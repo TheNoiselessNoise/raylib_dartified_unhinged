@@ -81,7 +81,7 @@ class CBoundsBounce<T extends App<T>> extends Comp<T> {
 
   @override
   CBoundsBounceSnapshot<T> createSnapshot() {
-    final snapshot = CBoundsBounceSnapshot<T>(id);
+    final snapshot = CBoundsBounceSnapshot<T>(namedId);
     snapshot.restitution = restitution;
     snapshot.left = left;
     snapshot.top = top;

@@ -43,7 +43,7 @@ class TransformSyncSystem<T extends App<T>> extends SceneSystem<T> {
   // state
 
   @override
-  TransformSyncSystemSnapshot<T> createSnapshot() => .new(id);
+  TransformSyncSystemSnapshot<T> createSnapshot() => .new(namedId);
 
   // persistence
   

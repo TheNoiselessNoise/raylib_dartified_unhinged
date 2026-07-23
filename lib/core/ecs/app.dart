@@ -177,10 +177,10 @@ class App<T extends App<T>> extends ECSBase<T> with
 
   late FontD defaultFont = backend.getFontDefault();
 
-  bool _exitApp = false; // internal
+  bool exitApp = false; // internal
 
   @nonVirtual
-  bool get shouldAppExit => _exitApp || _doShouldExit();
+  bool get shouldAppExit => exitApp || _doShouldExit();
 
   // ░███     ░███    ░███    ░██████░███    ░██ 
   // ░████   ░████   ░██░██     ░██  ░████   ░██ 
@@ -308,7 +308,6 @@ class App<T extends App<T>> extends ECSBase<T> with
     }
 
     if (
-      event.scope != .self &&
       event.scope != .scene &&
       event.scope != .sceneOnly
     ) {
@@ -320,8 +319,6 @@ class App<T extends App<T>> extends ECSBase<T> with
         s._propagate(event);
       }
     }
-
-    if (event.scope == .local || event.isStopped) return true;
 
     scene._propagate(event);
 
@@ -441,7 +438,7 @@ class App<T extends App<T>> extends ECSBase<T> with
   // state
 
   @override
-  AppSnapshot<T> createSnapshot() => .new(id);
+  AppSnapshot<T> createSnapshot() => .new(namedId);
 
   @override
   @nonVirtual

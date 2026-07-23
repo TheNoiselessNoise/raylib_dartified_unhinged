@@ -156,7 +156,7 @@ class CCircleCollider<T extends App<T>> extends CCollider<T> {
 
   @override
   CCircleColliderSnapshot<T> createSnapshot() {
-    final snapshot = CCircleColliderSnapshot<T>(id);
+    final snapshot = CCircleColliderSnapshot<T>(namedId);
     snapshot._setColliderStateFrom(this);
     snapshot.radius = radius;
     snapshot.center = center.copy();
@@ -306,7 +306,7 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
 
   @override
   CRectColliderSnapshot<T> createSnapshot() {
-    final snapshot = CRectColliderSnapshot<T>(id);
+    final snapshot = CRectColliderSnapshot<T>(namedId);
     snapshot._setColliderStateFrom(this);
     snapshot.size = size?.copy();
     snapshot.rect = rect.copy();

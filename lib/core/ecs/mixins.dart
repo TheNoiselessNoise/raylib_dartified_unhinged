@@ -64,10 +64,6 @@ mixin HasSceneAccess<T extends App<T>> on HasAppAccess<T> {
 
   double get sceneHeight => sceneBounds.height;
 
-  void command(Command<T> command) => scene.command(command);
-
-  void execute(Command<T> command) => scene.execute(command);
-
   void callback(void Function() callback) => scene.callback(callback);
 
   void task(Task<T> task) => scene.task(task);
@@ -551,12 +547,6 @@ mixin IsBeginEndFrameable<T extends App<T>, E extends ECSBase<T>> on Self<E>, EC
 
 /// Adds cancelation lifecycle hooks to an ECS object, from the object's own perspective.
 ///
-/// Complements [Command]
-/// (which hooks from the *host* side) by giving the object being canceled its own three-phase contract:
-/// - **before** => cancelable; any listener or override returning `false` aborts the operation
-/// - **on** => the operation is about to complete; called by the host after all before-checks pass
-/// - **after** => the operation has completed; side-effects and cleanup go here
-/// 
 /// Cancelation is a one-way transition: once canceled, the object stays canceled.
 /// The [cancel] method drives the full lifecycle: guards, listeners, and state change.
 mixin IsCancelable<T extends App<T>, E extends ECSBase<T>> on ECSBase<T>, Self<E> {
@@ -1140,18 +1130,6 @@ mixin IsClonable<
       }
     }
 
-    if (self case IsCommandProcessable<T, E> from) {
-      if (target case IsCommandProcessable<T, E> to) {
-        if (allowedState(.commandQueue)) {
-          to._commandQueue = .from(from._commandQueue);
-        }
-
-        if (allowedHook(.onCommand)) {
-          to._onCommandFns = .from(from._onCommandFns);
-        }
-      }
-    }
-
     if (self case IsComponentManagable<T, E> from) {
       if (target case IsComponentManagable<T, E> to) {
         if (allowedHook(.onBeforeCompAdd)) {
@@ -1590,65 +1568,6 @@ mixin IsCollidable<T extends App<T>, E extends ECSBase<T>, C extends ECSBase<T>>
   ///
   /// Called after all registered [listenOnAfterCollision] listeners.
   void onAfterCollision(C other) {}
-}
-
-/// Adds [Command] processing capabilities to an ECS object.
-///
-/// Commands are queued and executed in a controlled pipeline each frame.
-/// Listeners can intercept and cancel commands before they reach [onCommand] or execute.
-mixin IsCommandProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasAppAccess<T>, IsEventEmittable<T, E> {
-  List<Command<T>> _commandQueue = [];
-
-  List<void Function(Command<T> cmd)> _onCommandFns = [];
-
-  /// Registers [fn] to be called for each command before it is executed.
-  @nonVirtual
-  E listenOnCommand(bool Function(Command<T> cmd) fn) {
-    _onCommandFns.add(fn);
-    return self;
-  }
-
-  // (internal) called by command system to propagate command
-  // by default just call the hooks
-  void _doCommand(Command<T> cmd) {
-    emit(EventCommandExecuting(app, cmd));
-    if (cmd.isCanceled) return;
-    for (final f in _onCommandFns) {
-      if (cmd.isCanceled) return;
-      f(cmd);
-    }
-    if (cmd.isCanceled) return;
-    onCommand(cmd);
-    if (cmd.isCanceled) return;
-    cmd._doExecuteCommand();
-    emit(EventCommandExecuted(app, cmd));
-  }
-
-  /// Override to intercept commands before they execute.
-  ///
-  /// Called after all [listenOnCommand] listeners and before [Command.execute] is invoked.
-  /// The command can be canceled here via [Command.cancel].
-  void onCommand(Command<T> cmd) {}
-
-  /// Enqueues [command] for execution at the end of the current frame.
-  @override
-  void command(Command<T> command) => _commandQueue.add(command);
-
-  /// Executes [command] immediately.
-  @override
-  void execute(Command<T> command) => _doCommand(command);
-
-  bool _processCommands() {
-    bool didSomething = false;
-    while (_commandQueue.isNotEmpty) {
-      _doCommand(_commandQueue.removeAt(0));
-      didSomething = true;
-    }
-    return didSomething;
-  }
-
-  /// Clears command queue.
-  void clearCommandQueue() => _commandQueue.clear();
 }
 
 /// Adds a callback processing capabilities to an ECS object.
@@ -3200,8 +3119,8 @@ mixin IsEventQueueHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmitt
   /// Synchronously drains the pending event queue.
   ///
   /// Intended for tests that need deterministic control over when queued
-  /// events are processed, decoupled from [Scene._doDrainLoop]'s callback/
-  /// command interleaving. Not meant for production code.
+  /// events are processed, decoupled from [Scene._doDrainLoop]'s callback
+  /// interleaving. Not meant for production code.
   @visibleForTesting
   bool processQueuedEventsForTest() => _processEvents();
 }

@@ -80,7 +80,7 @@ class ScreenBounceSystem<T extends App<T>> extends SceneSystem<T> {
 
   @override
   ScreenBounceSystemSnapshot<T> createSnapshot() {
-    final snapshot = ScreenBounceSystemSnapshot<T>(id);
+    final snapshot = ScreenBounceSystemSnapshot<T>(namedId);
     snapshot.restitution = restitution;
     snapshot.top = top;
     snapshot.left = left;

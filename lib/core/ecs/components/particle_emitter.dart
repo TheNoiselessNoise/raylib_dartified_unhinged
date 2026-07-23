@@ -71,7 +71,7 @@ class CParticleEmitter<T extends App<T>, E extends Entity<T>> extends Comp<T> {
     if (isDisabled) return;
     final instance = factory();
     transform?.call(instance);
-    command(AddEntityCommand(app, instance));
+    callback(() => scene.addEntity(instance));
   }
 
   // clone
@@ -86,7 +86,7 @@ class CParticleEmitter<T extends App<T>, E extends Entity<T>> extends Comp<T> {
 
   @override
   CParticleEmitterSnapshot<T, E> createSnapshot() {
-    final snapshot = CParticleEmitterSnapshot<T, E>(id);
+    final snapshot = CParticleEmitterSnapshot<T, E>(namedId);
     snapshot.rate = rate;
     snapshot.factory = factory;
     snapshot._acc = _acc;

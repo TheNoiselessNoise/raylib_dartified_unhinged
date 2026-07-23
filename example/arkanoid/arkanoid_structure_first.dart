@@ -241,7 +241,7 @@ extension on HasSceneAccess<G> {
     final pos = e.transform!.position;
     final vel = e.velocity!.velocity;
 
-    command(AddEntityCommand(app, BallEntity(app,
+    callback(() => scene.addEntity(BallEntity(app,
       position: pos.copy(),
       velocity: .vec2(-vel.x, vel.y),
       isCopy: true,
@@ -312,7 +312,7 @@ class PickablePowerUp extends Entity<G> {
     addComp(CVelocity(app)..velocity.y = speed);
     addComp(CRectCollider(app, tag: TAG, size: .vec2(24, 24), debugDraw: true, debugColor: type.color));
     addComp(CPhysicsBody.kinematic(app, restitution: 0));
-    addComp(COutOfBounds(app, then: (_) => command(RemoveEntityCommand(app, this))));
+    addComp(COutOfBounds(app, then: (_) => callback(() => scene.removeEntity(this))));
   }
 
   @override
@@ -346,15 +346,15 @@ class ArkanoidEventHandler extends SceneSystem<G> {
     if (e is BallLostEvent) {
       statsSystem.ballsLost++;
       if (e.ball.isCopy) {
-        command(RemoveEntityCommand(app, e.ball));
+        callback(() => scene.removeEntity(e.ball));
       } else {
         e.ball.reset();
-        command(SetSceneCommand(app, gameOverScene));
+        callback(() => app.setScene(gameOverScene));
       }
     }
 
     if (e is SpawnBallEvent) {
-      command(AddEntityCommand(app, BallEntity(app)));
+      callback(() => scene.addEntity(BallEntity(app)));
       e.stopPropagation();
     }
 
@@ -408,14 +408,14 @@ class ArkanoidCollisionResolver extends CollisionResolverSystem<G> {
       
       if (brick is PowerUpBrick) {  
         brick.onTransform((t) {
-          command(AddEntityCommand(app, PickablePowerUp(app,
+          callback(() => scene.addEntity(PickablePowerUp(app,
             type: brick.type,
             position: t.position.copy(),
           )));
         });
       }
 
-      command(RemoveEntityCommand(app, brick));
+      callback(() => scene.removeEntity(brick));
       emit(BallHitBrickEvent(app, ball, brick), scope: .scene);
 
       if (statsSystem.isLevelComplete) {
@@ -431,7 +431,7 @@ class ArkanoidCollisionResolver extends CollisionResolverSystem<G> {
 
     statsSystem.score += (statsSystem.level * powerUp.type.hardness).round();
     emit(PowerUpCollectedEvent(app, powerUp.type, paddle), scope: .scene);
-    command(RemoveEntityCommand(app, powerUp));
+    callback(() => scene.removeEntity(powerUp));
   }
 }
 
@@ -640,7 +640,7 @@ class ArkanoidGameOverWidget extends FWidget<G> {
   void goToArkanoidScene() {
     scoreSubmitted = false;
     showOnly = false;
-    command(SetSceneCommand(app, arkanoidScene));
+    callback(() => app.setScene(arkanoidScene));
   }
 
   @override
@@ -707,11 +707,11 @@ class ArkanoidScene extends DrawScene<G> {
     statsSystem.bricksCurrentLevel = 0;
 
     // remove all existing bricks/powerups
-    QueryEntity.DoForEach<BrickEntity>((e) => command(RemoveEntityCommand(app, e)));
+    QueryEntity.DoForEach<BrickEntity>((e) => callback(() => scene.removeEntity(e)));
 
     // remove any ball copies and reset the initial ball
     QueryEntity.DoForEach<BallEntity>((e) {
-      if (e.isCopy) command(RemoveEntityCommand(app, e));
+      if (e.isCopy) callback(() => scene.removeEntity(e));
       else e.reset();
     });
   }
@@ -904,13 +904,13 @@ class Arkanoid extends App<G> {
   @override
   void onInput() {
     if (rl.CoreD.IsKeyPressed(.KEY_Q)) {
-      command(ExitAppCommand(app));
+      callback(() => app.exitApp = true);
     }
 
     if (rl.CoreD.IsKeyPressed(.KEY_M) && scene != gameOverScene) {
       gameOverScene.gameOverWidget.scoreSubmitted = true;
       gameOverScene.gameOverWidget.showOnly = true;
-      command(SetSceneCommand(app, gameOverScene));
+      callback(() => setScene(gameOverScene));
     }
 
     if (rl.CoreD.IsKeyPressed(.KEY_ENTER)) {

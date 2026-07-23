@@ -252,7 +252,7 @@ class Entity2 extends Entity<G> {
   void onRemove() {
     final newSelf = Entity2(app);
     newSelf.transform!.position = transform!.position.copy();
-    command(AddEntityCommand(app, newSelf));
+    callback(() => scene.addEntity(newSelf));
   }
 }
 
@@ -271,7 +271,7 @@ class WhateverCollisionSystem extends CollisionResolverSystem<G> {
     final (bullet, entity2) = bulletEntity2;
 
     entity2.get<CHealth>()?.damage(bullet.damage);
-    command(AddEntityCommand(app, BulletExplosion(bullet.app, bullet.worldPosition)));
+    callback(() => scene.addEntity(BulletExplosion(bullet.app, bullet.worldPosition)));
     bullet.removeThis();
   }
 }

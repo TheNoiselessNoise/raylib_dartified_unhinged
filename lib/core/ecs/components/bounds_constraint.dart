@@ -48,7 +48,7 @@ class CBoundsConstraint<T extends App<T>> extends Comp<T> {
 
   @override
   CBoundsConstraintSnapshot<T> createSnapshot() {
-    final snapshot = CBoundsConstraintSnapshot<T>(id);
+    final snapshot = CBoundsConstraintSnapshot<T>(namedId);
     snapshot.area = area.copy();
     return snapshot;
   }

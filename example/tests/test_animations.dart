@@ -15,7 +15,7 @@ class MyEntity extends Entity<G> {
       ..property((e) => e.entityField, (s, v) => s.entityField = v, from: 0, to: 1, duration: 0.5)
       ..onComplete(() {
         addMessage('Animation completed!');
-        // animation.reset();
+        animation.reset();
       })
     );
   } 

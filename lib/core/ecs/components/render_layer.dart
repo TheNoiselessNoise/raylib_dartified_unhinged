@@ -19,7 +19,7 @@ class CRenderLayer<T extends App<T>> extends Comp<T> {
 
   @override
   CRenderLayerSnapshot<T> createSnapshot() {
-    final snapshot = CRenderLayerSnapshot<T>(id);
+    final snapshot = CRenderLayerSnapshot<T>(namedId);
     snapshot.layer = layer;
     return snapshot;
   }

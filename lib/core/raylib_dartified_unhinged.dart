@@ -67,7 +67,6 @@ part 'ecs/app_system.dart';
 part 'ecs/app.dart';
 part 'ecs/base.dart';
 part 'ecs/clone.dart';
-part 'ecs/commands.dart';
 part 'ecs/components.dart';
 part 'ecs/debug.dart';
 part 'ecs/drawers.dart';

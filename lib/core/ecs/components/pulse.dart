@@ -53,7 +53,7 @@ class CPulse<T extends App<T>> extends Comp<T> with
 
   @override
   CPulseSnapshot<T> createSnapshot() {
-    final snapshot = CPulseSnapshot<T>(id);
+    final snapshot = CPulseSnapshot<T>(namedId);
     snapshot.minScale = minScale;
     snapshot.maxScale = maxScale;
     snapshot.speed = speed;

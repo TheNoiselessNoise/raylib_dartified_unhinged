@@ -140,15 +140,15 @@ class ArkanoidInline extends UnhingedRaylibGame<G> {
           })
           .listenOnUpdate((self, dt) => self.onVelocity((v) {
             v.velocity.x = 0;
-            final speed = self.getVar(varSpeed);
+            final speed = self.getVar(varSpeed)!;
             if (scene.input.isKeyDown(K_left)) v.velocity.x = -speed;
             if (scene.input.isKeyDown(K_right)) v.velocity.x = speed;
             if (scene.input.isKeyDown(K_up)) self.incVar(varSpeed, 100*dt);
             if (scene.input.isKeyDown(K_down)) self.decVar(varSpeed, 100*dt);
           }))
           .listenOnDraw((self, alpha) {
-            final speed = self.getVar(varSpeed);
-            final points = self.getVar(varPoints);
+            final speed = self.getVar(varSpeed)!;
+            final points = self.getVar(varPoints)!;
             rl.CoreD.DrawText('Speed: ${speed.f2}', 50, app.screenHeight - 160, 20, .WHITE);
             rl.CoreD.DrawText('Points: $points', 50, app.screenHeight - 140, 20, .WHITE);
           })
@@ -248,7 +248,7 @@ class ArkanoidInline extends UnhingedRaylibGame<G> {
 
     app.listenHandleInput((self) {
       if (self.input.isKeyPressed(K_q)) {
-        self.command(ExitAppCommand(app));
+        self.callback(() => app.exitApp = true);
       }
     });
   });

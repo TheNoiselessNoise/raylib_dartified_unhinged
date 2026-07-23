@@ -429,7 +429,7 @@ class DebugWidget<T extends App<T>> extends FWidget<T> {
 
   FWidget<T> buildDebugView() => switch (currentTab) {
     .entities => buildEntitiesTab(),
-    .watch => watchWidget,
+    .watch => watchWidget..rebuild(),
   };
 
   @override

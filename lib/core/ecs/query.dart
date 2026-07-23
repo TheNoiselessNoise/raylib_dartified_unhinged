@@ -197,6 +197,12 @@ abstract class QueryComponentManagable<
     return self;
   }
 
+  /// **[Query-like]** Keeps only elements matching given type [X].
+  Q WhereType<X>() {
+    _groups.last.add((x) => x is X);
+    return self;
+  }
+
   /// **[Query-like]** Keeps only elements that have [C] *and* for which [fn]
   /// returns `true` given the entity and its [C] instance.
   Q WithWhere<C extends Comp<T>>(

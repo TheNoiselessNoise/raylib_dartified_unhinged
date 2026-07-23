@@ -115,11 +115,6 @@ enum CloneHookType {
   /// [IsCollidable]
   onAfterCollision,
 
-  // IsCommandProcessable
-
-  /// [IsCommandProcessable]
-  onCommand,
-
   // IsComponentHostable
 
   /// [IsComponentManagable]
@@ -320,9 +315,6 @@ enum CloneStateType {
 
   /// Callbackl queue state. ([IsCallbackProcessable]).
   callbackQueue,
-
-  /// Command queue state. ([IsCommandProcessable]).
-  commandQueue,
 
   /// Groups ([QueryGroup]) within a [QueryComponentManagable].
   queryGroups,

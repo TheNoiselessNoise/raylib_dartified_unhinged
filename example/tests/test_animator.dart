@@ -194,7 +194,7 @@ class MyGame extends ExampleRaylibApp<G> {
   @override
   void onInput() {
     if (rl.CoreD.IsKeyPressed(.KEY_Q)) {
-      scene.command(ExitAppCommand(app));
+      callback(() => app.exit());
     }
 
     if (rl.CoreD.IsKeyPressed(.KEY_D)) {

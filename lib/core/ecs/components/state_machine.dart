@@ -180,7 +180,7 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
 
   @override
   CStateMachineSnapshot<T> createSnapshot() {
-    final snapshot = CStateMachineSnapshot<T>(id);
+    final snapshot = CStateMachineSnapshot<T>(namedId);
     snapshot._states = .from(_states);
     snapshot._transitions = .from(_transitions);
     snapshot._current = _current;

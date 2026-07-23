@@ -25,7 +25,7 @@ class MyAppCloningPolicy extends AllowAllPolicy<G> {
   bool allow(CloneKind kind, { ECSBase<G>? owner, Object? payload }) {
     // we are currently cloning a `scene`
     if (kind == .scene) {
-      // `owner` in this case is `App`
+      // `owner` in this case is `MinimalCloningExampleApp`
 
       // and it is our `MyScene` instance
       if (payload case MyScene myScene) {
@@ -50,7 +50,7 @@ class MinimalCloningExampleApp extends App<G> {
 
   // NOTE: [CLONING], copy of this object
   @override
-  G createInstance() => G(backend);
+  G createInstance() => .new(backend);
 }
 
 void main() {

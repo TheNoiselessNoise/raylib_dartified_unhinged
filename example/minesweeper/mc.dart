@@ -211,13 +211,13 @@ class Cell extends Entity<G> {
 extension on HasAppAccess<G> {
   MainMenuScene get mainMenuScene => app.getScene()!;
   // ignore: unused_element
-  void goToMainMenu() => app.command(SetSceneCommand(app, mainMenuScene));
+  void goToMainMenu() => app.callback(() => app.setScene(mainMenuScene));
 
   SettingsScene get settingsScene => app.getScene()!;
-  void goToSettings() => app.command(SetSceneCommand(app, settingsScene));
+  void goToSettings() => app.callback(() => app.setScene(settingsScene));
 
   MinesweeperScene get msScene => app.getScene()!;
-  void goToMS() => app.command(SetSceneCommand(app, msScene));
+  void goToMS() => app.callback(() => app.setScene(msScene));
 
   MinesweeperStateSystem get msState => msScene.getSystem()!;
   CellGrid2D get grid => msState.grid!;
@@ -524,7 +524,7 @@ class MainMenuScene extends FWidgetScene<G> {
               ),
             ),
             FButton(app,
-              onClickFn: (_) => command(ExitAppCommand(app)),
+              onClickFn: (_) => callback(() => app.exitApp = true),
               child: FPadding.symmetric(app, 16, 32,
                 child: FLabel(app, text: "Quit"),
               ),

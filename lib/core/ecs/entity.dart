@@ -35,7 +35,7 @@ part of '../raylib_dartified_unhinged.dart';
 ///
 /// ## Removal
 ///
-/// Call [removeThis] to schedule removal via the scene's command queue rather
+/// Call [removeThis] to schedule removal via the scene's callback queue rather
 /// than removing the entity mid-iteration.
 class Entity<T extends App<T>> extends ECSBase<T> with
 
@@ -210,13 +210,13 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   //   ░██  ░██       ░██ ░██         ░██         
   // ░██████░██       ░██ ░██         ░██████████ 
 
-  /// Schedules removal of this entity from its scene via the command queue.
+  /// Schedules removal of this entity from its scene via the callback queue.
   ///
   /// Prefer this over calling `scene.removeEntity` directly during an update
   /// or draw pass, where mutating the entity set mid-iteration is unsafe.
   /// Returns `this` for chaining.
   Entity<T> removeThis() {
-    command(RemoveEntityCommand(app, self));
+    callback(() => scene.removeEntity(self));
     return self;
   }
 
@@ -317,7 +317,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   // state
 
   @override
-  AnyEntitySnapshot<T> createSnapshot() => .new(id);  
+  AnyEntitySnapshot<T> createSnapshot() => .new(namedId);  
 
   @override
   @mustCallSuper
@@ -544,7 +544,7 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   // state
 
   @override
-  AnyEntityGroupSnapshot<T> createSnapshot() => .new(id);  
+  AnyEntityGroupSnapshot<T> createSnapshot() => .new(namedId);  
 
   @override
   @nonVirtual

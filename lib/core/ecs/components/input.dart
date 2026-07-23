@@ -36,7 +36,7 @@ class CInput<T extends App<T>> extends Comp<T> {
 
   @override
   CInputSnapshot<T> createSnapshot() {
-    final snapshot = CInputSnapshot<T>(id);
+    final snapshot = CInputSnapshot<T>(namedId);
     snapshot.mouseMap = .from(mouseMap);
     snapshot.keyMap = .from(keyMap);
     return snapshot;

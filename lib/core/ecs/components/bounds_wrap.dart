@@ -41,7 +41,7 @@ class CBoundsWrap<T extends App<T>> extends Comp<T> {
 
   @override
   CBoundsWrapSnapshot<T> createSnapshot() {
-    final snapshot = CBoundsWrapSnapshot<T>(id);
+    final snapshot = CBoundsWrapSnapshot<T>(namedId);
     snapshot.area = area.copy();
     return snapshot;
   }

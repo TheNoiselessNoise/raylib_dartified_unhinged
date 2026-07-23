@@ -58,7 +58,6 @@ class AppSystem<T extends App<T>> extends ECSBase<T> with
       }
     }
 
-    if (event.isStopped) return true;
     if (
       event.scope != .scene &&
       event.scope != .sceneOnly
@@ -99,7 +98,7 @@ class AppSystem<T extends App<T>> extends ECSBase<T> with
   // state
 
   @override
-  AnyAppSystemSnapshot<T> createSnapshot() => .new(id);  
+  AnyAppSystemSnapshot<T> createSnapshot() => .new(namedId);  
 
   @override
   @nonVirtual

@@ -104,7 +104,7 @@ class VarKey<T> {
 mixin HasVars<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   Map<VarKey<dynamic>, dynamic> _vars = {};
 
-  V getVar<V>(VarKey<V> key) => _vars[key] as V;
+  V? getVar<V>(VarKey<V> key) => _vars[key] as V?;
 
   V getVarSafe<V>(VarKey<V> key, V fallback)
     => _vars[key] is V ? _vars[key] as V : fallback;
@@ -112,15 +112,15 @@ mixin HasVars<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   bool hasVar(VarKey key) => _vars.containsKey(key);
 
   V incVar<V extends num>(VarKey<V> key, [V? amount]) {
-    final value = getVar(key);
+    final value = getVarSafe(key, 0);
     final next = (value + (amount ?? 1)) as V;
     setVar(key, next);
     return next;
   }
 
   V decVar<V extends num>(VarKey<V> key, [V? amount]) {
-    final value = getVar(key);
-    final next = (value + (amount ?? 1)) as V;
+    final value = getVarSafe(key, 0);
+    final next = (value - (amount ?? 1)) as V;
     setVar(key, next);
     return next;
   }
@@ -131,7 +131,7 @@ mixin HasVars<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   }
 
   V getOrSetVar<V>(VarKey<V> key, V fallback) {
-    if (_vars.containsKey(key)) return getVar(key);
+    if (_vars.containsKey(key)) return getVar(key)!;
     setVar(key, fallback);
     return fallback;
   }

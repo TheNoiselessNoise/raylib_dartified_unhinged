@@ -50,7 +50,7 @@ class COutOfBounds<T extends App<T>> extends Comp<T> {
       if (triggerOnce) _thenCalled = true;
       then!(this);
     } else {
-      command(RemoveEntityCommand(app, entity));
+      callback(() => scene.removeEntity(entity));
     }
   }
 
@@ -68,7 +68,7 @@ class COutOfBounds<T extends App<T>> extends Comp<T> {
 
   @override
   COutOfBoundsSnapshot<T> createSnapshot() {
-    final snapshot = COutOfBoundsSnapshot<T>(id);
+    final snapshot = COutOfBoundsSnapshot<T>(namedId);
     snapshot.checkTop = checkTop;
     snapshot.checkLeft = checkLeft;
     snapshot.checkBottom = checkBottom;

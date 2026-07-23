@@ -73,7 +73,7 @@ void main() {
     late TestApp app;
 
     setUp(() {
-      app = TestApp(HeadlessBackend())..init()..clearEventQueue();
+      app = .new(HeadlessBackend())..init()..clearEventQueue();
       eventSources = [];
       callbackFireCount = 0;
       app.reentrantCallbackMode = false;

@@ -47,7 +47,7 @@ class CPhysicsBody<T extends App<T>> extends Comp<T> {
 
   @override
   CPhysicsBodySnapshot<T> createSnapshot() {
-    final snapshot = CPhysicsBodySnapshot<T>(id);
+    final snapshot = CPhysicsBodySnapshot<T>(namedId);
     snapshot.mass = mass;
     snapshot.restitution = restitution;
     snapshot.transferVelocity = transferVelocity;

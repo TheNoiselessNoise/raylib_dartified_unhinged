@@ -150,7 +150,7 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   // state
 
   @override
-  AnyCompSnapshot<T> createSnapshot() => .new(id);  
+  AnyCompSnapshot<T> createSnapshot() => .new(namedId);  
 
   @override
   @nonVirtual

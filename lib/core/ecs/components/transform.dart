@@ -24,7 +24,10 @@ class CTransform<T extends App<T>> extends Comp<T> {
 
   @override
   @mustCallSuper
-  void onUpdate(double dt) => prevPosition = position.copy();
+  void onUpdate(double dt) {
+    if (isDisabled) return;
+    prevPosition = position.copy();
+  }
 
   // clone
 
@@ -46,7 +49,7 @@ class CTransform<T extends App<T>> extends Comp<T> {
 
   @override
   CTransformSnapshot<T> createSnapshot() {
-    final snapshot = CTransformSnapshot<T>(id);
+    final snapshot = CTransformSnapshot<T>(namedId);
     snapshot.position = position.copy();
     snapshot.rotation = rotation;
     snapshot.scale = scale.copy();

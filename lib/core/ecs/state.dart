@@ -4,7 +4,7 @@ enum SnapshotMissingPolicy {
   /// Ignore snapshot entries that have no matching live origin.
   skip,
 
-  /// Recreate the origin from its snapshot and re-add it to the parent.
+  /// Recreate the entry from its snapshot and re-add it to the parent.
   recreate,
 }
 
@@ -19,13 +19,61 @@ enum SnapshotExtraPolicy {
 typedef AnyStateSnapshot<T extends App<T>> = StateSnapshot<T, ECSBase<T>>;
 
 abstract class StateSnapshot<T extends App<T>, E extends ECSBase<T>> {
-  late int sourceId;
+  late String sourceId;
 
   StateSnapshot(this.sourceId);
 
   SnapshotMissingPolicy onMissing = .skip;
 
   SnapshotExtraPolicy onExtra = .keep;
+
+  final List<bool Function(String sourceId)> _shouldRecreateMissingFns = [];
+
+  final List<bool Function(ECSBase<T> target)> _shouldDeleteExtraFns = [];
+
+  /// Registers [fn] as a should-recreate-missing listener.
+  ///
+  /// [fn] returning `false` cancels the recreation of missing.
+  @nonVirtual
+  StateSnapshot<T, E> listenShouldRecreateMissing(bool Function(String sourceId) fn) {
+    _shouldRecreateMissingFns.add(fn);
+    return this;
+  }
+
+  /// Registers [fn] as a should-delete-extra listener.
+  ///
+  /// [fn] returning `false` cancels the deletion of extra.
+  @nonVirtual
+  StateSnapshot<T, E> listenShouldDeleteExtra(bool Function(ECSBase<T> target) fn) {
+    _shouldDeleteExtraFns.add(fn);
+    return this;
+  }
+
+  /// Runs all should-recreate-missing listeners and [shouldRecreateMissing].
+  ///
+  /// Returns `false` if any listener or the override cancels the recreation of missing.
+  bool _doShouldRecreateMissing(String sourceId) {
+    if (!_shouldRecreateMissingFns.every((f) => f(sourceId))) return false;
+    return shouldRecreateMissing(sourceId);
+  }
+
+  /// Runs all should-delete-extra listeners and [shouldDeleteExtra].
+  ///
+  /// Returns `false` if any listener or the override cancels the deletion of extra.
+  bool _doShouldDeleteExtra(ECSBase<T> target) {
+    if (!_shouldDeleteExtraFns.every((f) => f(target))) return false;
+    return shouldDeleteExtra(target);
+  }
+
+  /// Override to cancel the recreation of missing from within the class.
+  ///
+  /// Return `false` to abort. Called after all registered [listenShouldRecreateMissing] listeners.
+  bool shouldRecreateMissing(String sourceId) => true;
+
+  /// Override to cancel the deletion of extra from within the class.
+  ///
+  /// Return `false` to abort. Called after all registered [listenShouldDeleteExtra] listeners.
+  bool shouldDeleteExtra(ECSBase<T> target) => true;
 
   /// Bare instance.
   E createInstance(T app);
@@ -86,8 +134,8 @@ mixin IsStateHolder<
     required void Function(A, X) onRestore,
     required void Function(A) onRemove,
   }) {
-    final byId = {for (final c in sourceList) c.id: c};
-    final restoredIds = <int>{};
+    final byId = {for (final c in sourceList) c.namedId: c};
+    final restoredIds = <String>{};
 
     for (final snapshot in sourceSnapshots) {
       final origin = byId[snapshot.sourceId];
@@ -97,24 +145,28 @@ mixin IsStateHolder<
           case .skip:
             continue;
           case .recreate:
+            if (!originSnapshot._doShouldRecreateMissing(snapshot.sourceId)) continue;
             final created = snapshot.createInstance(app);
             created.restoreSnapshot(snapshot);
             onRecreate(created as A);
-            restoredIds.add(created.id);
+            restoredIds.add(created.namedId);
         }
         continue;
       }
 
-      restoredIds.add(origin.id);
+      restoredIds.add(origin.namedId);
       onRestore(origin, snapshot);
     }
 
     if (originSnapshot.onExtra == .remove) {
-      final toRemove = sourceList
-        .where((c) => !restoredIds.contains(c.id))
+      final toRemoveStructures = sourceList
+        .where((c) => !restoredIds.contains(c.namedId))
         .toList();
 
-      toRemove.forEach(onRemove);
+      for (final toRemove in toRemoveStructures) {
+        if (!originSnapshot._doShouldDeleteExtra(toRemove)) continue;
+        onRemove(toRemove);
+      }
     }
   }
 

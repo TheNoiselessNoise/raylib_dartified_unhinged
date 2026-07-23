@@ -590,7 +590,7 @@ class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
 
   @override
   CollisionResolverSystemSnapshot<T> createSnapshot() {
-    final snapshot = CollisionResolverSystemSnapshot<T>(id);
+    final snapshot = CollisionResolverSystemSnapshot<T>(namedId);
     snapshot.restitution = restitution;
     snapshot.enableEventEmitting = enableEventEmitting;
     snapshot.gridCellSize = gridCellSize;

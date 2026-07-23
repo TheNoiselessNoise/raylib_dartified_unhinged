@@ -9,10 +9,15 @@ final Random random = Random();
 final int MAX_RANDOM_INT = 255;
 
 mixin HasRandomValues<E extends ECSBase<G>> on IsPersistableBase<G, E> {
-  abstract int intValue;
-  abstract double doubleValue;
+  int intValue = 0;
+  double doubleValue = 0;
 
   List<num> get collect => [intValue, doubleValue];
+
+  void setRandomValues() {
+    intValue = random.nextInt(MAX_RANDOM_INT);
+    doubleValue = random.nextDouble();
+  }
   
   @override
   MapData getPersistableData({bool force = false}) => {
@@ -30,14 +35,11 @@ mixin HasRandomValues<E extends ECSBase<G>> on IsPersistableBase<G, E> {
 }
 
 class TestComponent extends Comp<G> with HasRandomValues {
-  @override int intValue;
-  @override double doubleValue;
-
-  TestComponent(super.app, {
-    super.populateDefaults,
-    this.intValue = 0,
-    this.doubleValue = 0,
-  });
+  TestComponent(super.app, { super.populateDefaults }) {
+    if (populateDefaults) {
+      setRandomValues();
+    }
+  }
 
   // persistence
 
@@ -48,23 +50,12 @@ class TestComponent extends Comp<G> with HasRandomValues {
 }
 
 class TestEntity extends Entity<G> with HasRandomValues {
-  @override int intValue;
-  @override double doubleValue;
-
-  TestEntity(super.app, {
-    super.populateDefaults,
-    this.intValue = 0,
-    this.doubleValue = 0,
-  }) {
+  TestEntity(super.app, { super.populateDefaults }) {
     if (populateDefaults) {
+      setRandomValues();
       addComp(CTransform(app, position: screenSize.divideBy(2)));
-      
       addComp(CPulse(app));
-
-      addComp(TestComponent(app,
-        intValue: random.nextInt(MAX_RANDOM_INT),
-        doubleValue: random.nextDouble(),
-      ));
+      addComp(TestComponent(app));
     }
   }
 
@@ -83,19 +74,10 @@ class TestEntity extends Entity<G> with HasRandomValues {
 }
 
 class TestScene extends Scene<G> with HasRandomValues {
-  @override int intValue;
-  @override double doubleValue;
-
-  TestScene(super.app, {
-    super.populateDefaults,
-    this.intValue = 0,
-    this.doubleValue = 0,
-  }) {
+  TestScene(super.app, { super.populateDefaults }) {    
     if (populateDefaults) {
-      addEntity(TestEntity(app,
-        intValue: random.nextInt(MAX_RANDOM_INT),
-        doubleValue: random.nextDouble(),
-      ));
+      setRandomValues();
+      addEntity(TestEntity(app));
     }
   }
 
@@ -114,23 +96,14 @@ class TestScene extends Scene<G> with HasRandomValues {
 }
 
 class TestApp extends App<G> with HasRandomValues {
-  @override int intValue;
-  @override double doubleValue;
-
-  TestApp(super.backend, {
-    super.populateDefaults,
-    this.intValue = 0,
-    this.doubleValue = 0,
-  }) {
+  TestApp(super.backend, { super.populateDefaults }) {
     factories.scene.register(TestScene.typeId, TestScene.new);
     factories.entity.register(TestEntity.typeId, TestEntity.new);
     factories.comp.register(TestComponent.typeId, TestComponent.new);
 
     if (populateDefaults) {
-      addScene(TestScene(app,
-        intValue: random.nextInt(MAX_RANDOM_INT),
-        doubleValue: random.nextDouble(),
-      ));
+      setRandomValues();
+      addScene(TestScene(app));
     }
   }
 
@@ -145,14 +118,10 @@ void main() {
   group('Persistence', () {
     late TestApp app;
 
-    setUp(() => app = TestApp(HeadlessBackend(),
-      intValue: random.nextInt(MAX_RANDOM_INT),
-      doubleValue: random.nextDouble(),
-    ));
+    setUp(() => app = .new(HeadlessBackend()));
 
-    test('save and restore whole app', () async {
+    test('save and restore whole app', () {
       final data = app.getPersistableData();
-      print(JsonEncoder.withIndent('  ').convert(data));
       final expectedValues = app.collect;
       
       final secondApp = TestApp(HeadlessBackend(), populateDefaults: false);

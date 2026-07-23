@@ -494,18 +494,6 @@ class EventSceneSystemCloned<T extends App<T>> extends EventCloned<T, SceneSyste
 
 // SPECIAL EVENTS
 
-class EventCommandExecuting<T extends App<T>> extends Event<T> {
-  final Command<T> cmd;
-
-  EventCommandExecuting(super.app, this.cmd);
-}
-
-class EventCommandExecuted<T extends App<T>> extends Event<T> {
-  final Command<T> cmd;
-
-  EventCommandExecuted(super.app, this.cmd);
-}
-
 class EventTaskStarting<T extends App<T>> extends Event<T> {
   final Task<T> startingTask;
 

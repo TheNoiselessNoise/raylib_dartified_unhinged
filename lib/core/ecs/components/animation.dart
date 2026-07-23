@@ -121,7 +121,7 @@ class CAnimation<T extends App<T>, X> extends Comp<T> {
 
   @override
   CAnimationSnapshot<T, X> createSnapshot() {
-    final snapshot = CAnimationSnapshot<T, X>(id);
+    final snapshot = CAnimationSnapshot<T, X>(namedId);
     snapshot._tweens = .from(_tweens);
     snapshot._onCompleteCallbacks = .from(_onCompleteCallbacks);
     snapshot._completedFired = _completedFired;

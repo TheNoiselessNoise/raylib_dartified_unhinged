@@ -68,7 +68,7 @@ class CVelocity<T extends App<T>> extends Comp<T> {
 
   @override
   CVelocitySnapshot<T> createSnapshot() {
-    final snapshot = CVelocitySnapshot<T>(id);
+    final snapshot = CVelocitySnapshot<T>(namedId);
     snapshot.velocity = velocity.copy();
     snapshot.angularVelocity = angularVelocity;
     snapshot.linearDamping = linearDamping;

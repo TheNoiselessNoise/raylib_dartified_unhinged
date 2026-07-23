@@ -53,7 +53,7 @@ class CSprite<T extends App<T>> extends Comp<T> {
 
   @override
   CSpriteSnapshot<T> createSnapshot() {
-    final snapshot = CSpriteSnapshot<T>(id);
+    final snapshot = CSpriteSnapshot<T>(namedId);
     snapshot.size = size.copy();
     snapshot.color = color?.copy();
     snapshot.rect = rect.copy();

@@ -24,7 +24,7 @@ class GravitySystem<T extends App<T>> extends SceneSystem<T> {
 
   @override
   GravitySystemSnapshot<T> createSnapshot() {
-    final snapshot = GravitySystemSnapshot<T>(id);
+    final snapshot = GravitySystemSnapshot<T>(namedId);
     snapshot.gravity = gravity.copy();
     return snapshot;
   }

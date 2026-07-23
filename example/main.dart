@@ -162,7 +162,7 @@ class MyApp extends App<G> {
   @override
   void onEvent(Event<G> event) {
     if (event is SwitchSceneEvent) {
-      command(NextSceneCommand(app));
+      callback(() => app.nextScene());
     }
   }
 }

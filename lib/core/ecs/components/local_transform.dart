@@ -29,7 +29,7 @@ class CLocalTransform<T extends App<T>> extends Comp<T> {
 
   @override
   CLocalTransformSnapshot<T> createSnapshot() {
-    final snapshot = CLocalTransformSnapshot<T>(id);
+    final snapshot = CLocalTransformSnapshot<T>(namedId);
     snapshot.offset = offset.copy();
     snapshot.rotation = rotation;
     snapshot.scale = scale.copy();

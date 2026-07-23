@@ -12,7 +12,7 @@ class MyScene extends Scene<G> {
   // NOTE: [SNAPSHOT], instance of a snapshot
   @override
   MySceneSnapshot createSnapshot() {
-    MySceneSnapshot snapshot = .new(id);
+    MySceneSnapshot snapshot = .new(namedId);
     snapshot.intValue = intValue;
     snapshot.doubleValue = doubleValue;
     return snapshot;

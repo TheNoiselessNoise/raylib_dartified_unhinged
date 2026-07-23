@@ -96,7 +96,7 @@ class CImage<T extends App<T>> extends Comp<T> {
 
   @override
   CImageSnapshot<T> createSnapshot() {
-    final snapshot = CImageSnapshot<T>(id);
+    final snapshot = CImageSnapshot<T>(namedId);
     snapshot.texture = texture?.copy();
     snapshot.sourceRect = sourceRect?.copy();
     snapshot.tint = tint?.copy();

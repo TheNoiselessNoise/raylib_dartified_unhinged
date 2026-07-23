@@ -141,7 +141,7 @@ class ArkanoidRulesSystem extends SceneSystem<G> {
 
       if (ballBrick != null) {
         final (ball, brick) = ballBrick;
-        scene.command(RemoveEntityCommand(app, brick));
+        callback(() => scene.removeEntity(brick));
         score += 100;
       }
     }
@@ -235,7 +235,7 @@ class Arkanoid extends App<G> {
   @override
   void onInput() {
     if (input.isKeyPressed(K_q)) {
-      scene.command(ExitAppCommand(app));
+      callback(() => app.exitApp = true);
     }
   }
 }

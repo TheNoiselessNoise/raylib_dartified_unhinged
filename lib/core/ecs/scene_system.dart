@@ -93,7 +93,7 @@ class SceneSystem<T extends App<T>> extends ECSBase<T> with
   // state
 
   @override
-  AnySceneSystemSnapshot<T> createSnapshot() => .new(id);  
+  AnySceneSystemSnapshot<T> createSnapshot() => .new(namedId);  
 
   @override
   @nonVirtual

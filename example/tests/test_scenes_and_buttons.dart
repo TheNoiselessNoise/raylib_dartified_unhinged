@@ -50,7 +50,7 @@ class MainMenuScene extends FWidgetScene<G> {
     buttonInfo = {
       'Start': (_) => goToGame(),
       'Options': (_) => goToMainMenuOptions(),
-      'Exit': (_) => command(ExitAppCommand(app)),
+      'Exit': (_) => callback(() => app.exitApp = true),
     };
 
     addEntity(FCenter(app,
@@ -254,16 +254,16 @@ extension on HasAppAccess<G> {
   // ignore: unused_element
   IntroScene get introScene => app.getScene()!;
   // ignore: unused_element
-  void goToIntro() => app.command(SetSceneCommand(app, introScene));
+  void goToIntro() => app.callback(() => app.setScene(introScene));
   
   MainMenuScene get mainMenuScene => app.getScene()!;
-  void goToMainMenu() => app.command(SetSceneCommand(app, mainMenuScene));
+  void goToMainMenu() => app.callback(() => app.setScene(mainMenuScene));
 
   MainMenuOptionsScene get mainMenuOptionsScene => app.getScene()!;
-  void goToMainMenuOptions() => app.command(SetSceneCommand(app, mainMenuOptionsScene));
+  void goToMainMenuOptions() => app.callback(() => app.setScene(mainMenuOptionsScene));
   
   GameScene get gameScene => app.getScene()!;
-  void goToGame() => app.command(SetSceneCommand(app, gameScene));
+  void goToGame() => app.callback(() => app.setScene(gameScene));
 }
 
 class MyGame extends ExampleRaylibApp<G> {

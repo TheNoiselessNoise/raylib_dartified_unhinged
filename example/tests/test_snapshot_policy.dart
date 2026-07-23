@@ -6,7 +6,7 @@ class Comp1 extends Comp<G> {
 
   // NOTE: required for correctly returning appropriate type `Comp1`
   @override
-  Comp1Snapshot createSnapshot() => .new(id);
+  Comp1Snapshot createSnapshot() => .new(namedId);
 }
 
 // NOTE: custom component needs custom snapshot, even if empty
@@ -23,7 +23,7 @@ class Comp2 extends Comp<G> {
 
   // NOTE: required for correctly returning appropriate type `Comp2`
   @override
-  Comp2Snapshot createSnapshot() => .new(id);
+  Comp2Snapshot createSnapshot() => .new(namedId);
 }
 
 // NOTE: custom component needs custom snapshot, even if empty

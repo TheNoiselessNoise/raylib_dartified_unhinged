@@ -32,9 +32,9 @@ part of '../raylib_dartified_unhinged.dart';
 ///   └─ systems beginFrame
 ///
 /// _doEndFrame(dt)
+///   ├─ process drain loop
 ///   ├─ process callbacks
-///   ├─ process tasks
-///   ├─ process commands
+///   ├─ process drain loop
 ///   ├─ systems endFrame
 ///   └─ endFrame callbacks (happens after everything)
 /// ```
@@ -91,7 +91,6 @@ class Scene<T extends App<T>> extends ECSBase<T> with
 
   // special
   IsCallbackProcessable<T, Scene<T>>,
-  IsCommandProcessable<T, Scene<T>>,
   IsStateHolder<T, Scene<T>, AnySceneSnapshot<T>>,
   IsPersistable<T, Scene<T>, AnySceneSnapshot<T>>
 
@@ -170,7 +169,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   // state
 
   @override
-  AnySceneSnapshot<T> createSnapshot() => .new(id);  
+  AnySceneSnapshot<T> createSnapshot() => .new(namedId);  
 
   @override
   @nonVirtual
@@ -388,7 +387,6 @@ class Scene<T extends App<T>> extends ECSBase<T> with
       hadWork = false;
       hadWork |= _processCallbacks();
       hadWork |= app._processEvents();
-      hadWork |= _processCommands();
       iterations++;
     } while (hadWork && iterations < maxIterations);
   }
@@ -402,8 +400,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   @visibleForTesting
   bool get isDrainLoopEmptyForTest => (
     _callbackQueue.isEmpty &&
-    app._eventQueue.isEmpty &&
-    _commandQueue.isEmpty
+    app._eventQueue.isEmpty
   );
 
   @visibleForTesting
@@ -420,10 +417,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
 
   /// Called by the app at the very end of each frame, after update and render.
   ///
-  /// Drains the callback queue, then processes pending tasks and lastly commands.
-  /// Deferred mutations (entity removal, scene transitions) should be
-  /// posted here via [command] or [callback] to avoid mutating collections
-  /// mid-iteration.
+  /// Drains the callback queue, then events.
   @override
   void _doEndFrame(double dt) {
     _doDrainLoop();

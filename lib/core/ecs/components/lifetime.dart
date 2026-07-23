@@ -17,7 +17,7 @@ class CLifetime<T extends App<T>> extends Comp<T> {
     timeLeft -= dt;
     if (timeLeft <= 0) {
       _enqueued = true;
-      command(RemoveEntityCommand(app, entity));
+      callback(() => scene.removeEntity(entity));
     }
   }
 
@@ -32,7 +32,7 @@ class CLifetime<T extends App<T>> extends Comp<T> {
 
   @override
   CLifetimeSnapshot<T> createSnapshot() {
-    final snapshot = CLifetimeSnapshot<T>(id);
+    final snapshot = CLifetimeSnapshot<T>(namedId);
     snapshot.timeLeft = timeLeft;
     return snapshot;
   }
