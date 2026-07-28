@@ -188,7 +188,7 @@ class Bounds {
 
   List<double> getPersistableData() => [top, left, bottom, right];
 
-  void restorePersistableData(List<double> data) {
+  void setPersistableData(List<double> data) {
     // ignore: prefer_is_empty
     top = data.length < 1 ? 0 : data[0];
     left = data.length < 2 ? 0 : data[1];

@@ -108,11 +108,11 @@ class CVelocity<T extends App<T>> extends Comp<T> {
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     final velocityData = data.getList<double>('velocity');
-    velocity.restorePersistableData(velocityData);
+    velocity.setPersistableData(velocityData);
 
     angularVelocity = data.getDouble('angularVelocity', _defaultAngularVelocity);
     linearDamping = data.getDouble('linearDamping', _defaultLinearDamping);

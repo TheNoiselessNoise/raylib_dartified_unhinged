@@ -386,7 +386,7 @@ class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
     b.emit(eventBA);
     if (eventBA.isStopped) return;
 
-    eventAB.scope = .global;
+    eventAB.scope = .rootAndLocal;
     emit(eventAB);
   }
   
@@ -628,8 +628,8 @@ class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     restitution = data.getDouble('restitution', 1.0);
     enableEventEmitting = data.getBool('enableEventEmitting', true);

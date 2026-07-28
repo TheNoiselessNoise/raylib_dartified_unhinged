@@ -12,16 +12,17 @@ Events are the primary mechanism for cross-cutting communication in the framewor
 | Scope | Receivers |
 |---|---|
 | `root` | App > AppSystems |
-| `global` | App > AppSystems > Scene > SceneSystems > Entities > Components |
-| `globalNoEntities` | App > AppSystems > Scene > SceneSystems |
+| `rootAndLocal` | `root` & `local` |
+| `global` | `root` & `scene` |
+| `globalNoEntities` | `root` & `sceneOnly` |
 | `scene` | Scene > SceneSystems > Entities > Components |
 | `sceneOnly` | Scene > SceneSystems |
 | `local` | Emitter and its children only (see below, "children" depends on emitter type) |
 | `self` | Emitter only, no propagation |
 
-## Propagation by Emitter (`local` scope)
+## Propagation by Emitter (`local` or `rootAndLocal` scopes)
 
-`local` is the default scope for all emitters. What counts as a "child" depends on the emitter type, propagation does **not** bubble up through the App/Scene hierarchy:
+`rootAndLocal` is the default scope for all emitters. What counts as a "child" depends on the emitter type, propagation does **not** bubble up through the App/Scene hierarchy:
 
 | Emitter | Propagates to |
 |---|---|

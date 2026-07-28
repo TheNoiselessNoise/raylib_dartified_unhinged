@@ -126,8 +126,8 @@ class COutOfBounds<T extends App<T>> extends Comp<T> {
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     checkTop = data.getBool('checkTop', _defaultCheckTop);
     checkLeft = data.getBool('checkLeft', _defaultCheckLeft);

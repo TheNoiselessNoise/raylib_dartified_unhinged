@@ -42,6 +42,14 @@ class SceneSystem<T extends App<T>> extends ECSBase<T> with
     this.populateDefaults = populateDefaults;
   }
 
+  // ░██████████ ░██    ░██ ░██████████ ░███    ░██ ░██████████  ░██████   
+  // ░██         ░██    ░██ ░██         ░████   ░██     ░██     ░██   ░██  
+  // ░██         ░██    ░██ ░██         ░██░██  ░██     ░██    ░██         
+  // ░█████████  ░██    ░██ ░█████████  ░██ ░██ ░██     ░██     ░████████  
+  // ░██          ░██  ░██  ░██         ░██  ░██░██     ░██            ░██ 
+  // ░██           ░██░██   ░██         ░██   ░████     ░██     ░██   ░██  
+  // ░██████████    ░███    ░██████████ ░██    ░███     ░██      ░██████   
+
   @override
   bool _doEventLocal(Event<T> event) {
     if (event.scope == .root) return false;
@@ -122,10 +130,8 @@ class SceneSystem<T extends App<T>> extends ECSBase<T> with
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
-
-    onRestorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
   }
 }
 

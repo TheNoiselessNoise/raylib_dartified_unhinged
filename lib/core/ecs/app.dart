@@ -321,7 +321,7 @@ class App<T extends App<T>> extends ECSBase<T> with
       }
     }
 
-    if (event.scope != .root) {
+    if (event.scope != .root && event.scope != .rootAndLocal) {
       scene._propagate(event);
     }
 
@@ -497,8 +497,8 @@ class App<T extends App<T>> extends ECSBase<T> with
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     _restorePersistableJsonObjectMap(
       data: data,
@@ -513,8 +513,6 @@ class App<T extends App<T>> extends ECSBase<T> with
       factory: app.factories.scene,
       onRestored: addScene,
     );
-
-    onRestorePersistableData(data, id: id);
   }
 }
 

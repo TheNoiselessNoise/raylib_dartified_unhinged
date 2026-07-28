@@ -11,7 +11,7 @@ typedef CAnyParticleEmitter<T extends App<T>> = CParticleEmitter<T, Entity<T>>;
 /// its factory is a closure.
 /// 
 /// Either:
-/// - Extend this class and override `onRestorePersistableData` to reassign
+/// - Extend this class and override `onsetPersistableData` to reassign
 /// `factory` there.
 /// 
 /// - Listen on `factories.comp` (see [App.factories], [ECSFactoryRegistry.comp])
@@ -119,8 +119,8 @@ class CParticleEmitter<T extends App<T>, E extends Entity<T>> extends Comp<T> {
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     rate = data.getDouble('rate', _defaultRate);
     _acc = data.getDouble('_acc');

@@ -69,11 +69,11 @@ class CBoundsWrap<T extends App<T>> extends Comp<T> {
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     final areaData = data.getList<double>('area', _defaultArea);
-    area.restorePersistableData(areaData);
+    area.setPersistableData(areaData);
   }
 }
 

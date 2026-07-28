@@ -93,8 +93,8 @@ class CPulse<T extends App<T>> extends Comp<T> with
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     minScale = data.getDouble('minScale', _defaultMinScale);
     maxScale = data.getDouble('maxScale', _defaultMaxScale);

@@ -46,8 +46,8 @@ abstract class CCollider<T extends App<T>> extends Comp<T> with
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     tag = data.getString('tag', _defaultTag);
     enableCollision = data.getBool('enableCollision', _defaultEnableCollision);
@@ -55,7 +55,7 @@ abstract class CCollider<T extends App<T>> extends Comp<T> with
     debugLinesThick = data.getDouble('debugLinesThick', _defaultLinesThick);
 
     final debugColorData = data.getListOrNull<int>('debugColor');
-    if (debugColorData != null) debugColor?.restorePersistableData(debugColorData);
+    if (debugColorData != null) debugColor?.setPersistableData(debugColorData);
   }
 }
 
@@ -190,14 +190,14 @@ class CCircleCollider<T extends App<T>> extends CCollider<T> {
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     baseRadius = data.getDouble('baseRadius');
     radius = data.getDouble('radius', _defaultRadius);
 
     final centerData = data.getList<double>('center');
-    center.restorePersistableData(centerData);
+    center.setPersistableData(centerData);
   }
 }
 
@@ -341,14 +341,14 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     final sizeData = data.getListOrNull<double>('size');
-    if (sizeData != null) size?.restorePersistableData(sizeData);
+    if (sizeData != null) size?.setPersistableData(sizeData);
 
     final rectData = data.getList<double>('rect');
-    rect.restorePersistableData(rectData);
+    rect.setPersistableData(rectData);
 
     enableRotation = data.getBool('enableRotation', _defaultEnableRotation);
   }

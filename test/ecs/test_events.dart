@@ -474,7 +474,7 @@ void main() {
             final appEvents = app.getRecordedEvents(filter: (e) => e is ECSDeveloperTestingEvent);
             final holderEvents = holder.getRecordedEvents(filter: (e) => e is ECSDeveloperTestingEvent);
 
-            expect(testCollector.length, equals(eventCount), reason: 'WHAT: testCollector: ${testCollector.map((e) => e.name)}');
+            expect(testCollector.length, equals(eventCount), reason: '\nCOLLECTOR:\nExpected: ${expected.allEvents.map((e) => e.name)}\n  Actual: ${testCollector.map((e) => e.name)}');
             expect(appEvents.length, equals(expected.appEventCount), reason: 'WHAT: appEvents');
             expect(holderEvents.length, equals(expected.holderEventCount), reason: 'WHAT: holderEvents');
           });

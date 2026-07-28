@@ -90,20 +90,20 @@ class CSprite<T extends App<T>> extends Comp<T> {
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     final sizeData = data.getList<double>('size', _defaultSize);
-    size.restorePersistableData(sizeData);
+    size.setPersistableData(sizeData);
 
     final colorData = data.getListOrNull<int>('color');
-    if (colorData != null) color?.restorePersistableData(colorData);
+    if (colorData != null) color?.setPersistableData(colorData);
 
     final rectData = data.getList<double>('rect');
-    rect.restorePersistableData(rectData);
+    rect.setPersistableData(rectData);
 
     final originData = data.getList<double>('origin');
-    origin.restorePersistableData(originData);
+    origin.setPersistableData(originData);
   }
 }
 

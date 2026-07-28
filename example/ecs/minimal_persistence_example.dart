@@ -27,8 +27,8 @@ class MyScene extends Scene<G> {
 
   // NOTE: [PERSISTENCE], JSON data to read
   @override
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
     intValue = data.getInt('intValue');
     doubleValue = data.getDouble('doubleValue');
   }

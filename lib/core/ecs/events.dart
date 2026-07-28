@@ -2,8 +2,6 @@ part of '../raylib_dartified_unhinged.dart';
 
 /// Controls how far an [Event] propagates through the ECS hierarchy
 /// once dispatched or emitted.
-///
-/// Ordered loosely from widest reach ([global]) to narrowest ([self]).
 enum EventScope {
   /// App + AppSystems
   root,
@@ -20,7 +18,7 @@ enum EventScope {
   /// Scene + SceneSystems + Entities + Components
   scene,
 
-  /// Scene + SceneSystems only (no entities/components)
+  /// Scene + SceneSystems
   sceneOnly,
 
   /// Just the emitter and it's children

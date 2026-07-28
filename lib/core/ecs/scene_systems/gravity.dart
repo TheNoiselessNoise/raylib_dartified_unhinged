@@ -51,11 +51,11 @@ class GravitySystem<T extends App<T>> extends SceneSystem<T> {
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     final gravityData = data.getList<double>('gravity');
-    gravity.restorePersistableData(gravityData);
+    gravity.setPersistableData(gravityData);
   }
 }
 

@@ -119,8 +119,8 @@ class ScreenBounceSystem<T extends App<T>> extends SceneSystem<T> {
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     restitution = data.getDouble('restitution', _defaultRestitution);
     top = data.getBool('top');

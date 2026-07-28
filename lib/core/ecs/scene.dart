@@ -224,8 +224,8 @@ class Scene<T extends App<T>> extends ECSBase<T> with
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     _restorePersistableJsonObjectMap(
       data: data,
@@ -240,8 +240,6 @@ class Scene<T extends App<T>> extends ECSBase<T> with
       factory: app.factories.entity,
       onRestored: addEntity,
     );
-
-    onRestorePersistableData(data, id: id);
   }
 
   //   ░██████   ░██     ░██ ░██████████ ░█████████  ░██     ░██ 
@@ -442,9 +440,19 @@ class Scene<T extends App<T>> extends ECSBase<T> with
       .postEntities => s._doOnPostDraw(dt),
     });
 
+  // ░██████████ ░██    ░██ ░██████████ ░███    ░██ ░██████████  ░██████   
+  // ░██         ░██    ░██ ░██         ░████   ░██     ░██     ░██   ░██  
+  // ░██         ░██    ░██ ░██         ░██░██  ░██     ░██    ░██         
+  // ░█████████  ░██    ░██ ░█████████  ░██ ░██ ░██     ░██     ░████████  
+  // ░██          ░██  ░██  ░██         ░██  ░██░██     ░██            ░██ 
+  // ░██           ░██░██   ░██         ░██   ░████     ░██     ░██   ░██  
+  // ░██████████    ░███    ░██████████ ░██    ░███     ░██      ░██████   
+
   @override
   bool _doEventLocal(Event<T> event) {
     if (event.scope == .root) return false;
+
+    if (event.scope == .rootAndLocal && event.origin != self) return false;
     
     if (_doEventVisitedCheck(event)) return true;
     if (event.isStopped) return true;
@@ -466,10 +474,23 @@ class Scene<T extends App<T>> extends ECSBase<T> with
       }
     }
 
+    // `rootAndLocal` check, same cascade as `.local`, but must NOT stop here
+    if (event.scope == .rootAndLocal) {
+      _doOnEvent(event);
+
+      for (final s in _systems) {
+        if (event.isStopped) return true;
+        s._propagate(event);
+      }
+
+      if (event.isStopped) return true;
+    }
+
     // Scene Systems
     if (
       event.scope != .self &&
-      event.scope != .local
+      event.scope != .local &&
+      event.scope != .rootAndLocal
     ) {
       _doOnEvent(event);
 
@@ -483,6 +504,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
     if (event.isStopped) return true;
     if (
       event.scope != .local &&
+      event.scope != .rootAndLocal &&
       event.scope != .sceneOnly &&
       event.scope != .globalNoEntities
     ) {

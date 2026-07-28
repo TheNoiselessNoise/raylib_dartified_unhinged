@@ -81,8 +81,8 @@ class CPhysicsBody<T extends App<T>> extends Comp<T> {
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     mass = data.getDouble('mass', _defaultMass);
     restitution = data.getDouble('restitution', _defaultRestitution);

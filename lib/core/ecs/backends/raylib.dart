@@ -262,7 +262,7 @@ class RaylibBackend extends UnhingedBackend {
 extension on Vector2D {
   List<double> getPersistableData() => [x, y];
 
-  void restorePersistableData(List<double> data) {
+  void setPersistableData(List<double> data) {
     // ignore: prefer_is_empty
     x = data.length < 1 ? 0 : data[0];
     y = data.length < 2 ? 0 : data[1];
@@ -272,7 +272,7 @@ extension on Vector2D {
 extension on RectangleD {
   List<double> getPersistableData() => [x, y, width, height];
 
-  void restorePersistableData(List<double> data) {
+  void setPersistableData(List<double> data) {
     // ignore: prefer_is_empty
     x = data.length < 1 ? 0 : data[0];
     y = data.length < 2 ? 0 : data[1];
@@ -284,7 +284,7 @@ extension on RectangleD {
 extension on ColorD {
   List<int> getPersistableData() => [r, g, b, a];
 
-  void restorePersistableData(List<int> data) {
+  void setPersistableData(List<int> data) {
     // ignore: prefer_is_empty
     r = data.length < 1 ? 0 : data[0];
     g = data.length < 2 ? 0 : data[1];

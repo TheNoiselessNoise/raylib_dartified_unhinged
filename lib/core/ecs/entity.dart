@@ -360,8 +360,8 @@ class Entity<T extends App<T>> extends ECSBase<T> with
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     _restorePersistableJsonObjectMap(
       data: data,
@@ -369,8 +369,6 @@ class Entity<T extends App<T>> extends ECSBase<T> with
       factory: app.factories.comp,
       onRestored: addComp,
     );
-
-    onRestorePersistableData(data, id: id);
   }
 }
 
@@ -593,8 +591,8 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     _restorePersistableJsonObjectMap(
       data: data,

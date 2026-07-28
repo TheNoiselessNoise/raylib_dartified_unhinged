@@ -23,7 +23,7 @@ class CStateMachineTransition {
 /// and `when`).
 ///
 /// Either:
-/// - Extend this class and override `onRestorePersistableData` to set up
+/// - Extend this class and override `onsetPersistableData` to set up
 ///   states and transitions there.
 ///
 /// - Listen on `factories.comp` (see [App.factories], [ECSFactoryRegistry.comp])
@@ -220,8 +220,8 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     _current = data.getString('_current');
     _timeInState = data.getDouble('_timeInState');

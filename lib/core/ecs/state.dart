@@ -221,6 +221,8 @@ mixin IsPersistableBase<T extends App<T>, E extends ECSBase<T>> on ECSBase<T> {
   MapData getPersistableData({bool force = false});
 
   @mustCallSuper
+  void setPersistableData(MapTraversable data, {String? id});
+
   void restorePersistableData(MapTraversable data, {String? id});
 }
 
@@ -381,8 +383,15 @@ mixin IsPersistable<
   };
 
   @override
-  @mustCallSuper
+  @nonVirtual
   void restorePersistableData(MapTraversable data, {String? id}) {
+    setPersistableData(data, id: id);
+    onRestorePersistableData(data, id: id);
+  }
+
+  @override
+  @mustCallSuper
+  void setPersistableData(MapTraversable data, {String? id}) {
     final extractedId = data.getStringOrNull(ECSPersistentKeys.id, id);
     if (extractedId != null) persistentId = extractedId;
   }

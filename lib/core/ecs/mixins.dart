@@ -1765,17 +1765,23 @@ mixin IsComponentManagable<T extends App<T>, E extends ECSBase<T>> on
     if (_doEventSelfCheck(event)) return true;
     if (event.isStopped) return true;
 
-    if (event.scope == .local) {
+    if (event.scope == .local || event.scope == .rootAndLocal) {
       _doOnEvent(event);
 
-      if (event.origin == self) {
-        
-        for (final c in _components) {
-          if (event.isStopped) return true;
-          c._propagate(event);
-        }
-        return true;
+      for (final c in _components) {
+        if (event.isStopped) return true;
+        c._propagate(event);
       }
+
+      if (event.isStopped) return true;
+
+      // `.local` must never leave this subtree, always stop.
+      // `.rootAndLocal` is done, but if this IS the origin, it still owes a trip to App
+      if (event.scope == .rootAndLocal) {
+        return event.origin != self;
+      }
+
+      return true;
     } else if (event.scope != .globalNoEntities) {
       _doOnEvent(event);
     }
@@ -2302,9 +2308,10 @@ enum ECSDebugLevel { simple, v, vv, vvv }
 
 class ECSDebugMessageOptions {
   bool showTime = true;
+  bool showTimeDate = true;
   bool showSource = true;
-  bool colorize = true;
   bool showTag = true;
+  bool colorize = true;
 }
 
 class ECSDebugMessage {
@@ -2317,28 +2324,30 @@ class ECSDebugMessage {
 
   ECSDebugMessage(this.text, this.level, this.time, this.source, this.tag);
 
+  static const Map<ECSDebugLevel, (TermColor?, List<TermStyle>)> _levelColors = {
+    .simple: (null, [.none]),
+    .v: (.cyan, [.dim]),
+    .vv: (.brightWhite, [.dim]),
+    .vvv: (.brightWhite, [.dim]),
+  };
+
   @override
   String toString() {
     final o = options;
-    final buf = StringBuffer();
-    if (o.showTime) buf.write(_wrap('[${time.toString()}] ', _dim, o.colorize));
-    if (o.showSource) buf.write(_wrap('[$source] ', _dim, o.colorize));
-    if (o.showTag && tag != null) buf.write(_wrap('[$tag] ', _dim, o.colorize));
-    buf.write(_wrap(text, _levelColors[level]!, o.colorize));
-    return buf.toString();
-  }
+    final buf = TermBuffer();
 
-  static const String _dim = '\x1B[2;90m';
-  static const Map<ECSDebugLevel, String> _levelColors = {
-    .simple: '\x1B[0m',
-    .v: '\x1B[36m',
-    .vv: '\x1B[90m',
-    .vvv: '\x1B[2;90m',
-  };
+    if (o.showTime) {
+      String timeString = time.toString();
+      if (!o.showTimeDate) timeString = timeString.split(' ').last;
+      buf.add(.dim('[$timeString] '));
+    }
+    if (o.showSource) buf.add(.dim('[$source] '));
+    if (o.showTag && tag != null) buf.add(.dim('[$tag] '));
 
-  String _wrap(String text, String code, bool colorize) {
-    if (!colorize) return text;
-    return '$code$text\x1B[0m';
+    final (color, styles) = _levelColors[level]!;
+    buf.add(.styled(text, fg: color, styles: styles));
+
+    return buf.render(colorize: o.colorize);
   }
 }
 
@@ -2356,6 +2365,7 @@ mixin IsDebuggable<T extends App<T>, E extends ECSBase<T>> on IsEventEmittable<T
   bool? _debugEnabledOverride;
   ECSDebugLevel? _debugLevelOverride;
   Set<String>? _debugTagsOverride;
+  void Function(ECSDebugMessage msg)? _debugDefaultMessagePrinterOverride;
 
   bool get debugEnabledEffective
     => _debugEnabledOverride ?? debugParent?.debugEnabledEffective ?? false;
@@ -2366,6 +2376,9 @@ mixin IsDebuggable<T extends App<T>, E extends ECSBase<T>> on IsEventEmittable<T
   Set<String>? get debugTagsEffective
     => _debugTagsOverride ?? debugParent?.debugTagsEffective;
 
+  void Function(ECSDebugMessage msg)? get _debugDefaultMessagePrinter
+    => _debugDefaultMessagePrinterOverride ?? debugParent?._debugDefaultMessagePrinter;
+
   @nonVirtual
   E enableDebug([bool? enable = true]) {
     _debugEnabledOverride = enable;
@@ -2375,6 +2388,12 @@ mixin IsDebuggable<T extends App<T>, E extends ECSBase<T>> on IsEventEmittable<T
   @nonVirtual
   E setDebugLevel(ECSDebugLevel? level) {
     _debugLevelOverride = level;
+    return self;
+  }
+
+  @nonVirtual
+  E setDebugMessagePrinter(void Function(ECSDebugMessage msg) printer) {
+    _debugDefaultMessagePrinterOverride = printer;
     return self;
   }
 
@@ -2404,23 +2423,37 @@ mixin IsDebuggable<T extends App<T>, E extends ECSBase<T>> on IsEventEmittable<T
     return self;
   }
 
-  @nonVirtual
-  void dbg(String message, {ECSDebugLevel level = ECSDebugLevel.simple, String? tag}) {
-    if (!debugEnabledEffective) return;
-    if (level.index > debugLevelEffective.index) return;
+  bool _checkDebug(ECSDebugLevel level, String? tag) {
+    if (!debugEnabledEffective) return false;
+    if (level.index > debugLevelEffective.index) return false;
     final allowed = debugTagsEffective;
-    if (tag != null && allowed != null && !allowed.contains(tag)) return;
-    _doOnDebugMessage(.new(message, level, .now(), namedId, tag));
+    if (tag != null && allowed != null && !allowed.contains(tag)) return false;
+    return true;
   }
 
-  void _doOnDebugMessage(ECSDebugMessage msg) {
+  ECSDebugMessage _msg(String message, ECSDebugLevel level, String? tag)
+    => .new(message, level, .now(), namedId, tag);
+
+  @nonVirtual
+  void dbgSelf(String message, { ECSDebugLevel level = .simple, String? tag }) {
+    if (!_checkDebug(level, tag)) return;
+    _doOnDebugMessage(_msg(message, level, tag));
+  }
+
+  @nonVirtual
+  void dbg(String message, { ECSDebugLevel level = .simple, String? tag }) {
+    if (!_checkDebug(level, tag)) return;
+    _doOnDebugMessage(_msg(message, level, tag), propagate: true);
+  }
+
+  void _doOnDebugMessage(ECSDebugMessage msg, {bool propagate = false}) {
     _onDebugMessageFns.forEach((f) => f(msg));
     onDebugMessage(msg);
-    emit(EventDebugMessage(app, msg));
+    emit(EventDebugMessage(app, msg), scope: .self);
+    if (propagate) debugParent?._doOnDebugMessage(msg, propagate: true);
   }
 
-  // TODO: print as default?
-  void onDebugMessage(ECSDebugMessage msg) => print(msg);
+  void onDebugMessage(ECSDebugMessage msg) => _debugDefaultMessagePrinter?.call(msg);
 }
 
 /// Adds dispose lifecycle hooks to an ECS object.
@@ -2925,7 +2958,7 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
   /// Queues an [event] into the central application event queue for asynchronous processing.
   ///
   /// Stitches the [Event.origin] to `this` if it wasn't already set.
-  void emit(Event<T> event, {EventScope scope = .local}) {
+  void emit(Event<T> event, {EventScope scope = .rootAndLocal}) {
     event._reset();
     event.origin ??= self;
     event.scope ??= scope;
@@ -2936,7 +2969,7 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
   /// Dispatches an [event] immediately and synchronously, bypassing the central event queue.
   ///
   /// Stitches the [Event.origin] to `this` if it wasn't already set.
-  void dispatch(Event<T> event, {EventScope scope = .local}) {
+  void dispatch(Event<T> event, {EventScope scope = .rootAndLocal}) {
     event._reset();
     event.origin ??= self;
     event.scope ??= scope;
@@ -2954,7 +2987,7 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
       // (origin walking back down its own subtree) must not re-redirect,
       // or they'd bounce back to origin and get eaten by the visited-check.
       if (
-        (event.scope == .local || event.scope == .self) &&
+        (event.scope == .rootAndLocal || event.scope == .local || event.scope == .self) &&
         event.origin != self
       ) {
         if (event.origin case IsAnyEventEmittable<T> origin) {

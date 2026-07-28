@@ -83,6 +83,7 @@ part 'ecs/scene_system.dart';
 part 'ecs/scene.dart';
 part 'ecs/state.dart';
 part 'ecs/tasks.dart';
+part 'ecs/term.dart';
 
 extension StableSortExtension<T> on List<T> {
   List<T> sortedBy<K extends Comparable<K>>(K Function(T) key) {

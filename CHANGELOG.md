@@ -1,6 +1,7 @@
 ## 5.5.3
 
 - fix the `Event` system and it's replaying capability
+- introduce `IsDebuggable`
 
 ## 5.5.2
 

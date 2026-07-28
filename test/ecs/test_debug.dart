@@ -3,72 +3,65 @@ import 'package:test/test.dart';
 
 typedef G = TestApp;
 
-class TestScene extends FWidgetScene<G> {
-  late TestSceneSystem testSceneSystem;
-  late TestEntity1 entity1;
-  late TestEntity2 entity2;
-
-  TestScene(super.app) {
-    addSystem(testSceneSystem = .new(app));
-    addEntity(entity1 = .new(app));
-    addEntity(entity2 = .new(app));
-  }
-}
-
-class TestSceneSystem extends SceneSystem<G> {
-  TestSceneSystem(super.app);
-}
-
-class TestComponent1 extends Comp<G> {
-  TestComponent1(super.app);
-}
-
-class TestEntity1 extends Entity<G> {
-  late TestComponent1 comp1;
-
-  TestEntity1(super.app) {
-    addComp(comp1 = .new(app));
-  }
-}
-
-class TestComponent2 extends Comp<G> {
-  late TestComponent3 comp3;
-
-  TestComponent2(super.app);
-}
-
-class TestEntity2 extends Entity<G> {
-  late TestComponent2 comp2;
-
-  TestEntity2(super.app) {
-    addComp(comp2 = .new(app));
-    comp2.addComp(comp2.comp3 = .new(app));
-  }
-}
-
-class TestComponent3 extends Comp<G> {
-  TestComponent3(super.app);
-}
-
-class TestAppSystem extends AppSystem<G> {
-  TestAppSystem(super.app);
-}
-
 class TestApp extends App<G> {
-  late TestAppSystem testAppSystem;
-  late TestScene testScene;
-
-  TestApp(super.backend) {
-    addSystem(testAppSystem = .new(app));
-    addScene(testScene = .new(app));
-  }
+  TestApp(super.backend);
 }
 
 void main() {
-  // group('Debug', () {
-    TestApp app = .new(HeadlessBackend());
-    app.enableDebug(true);
+  group('Debug', () {
+    late TestApp app;
+    final String tag = 'core';
+    final String message = 'hello from ECS!';
+    final List<String> recievedMessages = [];
+    
+    setUp(() {
+      recievedMessages.clear();
+      app = .new(HeadlessBackend());
+      app.enableDebug(true);
+      app.setDebugLevel(.vvv);
+      app.setDebugTags({tag});
+      app.setDebugMessagePrinter((msg) {
+        msg.options.showTime = false;
+        msg.options.showSource = false;
+        msg.options.showTag = true;
+        msg.options.colorize = false;
+        recievedMessages.add(msg.toString());
+      });
+    });
+    
+    test('tagged', () {
+      app.dbgSelf(message, tag: tag);
+      expect(recievedMessages, equals(["[$tag] $message"]));
+    });
 
-    app.testScene.entity2.dbg('hello world!');
-  // });
+    test('tagged multiple', () {
+      final int n = 10;
+
+      for (int i = 0; i < n; i++) {
+        app.dbgSelf(message, tag: tag);
+      }
+
+      expect(recievedMessages, equals(List.generate(n, (_) => "[$tag] $message")));
+    });
+
+    test('with everything', () {
+      late DateTime msgTime;
+
+      app.setDebugMessagePrinter((msg) {
+        msg.options.showTime = true;
+        msg.options.showTimeDate = false;
+        msg.options.showSource = true;
+        msg.options.showTag = true;
+        msg.options.colorize = false;
+        recievedMessages.add(msg.toString());
+        msgTime = msg.time;
+      });
+
+      app.dbgSelf(message, tag: tag);
+
+      expect(recievedMessages, equals([
+        "[${msgTime.toString().split(' ').last}] [${app.namedId}] [$tag] $message"
+      ]));
+    });
+  });
 }

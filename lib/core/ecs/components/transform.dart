@@ -83,16 +83,16 @@ class CTransform<T extends App<T>> extends Comp<T> {
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     final positionData = data.getList<double>('position');
-    position.restorePersistableData(positionData);
+    position.setPersistableData(positionData);
 
     rotation = data.getDouble('rotation', _defaultRotation);
 
     final scaleData = data.getList<double>('scale');
-    scale.restorePersistableData(scaleData);
+    scale.setPersistableData(scaleData);
   }
 }
 

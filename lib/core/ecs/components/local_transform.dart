@@ -63,16 +63,16 @@ class CLocalTransform<T extends App<T>> extends Comp<T> {
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     final offsetData = data.getList<double>('offset');
-    offset.restorePersistableData(offsetData);
+    offset.setPersistableData(offsetData);
 
     rotation = data.getDouble('rotation', _defaultRotation);
 
     final scaleData = data.getList<double>('scale');
-    scale.restorePersistableData(scaleData);
+    scale.setPersistableData(scaleData);
   }
 }
 

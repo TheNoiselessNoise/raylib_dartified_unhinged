@@ -141,28 +141,28 @@ class CImage<T extends App<T>> extends Comp<T> {
 
   @override
   @mustCallSuper
-  void restorePersistableData(MapTraversable data, {String? id}) {
-    super.restorePersistableData(data, id: id);
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
 
     // NOTE: `texture` needs to be reassigned elsewhere
 
     final sourceRectData = data.getListOrNull<double>('sourceRect');
-    if (sourceRectData != null) sourceRect?.restorePersistableData(sourceRectData);
+    if (sourceRectData != null) sourceRect?.setPersistableData(sourceRectData);
 
     final tintData = data.getListOrNull<int>('tint');
-    if (tintData != null) tint?.restorePersistableData(tintData);
+    if (tintData != null) tint?.setPersistableData(tintData);
 
     final sourceData = data.getList<double>('source');
-    source.restorePersistableData(sourceData);
+    source.setPersistableData(sourceData);
 
     final destData = data.getList<double>('dest');
-    dest.restorePersistableData(destData);
+    dest.setPersistableData(destData);
 
     final originData = data.getList<double>('origin');
-    origin.restorePersistableData(originData);
+    origin.setPersistableData(originData);
 
     final sizeData = data.getListOrNull<double>('size');
-    if (sizeData != null) size?.restorePersistableData(sizeData);
+    if (sizeData != null) size?.setPersistableData(sizeData);
   }
 }
 
