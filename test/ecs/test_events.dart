@@ -27,12 +27,12 @@ mixin IsTestingApp<T extends IsTestingApp<T>> on App<T> {
 
   @override
   void onEvent(Event<T> event) {
-    if (event is TestEvent<T>) addTestResult(.app);
+    if (event is DevTestingEvent<T>) addTestResult(.app);
   }
 }
 
 class TestEventPropagationResult {
-  ExpectedValues expected = .new(0, 0, {});
+  ExpectedValues expected = .new({}, 0, 0);
   Set<(EmitterType, int)> got = {};
 
   Set<EmitterType> missing = {};
@@ -68,7 +68,14 @@ class TestEventPropagationResult {
   ].join('');
 }
 
-void fireEvent<T extends IsTestingApp<T>>(T app, EmitterType emitter, EventMethod method, EventScope scope) {
+void fireEvent<T extends IsTestingApp<T>>(T app, EmitterType emitter, EventMethod method, EventScope scope, {
+  bool reset = false,
+}) {
+  if (reset) {
+    testCollector.clear();
+    testCounts.clear();
+  }
+
   final IsAnyEventEmittable<T> emittable = switch (emitter) {
     .app         => app,
     .appSystem   => app.appSystem,
@@ -82,8 +89,8 @@ void fireEvent<T extends IsTestingApp<T>>(T app, EmitterType emitter, EventMetho
   };
 
   switch (method) {
-    case .emit:     emittable.emit(TestEvent(app), scope: scope);
-    case .dispatch: emittable.dispatch(TestEvent(app), scope: scope);
+    case .emit:     emittable.emit(DevTestingEvent(app), scope: scope);
+    case .dispatch: emittable.dispatch(DevTestingEvent(app), scope: scope);
   }
 
   if (method == .emit) {
@@ -98,13 +105,10 @@ TestEventPropagationResult testEventPropagation<T extends IsTestingApp<T>>(T app
 }) {
   final result = TestEventPropagationResult();
 
-  testCollector.clear();
-  testCounts.clear();
-
   final key = (emitter, scope);
   result.expected = expectedReceivers[key]!;
 
-  fireEvent(app, emitter, method, scope);
+  fireEvent(app, emitter, method, scope, reset: true);
   result.missing = result.expected.allEvents.difference(testCollector);
   result.extra   = testCollector.difference(result.expected.allEvents);
 
@@ -140,73 +144,73 @@ class ExpectedValues {
   final int holderEventCount;
   final Set<EmitterType> allEvents;
 
-  const ExpectedValues(this.appEventCount, this.holderEventCount, this.allEvents);
+  const ExpectedValues(this.allEvents, [this.appEventCount = 1, this.holderEventCount = 1]);
 }
 
 const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
 
-  (.app, .global):           .new(1, 1, {.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.app, .globalNoEntities): .new(1, 1, {.app, .appSystem, .scene, .sceneSystem}),
-  (.app, .scene):            .new(0, 0, {.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.app, .sceneOnly):        .new(0, 0, {.scene, .sceneSystem}),
-  (.app, .local):            .new(1, 1, {.app, .appSystem}),
-  (.app, .self):             .new(1, 1, {.app}),
+  (.app, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.app, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
+  (.app, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.app, .sceneOnly):        .new({.scene, .sceneSystem}),
+  (.app, .local):            .new({.app, .appSystem}),
+  (.app, .self):             .new({.app}),
     
-  (.appSystem, .global):           .new(1, 1, {.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.appSystem, .globalNoEntities): .new(1, 1, {.app, .appSystem, .scene, .sceneSystem}),
-  (.appSystem, .scene):            .new(0, 0, {.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.appSystem, .sceneOnly):        .new(0, 0, {.scene, .sceneSystem}),
-  (.appSystem, .local):            .new(1, 1, {.appSystem}),
-  (.appSystem, .self):             .new(1, 1, {.appSystem}),
+  (.appSystem, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.appSystem, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
+  (.appSystem, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.appSystem, .sceneOnly):        .new({.scene, .sceneSystem}),
+  (.appSystem, .local):            .new({.appSystem}),
+  (.appSystem, .self):             .new({.appSystem}),
   
-  (.scene, .global):           .new(1, 1, {.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.scene, .globalNoEntities): .new(1, 1, {.app, .appSystem, .scene, .sceneSystem}),
-  (.scene, .scene):            .new(1, 1, {.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.scene, .sceneOnly):        .new(1, 1, {.scene, .sceneSystem}),
-  (.scene, .local):            .new(1, 1, {.scene, .sceneSystem}),
-  (.scene, .self):             .new(1, 1, {.scene}),
+  (.scene, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.scene, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
+  (.scene, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.scene, .sceneOnly):        .new({.scene, .sceneSystem}),
+  (.scene, .local):            .new({.scene, .sceneSystem}),
+  (.scene, .self):             .new({.scene}),
 
-  (.sceneSystem, .global):           .new(1, 1, {.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.sceneSystem, .globalNoEntities): .new(1, 1, {.app, .appSystem, .scene, .sceneSystem}),
-  (.sceneSystem, .scene):            .new(1, 1, {.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.sceneSystem, .sceneOnly):        .new(1, 1, {.scene, .sceneSystem}),
-  (.sceneSystem, .local):            .new(1, 1, {.sceneSystem}),
-  (.sceneSystem, .self):             .new(1, 1, {.sceneSystem}),
+  (.sceneSystem, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.sceneSystem, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
+  (.sceneSystem, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.sceneSystem, .sceneOnly):        .new({.scene, .sceneSystem}),
+  (.sceneSystem, .local):            .new({.sceneSystem}),
+  (.sceneSystem, .self):             .new({.sceneSystem}),
 
-  (.entity1, .global):           .new(1, 1, {.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.entity1, .globalNoEntities): .new(1, 0, {.app, .appSystem, .scene, .sceneSystem}),
-  (.entity1, .scene):            .new(1, 1, {.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.entity1, .sceneOnly):        .new(0, 0, {.scene, .sceneSystem}),
-  (.entity1, .local):            .new(1, 1, {.entity1, .comp1}),
-  (.entity1, .self):             .new(1, 1, {.entity1}),
+  (.entity1, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.entity1, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
+  (.entity1, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.entity1, .sceneOnly):        .new({.scene, .sceneSystem}),
+  (.entity1, .local):            .new({.entity1, .comp1}),
+  (.entity1, .self):             .new({.entity1}),
 
-  (.comp1, .global):           .new(1, 1, {.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.comp1, .globalNoEntities): .new(1, 0, {.app, .appSystem, .scene, .sceneSystem}),
-  (.comp1, .scene):            .new(1, 1, {.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.comp1, .sceneOnly):        .new(0, 0, {.scene, .sceneSystem}),
-  (.comp1, .local):            .new(1, 1, {.comp1}),
-  (.comp1, .self):             .new(1, 1, {.comp1}),
+  (.comp1, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.comp1, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
+  (.comp1, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.comp1, .sceneOnly):        .new({.scene, .sceneSystem}),
+  (.comp1, .local):            .new({.comp1}),
+  (.comp1, .self):             .new({.comp1}),
 
-  (.entity2, .global):           .new(1, 1, {.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.entity2, .globalNoEntities): .new(1, 0, {.app, .appSystem, .scene, .sceneSystem}),
-  (.entity2, .scene):            .new(1, 1, {.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.entity2, .sceneOnly):        .new(0, 0, {.scene, .sceneSystem}),
-  (.entity2, .local):            .new(1, 1, {.entity2, .comp2, .comp3}),
-  (.entity2, .self):             .new(1, 1, {.entity2}),
+  (.entity2, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.entity2, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
+  (.entity2, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.entity2, .sceneOnly):        .new({.scene, .sceneSystem}),
+  (.entity2, .local):            .new({.entity2, .comp2, .comp3}),
+  (.entity2, .self):             .new({.entity2}),
 
-  (.comp2, .global):           .new(1, 1, {.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.comp2, .globalNoEntities): .new(1, 0, {.app, .appSystem, .scene, .sceneSystem}),
-  (.comp2, .scene):            .new(1, 1, {.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.comp2, .sceneOnly):        .new(0, 0, {.scene, .sceneSystem}),
-  (.comp2, .local):            .new(1, 1, {.comp2, .comp3}),
-  (.comp2, .self):             .new(1, 1, {.comp2}),
+  (.comp2, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.comp2, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
+  (.comp2, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.comp2, .sceneOnly):        .new({.scene, .sceneSystem}),
+  (.comp2, .local):            .new({.comp2, .comp3}),
+  (.comp2, .self):             .new({.comp2}),
 
-  (.comp3, .global):           .new(1, 1, {.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.comp3, .globalNoEntities): .new(1, 0, {.app, .appSystem, .scene, .sceneSystem}),
-  (.comp3, .scene):            .new(1, 1, {.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
-  (.comp3, .sceneOnly):        .new(0, 0, {.scene, .sceneSystem}),
-  (.comp3, .local):            .new(1, 1, {.comp3}),
-  (.comp3, .self):             .new(1, 1, {.comp3}),
+  (.comp3, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.comp3, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
+  (.comp3, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
+  (.comp3, .sceneOnly):        .new({.scene, .sceneSystem}),
+  (.comp3, .local):            .new({.comp3}),
+  (.comp3, .self):             .new({.comp3}),
 };
 
 typedef G = TestApp;
@@ -226,7 +230,7 @@ class TestAppSystem<T extends App<T>> extends AppSystem<T> {
 
   @override
   void onEvent(Event<T> event) {
-    if (event is TestEvent<T>) addTestResult(.appSystem);
+    if (event is DevTestingEvent<T>) addTestResult(.appSystem);
   }
 }
 
@@ -235,7 +239,7 @@ class TestSceneSystem<T extends App<T>> extends SceneSystem<T> {
 
   @override
   void onEvent(Event<T> event) {
-    if (event is TestEvent<T>) addTestResult(.sceneSystem);
+    if (event is DevTestingEvent<T>) addTestResult(.sceneSystem);
   }
 }
 
@@ -255,20 +259,20 @@ class TestScene<T extends App<T>> extends FWidgetScene<T> {
 
   @override
   void onEvent(Event<T> event) {
-    if (event is TestEvent<T>) addTestResult(.scene);
+    if (event is DevTestingEvent<T>) addTestResult(.scene);
   }
 }
 
-class TestEvent<T extends App<T>> extends Event<T> {
-  TestEvent(super.app);
-}
+// class TestEvent<T extends App<T>> extends Event<T> {
+//   DevTestingEvent(super.app);
+// }
 
 class TestComponent1<T extends App<T>> extends Comp<T> {
   TestComponent1(super.app);
 
   @override
   void onEvent(Event<T> event) {
-    if (event is TestEvent<T>) addTestResult(.comp1);
+    if (event is DevTestingEvent<T>) addTestResult(.comp1);
   }
 }
 
@@ -281,7 +285,7 @@ class TestEntity1<T extends App<T>> extends Entity<T> {
 
   @override
   void onEvent(Event<T> event) {
-    if (event is TestEvent<T>) addTestResult(.entity1);
+    if (event is DevTestingEvent<T>) addTestResult(.entity1);
   }
 }
 
@@ -292,7 +296,7 @@ class TestComponent2<T extends App<T>> extends Comp<T> {
 
   @override
   void onEvent(Event<T> event) {
-    if (event is TestEvent<T>) addTestResult(.comp2);
+    if (event is DevTestingEvent<T>) addTestResult(.comp2);
   }
 }
 
@@ -306,7 +310,7 @@ class TestEntity2<T extends App<T>> extends Entity<T> {
 
   @override
   void onEvent(Event<T> event) {
-    if (event is TestEvent<T>) addTestResult(.entity2);
+    if (event is DevTestingEvent<T>) addTestResult(.entity2);
   }
 }
 
@@ -315,7 +319,7 @@ class TestComponent3<T extends App<T>> extends Comp<T> {
 
   @override
   void onEvent(Event<T> event) {
-    if (event is TestEvent<T>) addTestResult(.comp3);
+    if (event is DevTestingEvent<T>) addTestResult(.comp3);
   }
 }
 
@@ -350,7 +354,7 @@ void main() {
       
       final holders = app.eventHistoryHolders;
 
-      List<TestEvent<G>> events = List.generate(holders.length, (_) => .new(app));
+      List<DevTestingEvent<G>> events = List.generate(holders.length, (_) => .new(app));
       List<int> ids = events.map((e) => e.id).toList();
 
       for (final (i, emittable) in holders.values.indexed) {
@@ -359,7 +363,7 @@ void main() {
 
       app.processQueuedEventsForTest();
 
-      final historyEvents = app.eventHistory.whereType<TestEvent>().toList();
+      final historyEvents = app.eventHistory.whereType<DevTestingEvent>().toList();
       List<int> historyIds = historyEvents.map((e) => e.id).toList();
 
       expect(historyEvents.length, equals(holders.length));
@@ -368,7 +372,7 @@ void main() {
       for (final (i, emittable) in holders.values.indexed) {
         if (emittable is TestApp) continue;
 
-        final historyEvents = emittable.eventHistory.whereType<TestEvent>().toList();
+        final historyEvents = emittable.eventHistory.whereType<DevTestingEvent>().toList();
         List<int> historyIds = historyEvents.map((e) => e.id).toList();
 
         expect(historyEvents.length, equals(1));
@@ -395,7 +399,7 @@ void main() {
         ids.clear();
 
         // some arbitrary number of events
-        final List<TestEvent<G>> events = .generate(10, (_) => .new(app));        
+        final List<DevTestingEvent<G>> events = .generate(10, (_) => .new(app));        
         final expected = events.map((e) => '${holder.namedId}_${e.namedId}');
 
         for (final event in events) {
@@ -408,7 +412,7 @@ void main() {
         expect(ids.toList(), equals(expected));
         ids.clear();
 
-        holder.replayRecordedEvents(filter: (e) => e is TestEvent);
+        holder.replayRecordedEvents(filter: (e) => e is DevTestingEvent);
         app.processQueuedEventsForTest();
 
         // recorded
@@ -426,7 +430,7 @@ void main() {
       final List<String> ids = [];
       app.listenOnEvent((x, event) => ids.add('${x.namedId}_${event.namedId}'));
 
-      final List<TestEvent<G>> events = .generate(n, (_) => .new(app));
+      final List<DevTestingEvent<G>> events = .generate(n, (_) => .new(app));
       events.forEach((e) => app.emit(e, scope: .self));
       app.processQueuedEventsForTest();
 
@@ -436,45 +440,87 @@ void main() {
       ];
 
       for (var i = 0; i < replays; i++) {
-        app.replayRecordedEvents(filter: (e) => e is TestEvent);
+        app.replayRecordedEvents(filter: (e) => e is DevTestingEvent);
         app.processQueuedEventsForTest();
       }
 
       expect(ids.toList(), equals(expected));
     });
-    
-    test('recorded check', () {
-      void reset() {
-        for (final holder in app.eventHistoryHolders.values) {
-          if (holder is G) holder.clearEventQueue();
-          holder.clearEventHistory();
+  });
+
+  group('recorded check', () {
+    late G app = .new(HeadlessBackend())..init()..clearEventQueue();
+
+    void reset() {
+      for (final entry in app.eventHistoryHolders.values) {
+        if (entry is G) entry.clearEventQueue();
+        entry.clearEventHistory();
+      }
+    }
+
+    for (final entry in app.eventHistoryHolders.entries) {
+      final emitter = entry.key;
+      final holder = entry.value;
+
+      for (final scope in EventScope.values) {
+        for (final method in EventMethod.values) {
+          test('method=${method.name} scope=${scope.name} emitter=${emitter.name}', () {
+            reset();
+
+            fireEvent(app, emitter, method, scope, reset: true);
+
+            final key = (emitter, scope);
+            final expected = expectedReceivers[key]!;
+            final int eventCount = expected.allEvents.length;
+            final appEvents = app.getRecordedEvents(filter: (e) => e is DevTestingEvent);
+            final holderEvents = holder.getRecordedEvents(filter: (e) => e is DevTestingEvent);
+
+            expect(testCollector.length, equals(eventCount));
+            expect(appEvents.length, equals(expected.appEventCount));
+            expect(holderEvents.length, equals(expected.holderEventCount));
+          });
         }
       }
+    }
+  });
 
-      for (final entry in app.eventHistoryHolders.entries) {
-        for (final scope in EventScope.values) {
-          reset();
+  group('event history replay', () {
+    test('replaying app history before comp history compounds the replay count', () {
+      late G app = .new(HeadlessBackend())..init()..clearEventQueue();
 
-          final emitter = entry.key;
-          final holder = entry.value;
+      final comp3 = app.testScene.entity2.comp2.comp3;
 
-          testEventPropagation(app,
-            emitter: emitter,
-            method: .emit,
-            scope: scope,
-          );
+      // Single dispatch cycle: comp3 is origin, app is root.
+      // This records exactly once at origin and once at root.
+      // 1 event in each history.
+      comp3.dispatch(DevTestingEvent(app), scope: .sceneOnly);
 
-          final key = (emitter, scope);
-          final expected = expectedReceivers[key]!;
-          final int eventCount = expected.allEvents.length;
-          final appEvents = app.getRecordedEvents(filter: (e) => e is TestEvent);
-          final holderEvents = holder.getRecordedEvents(filter: (e) => e is TestEvent);
+      expect(app.getRecordedEvents().length, equals(1));
+      expect(comp3.getRecordedEvents().length, equals(1));
 
-          expect(testCollector.length, equals(eventCount));
-          expect(appEvents.length, equals(expected.appEventCount));
-          expect(holderEvents.length, equals(expected.holderEventCount));
-        }
-      }
+      // Replays everything currently in app's history (1 event: `e1`).
+      // Replaying re-dispatches `e1` from its original origin (comp3), which
+      // is a fresh dispatch cycle -> records once more at comp3 AND once
+      // more at app.
+      // 
+      // After this call: app = [e1, e2], comp3 = [e1, e2].
+      app.replayRecordedEvents();
+
+      // Replays everything currently in comp3's history -- but comp3's
+      // history was just mutated by the app.replayRecordedEvents() call
+      // above, so this replays 2 events (e1, e2), not the 1 comp3 started
+      // with. Each of those 2 replays is its own fresh dispatch cycle from
+      // comp3, so it adds 2 more events to BOTH comp3's and app's history.
+      // Final: app = [e1, e2, e3, e4], comp3 = [e1, e2, e3, e4].
+      //
+      // Call order matters here: app.replayRecordedEvents() runs first and
+      // grows comp3's history as a side effect (comp3 is origin for every
+      // event), so comp3.replayRecordedEvents() then has more to replay
+      // than it would if the order were reversed.
+      comp3.replayRecordedEvents();
+
+      expect(app.getRecordedEvents().length, equals(4));
+      expect(comp3.getRecordedEvents().length, equals(4));
     });
   });
 }

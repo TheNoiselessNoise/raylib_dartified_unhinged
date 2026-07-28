@@ -2804,7 +2804,6 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
     event.origin ??= self;
     event.scope ??= scope;
     event._wasEmitted = true;
-    event._emitOrDispatchScope = event.scope!;
     _enqueueEvent(event);
   }
 
@@ -2816,26 +2815,38 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
     event.origin ??= self;
     event.scope ??= scope;
     event._wasDispatched = true;
-    event._emitOrDispatchScope = event.scope!;
     _propagate(event);
   }
 
   void _propagate(Event<T> event) {
     assert(event.scope != null);
 
-    // First hop of a .local/.self event that didn't start here: jump
-    // straight to the true origin instead of walking down from `self`.
-    // Gated on `_visited.isEmpty` so this only fires once, later hops
-    // (origin walking back down its own subtree) must not re-redirect,
-    // or they'd bounce back to origin and get eaten by the visited-check.
-    if (
-      event._visited.isEmpty &&
-      (event.scope == .local || event.scope == .self) &&
-      event.origin != self
-    ) {
-      if (event.origin case IsAnyEventEmittable<T> origin) {
-        origin._propagate(event);
-        return;
+    if (event._visited.isEmpty) {
+      // First hop of a .local/.self event that didn't start here: jump
+      // straight to the true origin instead of walking down from `self`.
+      // Gated on `_visited.isEmpty` so this only fires once, later hops
+      // (origin walking back down its own subtree) must not re-redirect,
+      // or they'd bounce back to origin and get eaten by the visited-check.
+      if (
+        (event.scope == .local || event.scope == .self) &&
+        event.origin != self
+      ) {
+        if (event.origin case IsAnyEventEmittable<T> origin) {
+          origin._propagate(event);
+          return;
+        }
+      }
+
+      // Record this event into the origin's and root's history, keyed off
+      // `event.origin` rather than `self`.
+      //
+      // This must live here, in `_propagate`, because `_propagate` is the one
+      // choke point every `emit`/`dispatch` call passes through exactly once
+      // as its first hop (before any scope-based branching in `_doEventLocal`
+      // decides whether to stop, cascade locally, or bail out early). Gating
+      // on `_visited.isEmpty` makes that "exactly once" guarantee explicit.
+      if (event.origin case IsAnyEventHistoryHolder<T> holder) {
+        holder._tryToRecordEvent(event);
       }
     }
 
@@ -2870,6 +2881,24 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
 
   /// Forwards the event directly to the top-level application router for synchronous cascading.
   void _dispatchEvent(Event<T> event) => app._propagate(event);
+}
+
+class _RecordedEvent<T extends App<T>> {
+  final Event<T> event;
+  final double simTime;
+  final EventScope? scope;
+  final ECSBase<T>? origin;
+  final bool wasEmitted;
+  final bool wasDispatched;
+
+  const _RecordedEvent({
+    required this.event,
+    required this.simTime,
+    required this.scope,
+    required this.origin,
+    required this.wasEmitted,
+    required this.wasDispatched,
+  });
 }
 
 typedef IsAnyEventHistoryHolder<T extends App<T>> = IsEventHistoryHolder<T, ECSBase<T>>;
@@ -2941,9 +2970,9 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
   //   ░██  ░██       ░██ ░██         ░██         
   // ░██████░██       ░██ ░██         ░██████████ 
 
-  List<Event<T>> _eventHistory = [];
+  List<_RecordedEvent<T>> _eventHistory = [];
 
-  List<Event<T>> get eventHistory => _eventHistory;
+  Iterable<Event<T>> get eventHistory => _eventHistory.map((e) => e.event);
 
   /// How long (in sim-scaled seconds) to retain events before pruning.
   /// Null = keep forever.
@@ -2951,15 +2980,16 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
 
   IsAnyEventHistoryHolder<T> get _eventHolderRoot => app;
 
-  @override
-  void _doOnEvent(Event<T> event) {
-    _tryToRecordEvent(event);
-    super._doOnEvent(event);
-  }
-
   void _recordEvent(Event<T> event) {
     if (!_doOnBeforeEventRecorded(event)) return;
-    _eventHistory.add(event..simTime = app.time.timeScaled);
+    _eventHistory.add(.new(
+      event: event,
+      simTime: app.time.timeScaled,
+      scope: event.scope,
+      origin: event.origin,
+      wasEmitted: event._wasEmitted,
+      wasDispatched: event._wasDispatched,
+    ));
     _pruneEventHistory();
     _doOnEventRecorded(event);
   }
@@ -2972,8 +3002,6 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
       return;
     }
 
-    if (!identical(self, event.origin)) return;
-    
     // i am origin
     if (event._originRecorded) return;
     event._originRecorded = true;
@@ -2996,14 +3024,12 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
   /// Clears history of recorded events.
   void clearEventHistory() => _eventHistory.clear();
 
-  /// Events dispatched within the last [duration] sim-scaled seconds,
-  /// optionally filtered to a specific origin.
-  List<Event<T>> getRecordedEvents({
+  List<_RecordedEvent<T>> _getEventRecords({
     double? duration,
     ECSBase<T>? origin,
     bool Function(Event<T> event)? filter,
   }) {
-    var events = _eventHistory.where((e) => origin == null || e.origin == origin);
+    var events = _eventHistory.where((e) => origin == null || e.event.origin == origin);
 
     if (duration != null) {
       final cutoff = app.time.timeScaled - duration;
@@ -3011,11 +3037,23 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
     }
 
     if (filter != null) {
-      events = events.where(filter);
+      events = events.where((e) => filter(e.event));
     }
 
     return events.toList();
   }
+
+  /// Events dispatched within the last [duration] sim-scaled seconds,
+  /// optionally filtered to a specific origin.
+  List<Event<T>> getRecordedEvents({
+    double? duration,
+    ECSBase<T>? origin,
+    bool Function(Event<T> event)? filter,
+  }) => _getEventRecords(
+    duration: duration,
+    origin: origin,
+    filter: filter,
+  ).map((e) => e.event).toList();
 
   /// Re-dispatches events from [fromTime] sim-scaled seconds ago to now.
   void replayRecordedEvents({
@@ -3023,26 +3061,27 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
     ECSBase<T>? origin,
     bool Function(Event<T> event)? filter,
   }) {
-    final events = getRecordedEvents(
+    final records = _getEventRecords(
       duration: fromTime != null ? -fromTime : null,
       origin: origin,
       filter: filter,
     );
 
-    for (final e in events) {
-      assert(!(e._wasEmitted && e._wasDispatched), "Event was emitted and dispatched, this should not happen.");
+    for (final rec in records) {
+      assert(!(rec.wasEmitted && rec.wasDispatched), "Event was emitted and dispatched, this should not happen.");
 
-      final eventOrigin = e.origin;
-      e.scope = e._emitOrDispatchScope;
+      final e = rec.event;
+      final eventOrigin = rec.origin;
+      e.scope = rec.scope;
 
-      if (e._wasEmitted) {
+      if (rec.wasEmitted) {
 
         if (eventOrigin case IsAnyEventEmittable<T> emittable) {
           emittable.emit(e);
           continue;
         }
 
-        if (e.scope != .self && e.scope != .local) {
+        if (rec.scope != .self && rec.scope != .local) {
           // Scene-or-broader scope with a non-emittable origin: Root is the
           // correct re-entry point, propagation still happens normally from here.
           _eventHolderRoot.emit(e);
@@ -3055,19 +3094,19 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
         // stand in, since Root emitting with .self/.local scope means the event
         // goes no further than Root, which is not what the original emit meant.
         throw StateError(
-          'Cannot replay event ${e.runtimeType} (scope: ${e.scope}): origin '
+          'Cannot replay event ${e.runtimeType} (scope: ${rec.scope}): origin '
           '$eventOrigin does not implement IsAnyEventEmittable, and scope '
-          '${e.scope} cannot be safely re-emitted from Root ($_eventHolderRoot).',
+          '${rec.scope} cannot be safely re-emitted from Root ($_eventHolderRoot).',
         );
       
-      } else if (e._wasDispatched) {
+      } else if (rec.wasDispatched) {
 
         if (eventOrigin case IsAnyEventEmittable<T> emittable) {
           emittable.dispatch(e);
           continue;
         }
 
-        if (e.scope != .self && e.scope != .local) {
+        if (rec.scope != .self && rec.scope != .local) {
           // Scene-or-broader scope with a non-emittable origin: Root is the
           // correct re-entry point, propagation still happens normally from here.
           _eventHolderRoot.dispatch(e);
@@ -3080,9 +3119,9 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
         // stand in, since Root dispatching with .self/.local scope means the event
         // goes no further than Root, which is not what the original dispatch meant.
         throw StateError(
-          'Cannot replay event ${e.runtimeType} (scope: ${e.scope}): origin '
+          'Cannot replay event ${e.runtimeType} (scope: ${rec.scope}): origin '
           '$eventOrigin does not implement IsAnyEventEmittable, and scope '
-          '${e.scope} cannot be safely re-dispatched from Root ($_eventHolderRoot).',
+          '${rec.scope} cannot be safely re-dispatched from Root ($_eventHolderRoot).',
         );
       
       } else {

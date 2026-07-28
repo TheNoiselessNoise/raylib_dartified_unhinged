@@ -97,7 +97,6 @@ abstract class Event<T extends App<T>> extends ECSBase<T> with
 
     _wasEmitted = false;
     _wasDispatched = false;
-    _emitOrDispatchScope = .global; 
     _originRecorded = false;
     _rootRecorded = false;
   }
@@ -121,10 +120,8 @@ abstract class Event<T extends App<T>> extends ECSBase<T> with
 
   bool _wasEmitted = false;
   bool _wasDispatched = false;
-  EventScope _emitOrDispatchScope = .global;
   bool _originRecorded = false;
   bool _rootRecorded = false;
-  double simTime = 0;
 }
 
 // BASE EVENTS
@@ -492,7 +489,7 @@ class EventSceneSystemCloned<T extends App<T>> extends EventCloned<T, SceneSyste
   EventSceneSystemCloned(super.app, super.original, super.cloned);
 }
 
-// SPECIAL EVENTS
+// TASK EVENTS
 
 class EventTaskStarting<T extends App<T>> extends Event<T> {
   final Task<T> startingTask;
@@ -510,6 +507,14 @@ class EventTaskFinished<T extends App<T>> extends Event<T> {
   final Task<T> finishedTask;
 
   EventTaskFinished(super.app, this.finishedTask);
+}
+
+// SPECIAL EVENTS
+
+class DevTestingEvent<T extends App<T>> extends Event<T> {
+  final String? source;
+
+  DevTestingEvent(super.app, [this.source]);
 }
 
 // COLLISION
