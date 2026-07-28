@@ -375,11 +375,11 @@ abstract class Cloner<T extends App<T>> {
     => allow(.sceneSystem, owner: owner, payload: sceneSystem);
 
   /// Whether [entity] should be included in the clone.
-  bool allowEntity(IsEntityManagable<T, ECSBase<T>, Entity<T>> owner, Entity<T> entity)
+  bool allowEntity(IsAnyEntityManagable<T> owner, Entity<T> entity)
     => allow(.entity, owner: owner, payload: entity);
 
   /// Whether [comp] should be included in the clone of [owner].
-  bool allowComp(IsComponentManagable<T, ECSBase<T>> owner, Comp<T> comp)
+  bool allowComp(IsAnyComponentManagable<T> owner, Comp<T> comp)
     => allow(.component, owner: owner, payload: comp);
 
   /// Whether the listener/s identified by [type] should be copied to the clone.

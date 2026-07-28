@@ -516,7 +516,7 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
 
     if (worldPos != null && localPos == null) {
       // user placed entity using world-style, convert to local
-      final entityPosition = entity.transform!.position;
+      final entityPosition = worldPos.position;
       final groupPosition = transform!.position;
       final offset = entityPosition.sub(groupPosition);
       entity.addComp(CLocalTransform<T>(app, offset: offset));

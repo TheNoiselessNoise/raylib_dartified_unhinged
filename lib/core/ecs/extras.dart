@@ -20,10 +20,7 @@ abstract class Grid2D<T extends App<T>, E extends Entity<T>> extends EntityGroup
     num height = 8,
   }) :
     width = width.toInt(),
-    height = height.toInt()
-  {
-    initialize();
-  }
+    height = height.toInt();
 
   E createEntity(int x, int y);
 

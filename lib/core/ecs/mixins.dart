@@ -2427,6 +2427,8 @@ mixin IsEnterable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   void onAfterEnter() {}
 }
 
+typedef IsAnyEntityManagable<T extends App<T>> = IsEntityManagable<T, ECSBase<T>, Entity<T>>;
+
 /// Adds entity add/remove lifecycle hooks to a [Scene] or [EntityGroup].
 ///
 /// Covers two events: entity add and entity remove, each with a full three-phase contract:

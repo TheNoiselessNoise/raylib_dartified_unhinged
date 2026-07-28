@@ -54,8 +54,6 @@ The framework does not protect you from yourself. It stays consistent while allo
 
 - **`callback`, say "later," mean the end of this frame.** The simple, useful one: defer a function call until the current frame finishes, instead of writing a one-shot flag and checking it in `onUpdate` like an animal.
 
-- **Commands, Events' scene-bound sibling.** Define your own, queue one with `command` or skip the line and run it immediately with `execute`. Cancellable, hookable, basically everything you already know from the event system, just deliberately scoped to the scene instead of climbing the whole chain.
-
 - **A drawer full of components so you don't reinvent the basics.** Want an entity that bounces off the walls? Wraps around the screen edge-to-edge? There's a growing shelf of ready-made components for exactly that sort of "I know I'm not the first person who needed this" behavior, check what's available before you write it yourself.
 
 - **Queries, for when "give me everything" isn't good enough.** Two flavors: entity queries (over a scene or group) and component queries (over an entity or component), a real filter system for "find me the things that match this," instead of manually looping and squinting at a list every time.
@@ -87,8 +85,6 @@ The framework does not protect you from yourself. It stays consistent while allo
 **Event** => Something happened. An Event is not a record of the past, but an active force, it carries the same reach into reality as the things that caused it, because in this framework even a happening can act.
 
 **Task** => Something will happen. A Task is intent given form, deferred but not powerless, holding the same access to existence as anything else, so that what is ***about to be*** is never less real than what ***already is***.
-
-**Command** => Like an Event, but local and unambitious. A Command does not echo outward through the reaches of reality, it speaks only within the Scene that gave it voice, and goes no further.
 
 **Query** => Reality does not answer on its own, you must ask it. A Query does not change what exists, it only asks what is, what something has, or what something does, so that the asker may act with understanding instead of guesswork.
 

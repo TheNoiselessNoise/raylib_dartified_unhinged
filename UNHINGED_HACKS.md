@@ -9,7 +9,7 @@ architecture happens to make possible.
 
 `HasAppAccess` is mixed into `ECSBase`, the common ancestor of every
 class in the framework, `App`, `AppSystem`, `Scene`, `SceneSystem`,
-`Entity`, `Comp`, `Event`, `Command` and `Task` all have it. Every one of these
+`Entity`, `Comp`, `Event`, and `Task` all have it. Every one of these
 takes `app` as a constructor parameter, so the moment you create one,
 `MyEvent(app)`, `MyTask(app)`, whatever, it already has full access to
 the rest of the ECS. Nothing needs to be threaded through afterward.
