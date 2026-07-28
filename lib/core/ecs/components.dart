@@ -25,7 +25,8 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   // special
   IsComponentManagable<T, Comp<T>>,
   IsStateHolder<T, Comp<T>, AnyCompSnapshot<T>>,
-  IsPersistable<T, Comp<T>, AnyCompSnapshot<T>>
+  IsPersistable<T, Comp<T>, AnyCompSnapshot<T>>,
+  IsDebuggable<T, Comp<T>>
 
 {
   @override

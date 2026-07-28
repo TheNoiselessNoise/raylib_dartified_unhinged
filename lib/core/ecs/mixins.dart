@@ -2298,6 +2298,131 @@ mixin IsComponentManagable<T extends App<T>, E extends ECSBase<T>> on
   }
 }
 
+enum ECSDebugLevel { simple, v, vv, vvv }
+
+class ECSDebugMessageOptions {
+  bool showTime = true;
+  bool showSource = true;
+  bool colorize = true;
+  bool showTag = true;
+}
+
+class ECSDebugMessage {
+  final String text;
+  final ECSDebugLevel level;
+  final DateTime time;
+  final String source;
+  final String? tag;
+  final ECSDebugMessageOptions options = .new();
+
+  ECSDebugMessage(this.text, this.level, this.time, this.source, this.tag);
+
+  @override
+  String toString() {
+    final o = options;
+    final buf = StringBuffer();
+    if (o.showTime) buf.write(_wrap('[${time.toString()}] ', _dim, o.colorize));
+    if (o.showSource) buf.write(_wrap('[$source] ', _dim, o.colorize));
+    if (o.showTag && tag != null) buf.write(_wrap('[$tag] ', _dim, o.colorize));
+    buf.write(_wrap(text, _levelColors[level]!, o.colorize));
+    return buf.toString();
+  }
+
+  static const String _dim = '\x1B[2;90m';
+  static const Map<ECSDebugLevel, String> _levelColors = {
+    .simple: '\x1B[0m',
+    .v: '\x1B[36m',
+    .vv: '\x1B[90m',
+    .vvv: '\x1B[2;90m',
+  };
+
+  String _wrap(String text, String code, bool colorize) {
+    if (!colorize) return text;
+    return '$code$text\x1B[0m';
+  }
+}
+
+typedef IsAnyDebuggable<T extends App<T>> = IsDebuggable<T, ECSBase<T>>;
+
+mixin IsDebuggable<T extends App<T>, E extends ECSBase<T>> on IsEventEmittable<T, E> {
+
+  IsAnyDebuggable<T>? get debugParent {
+    if (parent case IsAnyDebuggable<T> debuggableParent) {
+      return debuggableParent;
+    }
+    return null;
+  }
+
+  bool? _debugEnabledOverride;
+  ECSDebugLevel? _debugLevelOverride;
+  Set<String>? _debugTagsOverride;
+
+  bool get debugEnabledEffective
+    => _debugEnabledOverride ?? debugParent?.debugEnabledEffective ?? false;
+
+  ECSDebugLevel get debugLevelEffective
+    => _debugLevelOverride ?? debugParent?.debugLevelEffective ?? .simple;
+
+  Set<String>? get debugTagsEffective
+    => _debugTagsOverride ?? debugParent?.debugTagsEffective;
+
+  @nonVirtual
+  E enableDebug([bool? enable = true]) {
+    _debugEnabledOverride = enable;
+    return self;
+  }
+
+  @nonVirtual
+  E setDebugLevel(ECSDebugLevel? level) {
+    _debugLevelOverride = level;
+    return self;
+  }
+
+  /// Restricts this object (and anything cascading from it, unless they
+  /// set their own override) to only the given tags. Pass `null` to clear
+  /// the override and inherit from [debugParent]. Pass an empty set to
+  /// block all tagged messages while still allowing untagged ones.
+  @nonVirtual
+  E setDebugTags(Set<String>? tags) {
+    _debugTagsOverride = tags;
+    return self;
+  }
+
+  /// Convenience: narrows the *current effective* tag set by adding [tag],
+  /// materializing an override on this object.
+  @nonVirtual
+  E addDebugTag(String tag) {
+    _debugTagsOverride = {...?debugTagsEffective, tag};
+    return self;
+  }
+
+  final List<void Function(ECSDebugMessage msg)> _onDebugMessageFns = [];
+
+  @nonVirtual
+  E listenOnDebugMessage(void Function(ECSDebugMessage msg) fn) {
+    _onDebugMessageFns.add(fn);
+    return self;
+  }
+
+  @nonVirtual
+  void dbg(String message, {ECSDebugLevel level = ECSDebugLevel.simple, String? tag}) {
+    if (!debugEnabledEffective) return;
+    if (level.index > debugLevelEffective.index) return;
+    final allowed = debugTagsEffective;
+    if (tag != null && allowed != null && !allowed.contains(tag)) return;
+    _doOnDebugMessage(.new(message, level, .now(), namedId, tag));
+  }
+
+  void _doOnDebugMessage(ECSDebugMessage msg) {
+    _onDebugMessageFns.forEach((f) => f(msg));
+    onDebugMessage(msg);
+    emit(EventDebugMessage(app, msg));
+  }
+
+  // TODO: print as default?
+  void onDebugMessage(ECSDebugMessage msg) => print(msg);
+}
+
 /// Adds dispose lifecycle hooks to an ECS object.
 ///
 /// The **on** phase only, disposal is not cancelable.

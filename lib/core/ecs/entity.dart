@@ -62,7 +62,9 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   // special
   IsComponentManagable<T, Entity<T>>,
   IsStateHolder<T, Entity<T>, AnyEntitySnapshot<T>>,
-  IsPersistable<T, Entity<T>, AnyEntitySnapshot<T>>
+  IsPersistable<T, Entity<T>, AnyEntitySnapshot<T>>,
+  IsDebuggable<T, Entity<T>>
+
 {
   @override
   final T app;

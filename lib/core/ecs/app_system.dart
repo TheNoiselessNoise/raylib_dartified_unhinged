@@ -29,7 +29,10 @@ class AppSystem<T extends App<T>> extends ECSBase<T> with
   IsInputHandleable<AppSystem<T>>,
   IsRemovable<T, AppSystem<T>>,
   IsStateHolder<T, AppSystem<T>, AnyAppSystemSnapshot<T>>,
-  IsPersistable<T, AppSystem<T>, AnyAppSystemSnapshot<T>>
+  IsPersistable<T, AppSystem<T>, AnyAppSystemSnapshot<T>>,
+
+  // special
+  IsDebuggable<T, AppSystem<T>>
 
 {
   @override

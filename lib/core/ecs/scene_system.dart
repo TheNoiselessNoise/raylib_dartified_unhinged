@@ -27,7 +27,10 @@ class SceneSystem<T extends App<T>> extends ECSBase<T> with
   IsPrePostUpdatable<T, SceneSystem<T>>,
   IsRemovable<T, SceneSystem<T>>,
   IsAnySceneSystemStateHolder<T>,
-  IsPersistable<T, SceneSystem<T>, AnySceneSystemSnapshot<T>>
+  IsPersistable<T, SceneSystem<T>, AnySceneSystemSnapshot<T>>,
+
+  // special
+  IsDebuggable<T, SceneSystem<T>>
 
 {
   @override

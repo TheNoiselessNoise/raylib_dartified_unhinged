@@ -8,10 +8,13 @@ enum EventScope {
   /// App + AppSystems
   root,
 
-  /// App + AppSystems + Scene + SceneSystems + Entities + Components
+  /// `root` + `local`
+  rootAndLocal,
+
+  /// `root` + `scene`
   global,
 
-  /// App + AppSystems + Scene + SceneSystems (no entities/components)
+  /// `root` + `sceneOnly`
   globalNoEntities,
 
   /// Scene + SceneSystems + Entities + Components
@@ -40,13 +43,15 @@ enum EventScope {
     .sceneOnly => .scene,
     .scene => .globalNoEntities,
     .globalNoEntities => .global,
-    .global => .root,
+    .global => .rootAndLocal,
+    .rootAndLocal => .root,
     .root => .self,
   };
 
   /// Gets the next entry.
   EventScope get next => switch (this) {
-    .root => .global,
+    .root => .rootAndLocal,
+    .rootAndLocal => .global,
     .global => .globalNoEntities,
     .globalNoEntities => .scene,
     .scene => .sceneOnly,
@@ -516,10 +521,16 @@ class EventTaskFinished<T extends App<T>> extends Event<T> {
 
 // SPECIAL EVENTS
 
-class DevTestingEvent<T extends App<T>> extends Event<T> {
+class EventDebugMessage<T extends App<T>> extends Event<T> {
+  final ECSDebugMessage message;
+
+  EventDebugMessage(super.app, this.message);
+}
+
+class ECSDeveloperTestingEvent<T extends App<T>> extends Event<T> {
   final String? source;
 
-  DevTestingEvent(super.app, [this.source]);
+  ECSDeveloperTestingEvent(super.app, [this.source]);
 }
 
 // COLLISION

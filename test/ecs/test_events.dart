@@ -1,10 +1,13 @@
 import 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart';
 import 'package:test/test.dart';
 
+typedef _E<T extends App<T>> = ECSDeveloperTestingEvent<T>;
+
 final Set<EmitterType> testCollector = {};
 final Map<EmitterType, int> testCounts = {};
 
-void addTestResult(EmitterType emitter) {
+void addTestResult<T extends App<T>>(Event<T> event, EmitterType emitter) {
+  if (event is! _E<T>) return;
   testCollector.add(emitter);
   testCounts[emitter] = testCounts.putIfAbsent(emitter, () => 0) + 1;
 }
@@ -26,9 +29,7 @@ mixin IsTestingApp<T extends IsTestingApp<T>> on App<T> {
   };
 
   @override
-  void onEvent(Event<T> event) {
-    if (event is DevTestingEvent<T>) addTestResult(.app);
-  }
+  void onEvent(Event<T> event) => addTestResult(event, .app);
 }
 
 class TestEventPropagationResult {
@@ -89,8 +90,8 @@ void fireEvent<T extends IsTestingApp<T>>(T app, EmitterType emitter, EventMetho
   };
 
   switch (method) {
-    case .emit:     emittable.emit(DevTestingEvent(app), scope: scope);
-    case .dispatch: emittable.dispatch(DevTestingEvent(app), scope: scope);
+    case .emit:     emittable.emit(ECSDeveloperTestingEvent(app), scope: scope);
+    case .dispatch: emittable.dispatch(ECSDeveloperTestingEvent(app), scope: scope);
   }
 
   if (method == .emit) {
@@ -150,6 +151,7 @@ class ExpectedValues {
 const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
 
   (.app, .root):             .new({.app, .appSystem}),
+  (.app, .rootAndLocal):     .new({.app, .appSystem}),
   (.app, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.app, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.app, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -158,6 +160,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.app, .self):             .new({.app}),
     
   (.appSystem, .root):             .new({.app, .appSystem}),
+  (.appSystem, .rootAndLocal):     .new({.app, .appSystem}),
   (.appSystem, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.appSystem, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.appSystem, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -166,6 +169,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.appSystem, .self):             .new({.appSystem}),
   
   (.scene, .root):             .new({.app, .appSystem}),
+  (.scene, .rootAndLocal):     .new({.app, .appSystem, .scene, .sceneSystem}),
   (.scene, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.scene, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.scene, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -174,6 +178,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.scene, .self):             .new({.scene}),
 
   (.sceneSystem, .root):             .new({.app, .appSystem}),
+  (.sceneSystem, .rootAndLocal):     .new({.app, .appSystem, .sceneSystem}),
   (.sceneSystem, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.sceneSystem, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.sceneSystem, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -182,6 +187,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.sceneSystem, .self):             .new({.sceneSystem}),
 
   (.entity1, .root):             .new({.app, .appSystem}),
+  (.entity1, .rootAndLocal):     .new({.app, .appSystem, .entity1, .comp1}),
   (.entity1, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.entity1, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.entity1, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -190,6 +196,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.entity1, .self):             .new({.entity1}),
 
   (.comp1, .root):             .new({.app, .appSystem}),
+  (.comp1, .rootAndLocal):     .new({.app, .appSystem, .comp1}),
   (.comp1, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.comp1, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.comp1, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -198,6 +205,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.comp1, .self):             .new({.comp1}),
 
   (.entity2, .root):             .new({.app, .appSystem}),
+  (.entity2, .rootAndLocal):     .new({.app, .appSystem, .entity2, .comp2, .comp3}),
   (.entity2, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.entity2, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.entity2, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -206,6 +214,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.entity2, .self):             .new({.entity2}),
 
   (.comp2, .root):             .new({.app, .appSystem}),
+  (.comp2, .rootAndLocal):     .new({.app, .appSystem, .comp2, .comp3}),
   (.comp2, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.comp2, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.comp2, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -214,6 +223,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.comp2, .self):             .new({.comp2}),
 
   (.comp3, .root):             .new({.app, .appSystem}),
+  (.comp3, .rootAndLocal):     .new({.app, .appSystem, .comp3}),
   (.comp3, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.comp3, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.comp3, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -238,18 +248,14 @@ class TestAppSystem<T extends App<T>> extends AppSystem<T> {
   TestAppSystem(super.app);
 
   @override
-  void onEvent(Event<T> event) {
-    if (event is DevTestingEvent<T>) addTestResult(.appSystem);
-  }
+  void onEvent(Event<T> event) => addTestResult(event, .appSystem);
 }
 
 class TestSceneSystem<T extends App<T>> extends SceneSystem<T> {
   TestSceneSystem(super.app);
 
   @override
-  void onEvent(Event<T> event) {
-    if (event is DevTestingEvent<T>) addTestResult(.sceneSystem);
-  }
+  void onEvent(Event<T> event) => addTestResult(event, .sceneSystem);
 }
 
 class TestScene<T extends App<T>> extends FWidgetScene<T> {
@@ -267,22 +273,14 @@ class TestScene<T extends App<T>> extends FWidgetScene<T> {
   }
 
   @override
-  void onEvent(Event<T> event) {
-    if (event is DevTestingEvent<T>) addTestResult(.scene);
-  }
+  void onEvent(Event<T> event) => addTestResult(event, .scene);
 }
-
-// class TestEvent<T extends App<T>> extends Event<T> {
-//   DevTestingEvent(super.app);
-// }
 
 class TestComponent1<T extends App<T>> extends Comp<T> {
   TestComponent1(super.app);
 
   @override
-  void onEvent(Event<T> event) {
-    if (event is DevTestingEvent<T>) addTestResult(.comp1);
-  }
+  void onEvent(Event<T> event) => addTestResult(event, .comp1);
 }
 
 class TestEntity1<T extends App<T>> extends Entity<T> {
@@ -293,9 +291,7 @@ class TestEntity1<T extends App<T>> extends Entity<T> {
   }
 
   @override
-  void onEvent(Event<T> event) {
-    if (event is DevTestingEvent<T>) addTestResult(.entity1);
-  }
+  void onEvent(Event<T> event) => addTestResult(event, .entity1);
 }
 
 class TestComponent2<T extends App<T>> extends Comp<T> {
@@ -304,9 +300,7 @@ class TestComponent2<T extends App<T>> extends Comp<T> {
   TestComponent2(super.app);
 
   @override
-  void onEvent(Event<T> event) {
-    if (event is DevTestingEvent<T>) addTestResult(.comp2);
-  }
+  void onEvent(Event<T> event) => addTestResult(event, .comp2);
 }
 
 class TestEntity2<T extends App<T>> extends Entity<T> {
@@ -318,18 +312,14 @@ class TestEntity2<T extends App<T>> extends Entity<T> {
   }
 
   @override
-  void onEvent(Event<T> event) {
-    if (event is DevTestingEvent<T>) addTestResult(.entity2);
-  }
+  void onEvent(Event<T> event) => addTestResult(event, .entity2);
 }
 
 class TestComponent3<T extends App<T>> extends Comp<T> {
   TestComponent3(super.app);
 
   @override
-  void onEvent(Event<T> event) {
-    if (event is DevTestingEvent<T>) addTestResult(.comp3);
-  }
+  void onEvent(Event<T> event) => addTestResult(event, .comp3);
 }
 
 void main() {
@@ -363,7 +353,7 @@ void main() {
       
       final holders = app.eventHistoryHolders;
 
-      List<DevTestingEvent<G>> events = List.generate(holders.length, (_) => .new(app));
+      List<ECSDeveloperTestingEvent<G>> events = List.generate(holders.length, (_) => .new(app));
       List<int> ids = events.map((e) => e.id).toList();
 
       for (final (i, emittable) in holders.values.indexed) {
@@ -372,7 +362,7 @@ void main() {
 
       app.processQueuedEventsForTest();
 
-      final historyEvents = app.eventHistory.whereType<DevTestingEvent>().toList();
+      final historyEvents = app.eventHistory.whereType<ECSDeveloperTestingEvent>().toList();
       List<int> historyIds = historyEvents.map((e) => e.id).toList();
 
       expect(historyEvents.length, equals(holders.length));
@@ -381,7 +371,7 @@ void main() {
       for (final (i, emittable) in holders.values.indexed) {
         if (emittable is TestApp) continue;
 
-        final historyEvents = emittable.eventHistory.whereType<DevTestingEvent>().toList();
+        final historyEvents = emittable.eventHistory.whereType<ECSDeveloperTestingEvent>().toList();
         List<int> historyIds = historyEvents.map((e) => e.id).toList();
 
         expect(historyEvents.length, equals(1));
@@ -408,7 +398,7 @@ void main() {
         ids.clear();
 
         // some arbitrary number of events
-        final List<DevTestingEvent<G>> events = .generate(10, (_) => .new(app));        
+        final List<ECSDeveloperTestingEvent<G>> events = .generate(10, (_) => .new(app));        
         final expected = events.map((e) => '${holder.namedId}_${e.namedId}');
 
         for (final event in events) {
@@ -421,7 +411,7 @@ void main() {
         expect(ids.toList(), equals(expected));
         ids.clear();
 
-        holder.replayRecordedEvents(filter: (e) => e is DevTestingEvent);
+        holder.replayRecordedEvents(filter: (e) => e is ECSDeveloperTestingEvent);
         app.processQueuedEventsForTest();
 
         // recorded
@@ -439,7 +429,7 @@ void main() {
       final List<String> ids = [];
       app.listenOnEvent((x, event) => ids.add('${x.namedId}_${event.namedId}'));
 
-      final List<DevTestingEvent<G>> events = .generate(n, (_) => .new(app));
+      final List<ECSDeveloperTestingEvent<G>> events = .generate(n, (_) => .new(app));
       events.forEach((e) => app.emit(e, scope: .self));
       app.processQueuedEventsForTest();
 
@@ -449,7 +439,7 @@ void main() {
       ];
 
       for (var i = 0; i < replays; i++) {
-        app.replayRecordedEvents(filter: (e) => e is DevTestingEvent);
+        app.replayRecordedEvents(filter: (e) => e is ECSDeveloperTestingEvent);
         app.processQueuedEventsForTest();
       }
 
@@ -481,10 +471,10 @@ void main() {
             final key = (emitter, scope);
             final expected = expectedReceivers[key]!;
             final int eventCount = expected.allEvents.length;
-            final appEvents = app.getRecordedEvents(filter: (e) => e is DevTestingEvent);
-            final holderEvents = holder.getRecordedEvents(filter: (e) => e is DevTestingEvent);
+            final appEvents = app.getRecordedEvents(filter: (e) => e is ECSDeveloperTestingEvent);
+            final holderEvents = holder.getRecordedEvents(filter: (e) => e is ECSDeveloperTestingEvent);
 
-            expect(testCollector.length, equals(eventCount), reason: 'WHAT: testCollector: $testCollector');
+            expect(testCollector.length, equals(eventCount), reason: 'WHAT: testCollector: ${testCollector.map((e) => e.name)}');
             expect(appEvents.length, equals(expected.appEventCount), reason: 'WHAT: appEvents');
             expect(holderEvents.length, equals(expected.holderEventCount), reason: 'WHAT: holderEvents');
           });
@@ -502,7 +492,7 @@ void main() {
       // Single dispatch cycle: comp3 is origin, app is root.
       // This records exactly once at origin and once at root.
       // 1 event in each history.
-      comp3.dispatch(DevTestingEvent(app), scope: .sceneOnly);
+      comp3.dispatch(ECSDeveloperTestingEvent(app), scope: .sceneOnly);
 
       expect(app.getRecordedEvents().length, equals(1));
       expect(comp3.getRecordedEvents().length, equals(1));

@@ -57,7 +57,7 @@ class FWidgetDebugSystem<T extends App<T>> extends SceneSystem<T> {
     }
   }
 
-  void enableDebug(bool enable) => scene.QueryEntity.DoForEach<FWidget<T>>((e) {
+  void enableWidgetDebug(bool enable) => scene.QueryEntity.DoForEach<FWidget<T>>((e) {
     _enableDebugWidget(e, enable);
   });
 

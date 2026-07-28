@@ -92,7 +92,8 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   // special
   IsCallbackProcessable<T, Scene<T>>,
   IsStateHolder<T, Scene<T>, AnySceneSnapshot<T>>,
-  IsPersistable<T, Scene<T>, AnySceneSnapshot<T>>
+  IsPersistable<T, Scene<T>, AnySceneSnapshot<T>>,
+  IsDebuggable<T, Scene<T>>
 
 {
   @override
