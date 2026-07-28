@@ -1,3 +1,7 @@
+## 5.5.3
+
+- fix the `Event` system and it's replaying capability
+
 ## 5.5.2
 
 - Remove `Command` system

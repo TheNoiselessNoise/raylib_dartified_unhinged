@@ -1756,10 +1756,11 @@ mixin IsComponentManagable<T extends App<T>, E extends ECSBase<T>> on
 
   @override
   bool _doEventLocal(Event<T> event) {
+    if (event.scope == .root) return false;
+    if (event.scope == .sceneOnly) return false;
+
     if (_doEventVisitedCheck(event)) return true;
     if (event.isStopped) return true;
-
-    if (event.scope == .sceneOnly) return false;
 
     if (_doEventSelfCheck(event)) return true;
     if (event.isStopped) return true;

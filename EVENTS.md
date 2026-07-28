@@ -11,6 +11,7 @@ Events are the primary mechanism for cross-cutting communication in the framewor
 
 | Scope | Receivers |
 |---|---|
+| `root` | App > AppSystems |
 | `global` | App > AppSystems > Scene > SceneSystems > Entities > Components |
 | `globalNoEntities` | App > AppSystems > Scene > SceneSystems |
 | `scene` | Scene > SceneSystems > Entities > Components |

@@ -5,6 +5,9 @@ part of '../raylib_dartified_unhinged.dart';
 ///
 /// Ordered loosely from widest reach ([global]) to narrowest ([self]).
 enum EventScope {
+  /// App + AppSystems
+  root,
+
   /// App + AppSystems + Scene + SceneSystems + Entities + Components
   global,
 
@@ -37,11 +40,13 @@ enum EventScope {
     .sceneOnly => .scene,
     .scene => .globalNoEntities,
     .globalNoEntities => .global,
-    .global => .self,
+    .global => .root,
+    .root => .self,
   };
 
   /// Gets the next entry.
   EventScope get next => switch (this) {
+    .root => .global,
     .global => .globalNoEntities,
     .globalNoEntities => .scene,
     .scene => .sceneOnly,

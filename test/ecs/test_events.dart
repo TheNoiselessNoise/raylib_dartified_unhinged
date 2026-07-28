@@ -149,6 +149,7 @@ class ExpectedValues {
 
 const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
 
+  (.app, .root):             .new({.app, .appSystem}),
   (.app, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.app, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.app, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -156,6 +157,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.app, .local):            .new({.app, .appSystem}),
   (.app, .self):             .new({.app}),
     
+  (.appSystem, .root):             .new({.app, .appSystem}),
   (.appSystem, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.appSystem, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.appSystem, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -163,6 +165,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.appSystem, .local):            .new({.appSystem}),
   (.appSystem, .self):             .new({.appSystem}),
   
+  (.scene, .root):             .new({.app, .appSystem}),
   (.scene, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.scene, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.scene, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -170,6 +173,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.scene, .local):            .new({.scene, .sceneSystem}),
   (.scene, .self):             .new({.scene}),
 
+  (.sceneSystem, .root):             .new({.app, .appSystem}),
   (.sceneSystem, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.sceneSystem, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.sceneSystem, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -177,6 +181,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.sceneSystem, .local):            .new({.sceneSystem}),
   (.sceneSystem, .self):             .new({.sceneSystem}),
 
+  (.entity1, .root):             .new({.app, .appSystem}),
   (.entity1, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.entity1, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.entity1, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -184,6 +189,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.entity1, .local):            .new({.entity1, .comp1}),
   (.entity1, .self):             .new({.entity1}),
 
+  (.comp1, .root):             .new({.app, .appSystem}),
   (.comp1, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.comp1, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.comp1, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -191,6 +197,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.comp1, .local):            .new({.comp1}),
   (.comp1, .self):             .new({.comp1}),
 
+  (.entity2, .root):             .new({.app, .appSystem}),
   (.entity2, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.entity2, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.entity2, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -198,6 +205,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.entity2, .local):            .new({.entity2, .comp2, .comp3}),
   (.entity2, .self):             .new({.entity2}),
 
+  (.comp2, .root):             .new({.app, .appSystem}),
   (.comp2, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.comp2, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.comp2, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -205,6 +213,7 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
   (.comp2, .local):            .new({.comp2, .comp3}),
   (.comp2, .self):             .new({.comp2}),
 
+  (.comp3, .root):             .new({.app, .appSystem}),
   (.comp3, .global):           .new({.app, .appSystem, .scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
   (.comp3, .globalNoEntities): .new({.app, .appSystem, .scene, .sceneSystem}),
   (.comp3, .scene):            .new({.scene, .sceneSystem, .entity1, .comp1, .entity2, .comp2, .comp3}),
@@ -475,9 +484,9 @@ void main() {
             final appEvents = app.getRecordedEvents(filter: (e) => e is DevTestingEvent);
             final holderEvents = holder.getRecordedEvents(filter: (e) => e is DevTestingEvent);
 
-            expect(testCollector.length, equals(eventCount));
-            expect(appEvents.length, equals(expected.appEventCount));
-            expect(holderEvents.length, equals(expected.holderEventCount));
+            expect(testCollector.length, equals(eventCount), reason: 'WHAT: testCollector: $testCollector');
+            expect(appEvents.length, equals(expected.appEventCount), reason: 'WHAT: appEvents');
+            expect(holderEvents.length, equals(expected.holderEventCount), reason: 'WHAT: holderEvents');
           });
         }
       }

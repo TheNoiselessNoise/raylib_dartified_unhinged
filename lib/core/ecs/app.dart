@@ -320,7 +320,9 @@ class App<T extends App<T>> extends ECSBase<T> with
       }
     }
 
-    scene._propagate(event);
+    if (event.scope != .root) {
+      scene._propagate(event);
+    }
 
     return true; // do not go back to yourself!
   }

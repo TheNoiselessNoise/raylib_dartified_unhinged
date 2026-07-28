@@ -73,7 +73,7 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
   }) {
     if (_started) {
       throw StateError(
-        'addState("$name") called after start() — define all states before starting.',
+        'addState("$name") called after start(), define all states before starting.',
       );
     }
     if (_states.containsKey(name)) {
@@ -98,7 +98,7 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
   }) {
     if (_started) {
       throw StateError(
-        'transition("$from" -> "$to") called after start() — define transitions before starting.',
+        'transition("$from" -> "$to") called after start(), define transitions before starting.',
       );
     }
     _requireState(from);
@@ -157,7 +157,7 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
   void _requireState(String name) {
     if (!_states.containsKey(name)) {
       throw ArgumentError(
-        'Unknown state "$name" — call addState("$name") first.',
+        'Unknown state "$name", call addState("$name") first.',
       );
     }
   }

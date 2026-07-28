@@ -41,6 +41,8 @@ class SceneSystem<T extends App<T>> extends ECSBase<T> with
 
   @override
   bool _doEventLocal(Event<T> event) {
+    if (event.scope == .root) return false;
+
     if (_doEventVisitedCheck(event)) return true;
     if (event.isStopped) return true;
 

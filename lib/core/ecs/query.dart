@@ -310,7 +310,6 @@ abstract class QueryComponentManagable<
   ///
   /// Groups are ANDed together (every group must pass). Within a group, all
   /// predicates are ANDed; a negated group inverts that combined result.
-  // TODO: cache queries (meh...)
   Iterable<E> _resolve() => (_sourceList ?? queryableList).where((e) {
     return _groups.every((group) {
       final passes = group.filters.every((f) => f(e));
