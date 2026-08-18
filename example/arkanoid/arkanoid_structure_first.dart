@@ -1,5 +1,6 @@
 // Run it: dart run arkanoid_structure_first.dart
 import 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart';
+import 'package:raylib_dartified_unhinged/backends/raylib/backend.dart';
 
 /*
   A fully-featured Arkanoid clone built in the UNHINGED Framework.

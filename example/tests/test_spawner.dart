@@ -5,8 +5,8 @@ class BallEntity extends Entity<G> {
   BallEntity(super.app) {
     addComp(CVelocity(app,
       velocity: .vec2(
-        (rl.rand() * 300) * (rl.rand() < .5 ? 1 : -1),
-        (rl.rand() * 300) * (rl.rand() < .5 ? 1 : -1)
+        (rand() * 300) * (rand() < .5 ? 1 : -1),
+        (rand() * 300) * (rand() < .5 ? 1 : -1)
       ),
       linearDamping: 0,
     ));
@@ -44,13 +44,13 @@ class TestSpawnerScene extends DrawScene<G> {
   @override
   void onPostDraw(double dt) {
     final ballCount = QueryEntity.On<BallEntity>().Count;
-    rl.CoreD.DrawText('Ball count: $ballCount', 20, 20, 20, .RED);
-    rl.CoreD.DrawText('Press [SPACE] to toggle emitter.', 20, screenHeight - 40, 20, .BLUE);
+    DrawText('Ball count: $ballCount', 20, 20, 20, .RED);
+    DrawText('Press [SPACE] to toggle emitter.', 20, screenHeight - 40, 20, .BLUE);
   }
 
   @override
   void onInput() {
-    if (rl.CoreD.IsKeyPressed(.KEY_SPACE)) {
+    if (IsKeyPressed(.KEY_SPACE)) {
       QueryEntity.DoFirst<SpawnerEntity>((s) {
         s.get<CAnyParticleEmitter<G>>()!.toggleActive();
       });
@@ -65,9 +65,9 @@ class TestSpawner extends ExampleRaylibApp<G> {
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(screenWidth, screenHeight, "game_test_spawner");
-    rl.CoreD.SetWindowMonitor(0);
-    rl.CoreD.SetTargetFPS(60);
+    InitWindow(screenWidth, screenHeight, "game_test_spawner");
+    SetWindowMonitor(0);
+    SetTargetFPS(60);
 
     addScene(TestSpawnerScene(app));
   }

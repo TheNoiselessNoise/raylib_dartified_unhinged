@@ -25,9 +25,9 @@ class IntroScene extends FWidgetScene<G> {
 
   @override
   void onDrawBackground() {
-    rl.CoreD.DrawText('SCENE: $runtimeType', 20, 20, 20, .RED);
+    DrawText('SCENE: $runtimeType', 20, 20, 20, .RED);
 
-    rl.CoreD.DrawText(
+    DrawText(
       "Click the button or Press SPACE to continue",
       50, app.screenHeight - 100, 30,
       .BLUE,
@@ -36,7 +36,7 @@ class IntroScene extends FWidgetScene<G> {
 
   @override
   void onInput() {
-    if (rl.CoreD.IsKeyPressed(.KEY_SPACE)) goToMainMenu();
+    if (IsKeyPressed(.KEY_SPACE)) goToMainMenu();
   }
 }
 
@@ -73,7 +73,7 @@ class MainMenuScene extends FWidgetScene<G> {
 
   @override
   void onDrawBackground() {
-    rl.CoreD.DrawText('SCENE: $runtimeType', 20, 20, 20, .RED);
+    DrawText('SCENE: $runtimeType', 20, 20, 20, .RED);
   }
 }
 
@@ -211,7 +211,7 @@ class MainMenuOptionsScene extends FWidgetScene<G> {
 
   @override
   void onDrawBackground() {
-    rl.CoreD.DrawText('SCENE: $runtimeType', 20, 20, 20, .RED);
+    DrawText('SCENE: $runtimeType', 20, 20, 20, .RED);
   }
 }
 
@@ -239,9 +239,9 @@ class GameScene extends FWidgetScene<G> {
 
   @override
   void onDrawBackground() {
-    rl.CoreD.DrawText('SCENE: $runtimeType', 20, 20, 20, .RED);
+    DrawText('SCENE: $runtimeType', 20, 20, 20, .RED);
 
-    rl.CoreD.DrawText(
+    DrawText(
       "Nothing Simulator",
       20, 50, 50, .WHITE
     );
@@ -271,8 +271,8 @@ class MyGame extends ExampleRaylibApp<G> {
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(screenWidth, screenHeight, "test_scenes_and_buttons");
-    rl.CoreD.SetWindowMonitor(0);
+    InitWindow(screenWidth, screenHeight, "test_scenes_and_buttons");
+    SetWindowMonitor(0);
 
     addScene(IntroScene(this));
     addScene(MainMenuOptionsScene(this));

@@ -13,7 +13,7 @@ class SimpleEntity extends Entity<G> {
 
   @override
   void onDraw(double dt) => onTransform((t) {
-    rl.CoreD.DrawText('$id', t.position.x, t.position.y, 20, .RAYWHITE);
+    DrawText('$id', t.position.x, t.position.y, 20, .RAYWHITE);
   });
 }
 
@@ -34,10 +34,10 @@ class SimpleEntityGroup extends EntityGroup<G, SimpleEntity> {
 
   @override
   void onUpdate(double dt) => onVelocity((v) {
-    if (rl.CoreD.IsKeyDown(.KEY_A)) v.velocity.x -= dt * speed;
-    if (rl.CoreD.IsKeyDown(.KEY_D)) v.velocity.x += dt * speed;
-    if (rl.CoreD.IsKeyDown(.KEY_W)) v.velocity.y -= dt * speed;
-    if (rl.CoreD.IsKeyDown(.KEY_S)) v.velocity.y += dt * speed;
+    if (IsKeyDown(.KEY_A)) v.velocity.x -= dt * speed;
+    if (IsKeyDown(.KEY_D)) v.velocity.x += dt * speed;
+    if (IsKeyDown(.KEY_W)) v.velocity.y -= dt * speed;
+    if (IsKeyDown(.KEY_S)) v.velocity.y += dt * speed;
   });
 }
 
@@ -57,8 +57,8 @@ class EmptyGame extends ExampleRaylibApp<G> {
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(screenWidth, screenHeight, "test_entity_group");
-    rl.CoreD.SetWindowMonitor(0);
+    InitWindow(screenWidth, screenHeight, "test_entity_group");
+    SetWindowMonitor(0);
 
     addScene(EmptyScene(this));
   }

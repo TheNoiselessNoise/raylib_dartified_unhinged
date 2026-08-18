@@ -200,7 +200,7 @@ class TestWidgetsScene extends FWidgetScene<G> {
 
   @override
   void onInput() {
-    if (rl.CoreD.IsKeyPressed(.KEY_SPACE)) counter.increment();
+    if (IsKeyPressed(.KEY_SPACE)) counter.increment();
   }
 }
 
@@ -211,9 +211,9 @@ class TestWidgetsApp extends ExampleRaylibApp<G> {
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(screenWidth, screenHeight, "test_widgets");
-    rl.CoreD.SetWindowMonitor(0);
-    rl.CoreD.SetTargetFPS(60);
+    InitWindow(screenWidth, screenHeight, "test_widgets");
+    SetWindowMonitor(0);
+    SetTargetFPS(60);
 
     addScene(TestWidgetsScene(app));
   }

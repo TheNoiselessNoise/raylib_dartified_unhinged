@@ -92,14 +92,14 @@ class TestSnapshotPolicyScene extends DrawScene<G> {
 
   @override
   void onInput() {
-    rl.CoreD.DrawText('Original Entity:', 10, 10, fontSize, .ORANGE);
+    DrawText('Original Entity:', 10, 10, fontSize, .ORANGE);
     draw.component.entityTree(origEntity, 10, 40, fontSize);
-    if (rl.CoreD.IsKeyPressed(.KEY_UP)) extraPolicy = extraPolicy.flipped;
-    if (rl.CoreD.IsKeyPressed(.KEY_DOWN)) extraPolicy = extraPolicy.flipped;
-    if (rl.CoreD.IsKeyPressed(.KEY_LEFT)) missingPolicy = missingPolicy.flipped;
-    if (rl.CoreD.IsKeyPressed(.KEY_RIGHT)) missingPolicy = missingPolicy.flipped;
-    if (rl.CoreD.IsKeyPressed(.KEY_SPACE)) doSnapshot();
-    if (rl.CoreD.IsKeyPressed(.KEY_R)) doReset();
+    if (IsKeyPressed(.KEY_UP)) extraPolicy = extraPolicy.flipped;
+    if (IsKeyPressed(.KEY_DOWN)) extraPolicy = extraPolicy.flipped;
+    if (IsKeyPressed(.KEY_LEFT)) missingPolicy = missingPolicy.flipped;
+    if (IsKeyPressed(.KEY_RIGHT)) missingPolicy = missingPolicy.flipped;
+    if (IsKeyPressed(.KEY_SPACE)) doSnapshot();
+    if (IsKeyPressed(.KEY_R)) doReset();
   }
 
   @override
@@ -180,7 +180,7 @@ class TestSnapshotPolicyApp extends ExampleRaylibApp<G> {
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(screenWidth, screenHeight, "test_snapshot_policy");
+    InitWindow(screenWidth, screenHeight, "test_snapshot_policy");
     addScene(TestSnapshotPolicyScene(app));
   }
 }

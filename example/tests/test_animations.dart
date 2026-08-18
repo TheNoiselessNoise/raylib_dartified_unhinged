@@ -38,13 +38,13 @@ class TestStateMachineScene extends DrawScene<G> {
 
   @override
   void onInput() {
-    if (rl.CoreD.IsKeyDown(.KEY_UP)) myEntity.entityField++;
-    if (rl.CoreD.IsKeyDown(.KEY_DOWN)) myEntity.entityField--;
+    if (IsKeyDown(.KEY_UP)) myEntity.entityField++;
+    if (IsKeyDown(.KEY_DOWN)) myEntity.entityField--;
   }
 
   @override
   void onDraw(double dt) {
-    rl.CoreD.DrawText('entityField: ${myEntity.entityField}', 10, screenHeight - 30, 20, .WHITE);
+    DrawText('entityField: ${myEntity.entityField}', 10, screenHeight - 30, 20, .WHITE);
   }
 
   @override
@@ -58,9 +58,9 @@ class TestStateMachineApp extends ExampleRaylibApp<G> {
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(screenWidth, screenHeight, "test_animations");
-    rl.CoreD.SetWindowMonitor(0);
-    rl.CoreD.SetTargetFPS(60);
+    InitWindow(screenWidth, screenHeight, "test_animations");
+    SetWindowMonitor(0);
+    SetTargetFPS(60);
     addScene(TestStateMachineScene(app));
   }
 

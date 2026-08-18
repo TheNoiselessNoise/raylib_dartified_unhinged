@@ -1,20 +1,16 @@
-import 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart';
 export 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart';
-
-extension ExampleHasAppAccess on HasAppAccess<ExampleRaylibApp> {
-  Raylib get rl => app.rl;
-}
+export 'package:raylib_dartified_unhinged/backends/raylib/backend.dart';
+export 'package:raylib_dartified_unhinged/backends/raylib/abbr.dart';
+import '';
 
 abstract class ExampleRaylibApp<T extends ExampleRaylibApp<T>> extends App<T> {
   ExampleRaylibApp(super.backend);
 
-  Raylib get rl => (backend as RaylibBackend).rl;
+  @override
+  void onInit() => InitWindow(screenWidth, screenHeight, 'Example App');
 
   @override
-  void onInit() => rl.CoreD.InitWindow(screenWidth, screenHeight, 'Example App');
-
-  @override
-  bool shouldExit() => rl.CoreD.WindowShouldClose();
+  bool shouldExit() => WindowShouldClose();
 }
 
 class ExampleRaylibBridge<T extends ExampleRaylibApp<T>> extends UnhingedRaylibGame<ExampleRaylibApp<T>> {

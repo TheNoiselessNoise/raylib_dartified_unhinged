@@ -85,24 +85,24 @@ class TestStateScene extends DrawScene<G> {
     //       - `MyEntity.entityField`
     //       - `MyComponent.compField`
     //       - MyEntity's hopping to stored position due to `CTransform` component
-    if (rl.CoreD.IsKeyPressed(.KEY_SPACE)) restoreSnapshot(snapshots[snapIndex]);
-    if (rl.CoreD.IsKeyPressed(.KEY_LEFT)) snapIndex = --snapIndex % snapshots.length;
-    if (rl.CoreD.IsKeyPressed(.KEY_RIGHT)) snapIndex = ++snapIndex % snapshots.length;
+    if (IsKeyPressed(.KEY_SPACE)) restoreSnapshot(snapshots[snapIndex]);
+    if (IsKeyPressed(.KEY_LEFT)) snapIndex = --snapIndex % snapshots.length;
+    if (IsKeyPressed(.KEY_RIGHT)) snapIndex = ++snapIndex % snapshots.length;
 
     // change some state
-    if (rl.CoreD.IsKeyDown(.KEY_UP)) myEntity.comp.compField++;
-    if (rl.CoreD.IsKeyDown(.KEY_DOWN)) myEntity.comp.compField--;
-    if (rl.CoreD.IsKeyDown(.KEY_W)) myEntity.entityField++;
-    if (rl.CoreD.IsKeyDown(.KEY_S)) myEntity.entityField--;
-    if (rl.CoreD.IsKeyDown(.KEY_A)) myEntity.transform!.position.x--;
-    if (rl.CoreD.IsKeyDown(.KEY_D)) myEntity.transform!.position.x++;
+    if (IsKeyDown(.KEY_UP)) myEntity.comp.compField++;
+    if (IsKeyDown(.KEY_DOWN)) myEntity.comp.compField--;
+    if (IsKeyDown(.KEY_W)) myEntity.entityField++;
+    if (IsKeyDown(.KEY_S)) myEntity.entityField--;
+    if (IsKeyDown(.KEY_A)) myEntity.transform!.position.x--;
+    if (IsKeyDown(.KEY_D)) myEntity.transform!.position.x++;
   }
 
   @override
   void onDraw(double dt) {
-    rl.CoreD.DrawText('MyEntity.entityField: ${myEntity.entityField}', 10, 10, 20, .WHITE);
-    rl.CoreD.DrawText('MyComponent.compField: ${myEntity.comp.compField}', 10, 30, 20, .WHITE);
-    rl.CoreD.DrawText('Snapshots: ${snapshots.length} (selected: $snapIndex)', 10, 70, 20, .WHITE);
+    DrawText('MyEntity.entityField: ${myEntity.entityField}', 10, 10, 20, .WHITE);
+    DrawText('MyComponent.compField: ${myEntity.comp.compField}', 10, 30, 20, .WHITE);
+    DrawText('Snapshots: ${snapshots.length} (selected: $snapIndex)', 10, 70, 20, .WHITE);
 
     final lastSnapshotEntityPosition = snapshots.lastOrNull
       // we know there's `MyEntity`
@@ -113,12 +113,12 @@ class TestStateScene extends DrawScene<G> {
       .position;
 
     if (lastSnapshotEntityPosition != null) {
-      rl.CoreD.DrawText('last snap transform: $lastSnapshotEntityPosition', 10, 90, 20, .WHITE);
+      DrawText('last snap transform: $lastSnapshotEntityPosition', 10, 90, 20, .WHITE);
     } else {
-      rl.CoreD.DrawText('last snap transform: (none)', 10, 90, 20, .WHITE);
+      DrawText('last snap transform: (none)', 10, 90, 20, .WHITE);
     }
 
-    rl.CoreD.DrawText('Press [SPACE] to restore selected snapshot', 10, screenHeight - 30, 20, .WHITE);
+    DrawText('Press [SPACE] to restore selected snapshot', 10, screenHeight - 30, 20, .WHITE);
   }
 
   @override
@@ -138,9 +138,9 @@ class TestStateApp extends ExampleRaylibApp<G> {
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(screenWidth, screenHeight, "test_state");
-    rl.CoreD.SetWindowMonitor(0);
-    rl.CoreD.SetTargetFPS(60);
+    InitWindow(screenWidth, screenHeight, "test_state");
+    SetWindowMonitor(0);
+    SetTargetFPS(60);
     addScene(TestStateScene(app));
   }
 

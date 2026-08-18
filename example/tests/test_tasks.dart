@@ -35,14 +35,14 @@ class TestTasksScene extends FWidgetScene<G> {
 
   @override
   void onInput() {
-    if (rl.CoreD.IsKeyPressed(.KEY_Q)) {
+    if (IsKeyPressed(.KEY_Q)) {
       task(DelayTask(app,
         seconds: .2,
         action: (_) => addMessage('DelayTask: Executed!'),
       ));
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_W)) {
+    if (IsKeyPressed(.KEY_W)) {
       task(DurationTask(app,
         seconds: .2,
         actionUpdate: (_, dt) => addMessage('DurationTask: Updating!'),
@@ -50,7 +50,7 @@ class TestTasksScene extends FWidgetScene<G> {
       ));
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_E)) {
+    if (IsKeyPressed(.KEY_E)) {
       task(IntervalTask(app,
         remaining: .2,
         interval: .05,
@@ -60,7 +60,7 @@ class TestTasksScene extends FWidgetScene<G> {
       ));
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_C)) clearMessages();
+    if (IsKeyPressed(.KEY_C)) clearMessages();
   }
 
   @override
@@ -91,9 +91,9 @@ class TestTasksApp extends ExampleRaylibApp<G> {
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(screenWidth, screenHeight, "test_tasks");
-    rl.CoreD.SetWindowMonitor(0);
-    rl.CoreD.SetTargetFPS(60);
+    InitWindow(screenWidth, screenHeight, "test_tasks");
+    SetWindowMonitor(0);
+    SetTargetFPS(60);
 
     addScene(TestTasksScene(app));
   }

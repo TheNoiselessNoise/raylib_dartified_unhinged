@@ -1,6 +1,7 @@
 // Run it: dart run mc.dart
 // Texture from https://github.com/Minesweeper-World/MS-Texture
 import 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart';
+import 'package:raylib_dartified_unhinged/backends/raylib/backend.dart';
 
 // WARNING: this example grew piecemeal alongside the framework itself rather
 // than being written against a finished API, so don't read it as "the"

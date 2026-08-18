@@ -88,53 +88,53 @@ class MyScene extends DrawScene<G> {
 
   @override
   void onDrawBackground() {
-    rl.CoreD.DrawText(
+    DrawText(
       'Press <O> - <P> to change FPS modes',
       20, 10, 20, .RAYWHITE,
     );
 
-    rl.CoreD.DrawText(
+    DrawText(
       'Press <K> - <L> to change animation (if more available)',
       20, 30, 20, .RAYWHITE,
     );
 
-    rl.CoreD.DrawText(
+    DrawText(
       'Press <N> - <M> to change time scale',
       20, 50, 20, .RAYWHITE,
     );
 
     player.on<CTransform<G>>((transform) {
-      rl.CoreD.DrawText(
+      DrawText(
         'Position: ${transform.position}',
         20, app.screenHeight - 130, 20, .RAYWHITE,
       );
     });
 
     player.on<CVelocity<G>>((velocity) {
-      rl.CoreD.DrawText(
+      DrawText(
         'Velocity: ${velocity.velocity}',
         20, app.screenHeight - 110, 20, .RAYWHITE,
       );
     });
 
     player.on<CAnimator<G>>((animator) {
-      rl.CoreD.DrawText(
+      DrawText(
         'Animation: ${animator.currentAnimName}',
         20, app.screenHeight - 90, 20, .RAYWHITE,
       );
     });
 
-    rl.CoreD.DrawText(
+    DrawText(
       'Time scale: ${app.time.timeScale.f1}',
       20, app.screenHeight - 70, 20, .RAYWHITE,
     );
 
-    rl.CoreD.DrawText(
+    DrawText(
       'Screen: $screenSize',
       20, app.screenHeight - 50, 20, .RAYWHITE,
     );
 
-    rl.CoreD.DrawText(
+    DrawText(
       'FPS: ${app.time.fps}',
       20, app.screenHeight - 30, 20, .RAYWHITE,
     );
@@ -146,29 +146,29 @@ class MyScene extends DrawScene<G> {
   @override
   void onInput() {
     // animations with not fixed frameDuration should update according to FPS
-    if (rl.CoreD.IsKeyPressed(.KEY_P)) {
+    if (IsKeyPressed(.KEY_P)) {
       currentFpsMode = (currentFpsMode + 1) % fpsModes.length;
       app.time.setFPS(fpsModes[currentFpsMode]);
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_O)) {
+    if (IsKeyPressed(.KEY_O)) {
       currentFpsMode = (currentFpsMode - 1) % fpsModes.length;
       app.time.setFPS(fpsModes[currentFpsMode]);
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_L)) {
+    if (IsKeyPressed(.KEY_L)) {
       player.on<CAnimator<G>>((a) => a.playNextAnimation());
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_K)) {
+    if (IsKeyPressed(.KEY_K)) {
       player.on<CAnimator<G>>((a) => a.playPrevAnimation());
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_N)) {
+    if (IsKeyPressed(.KEY_N)) {
       app.time.updateTimeScale((ts) => ts - 0.1);
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_M)) {
+    if (IsKeyPressed(.KEY_M)) {
       app.time.updateTimeScale((ts) => ts + 0.1);
     }
   }
@@ -184,25 +184,25 @@ class MyGame extends ExampleRaylibApp<G> {
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(screenWidth, screenHeight, "test_animator");
-    rl.CoreD.SetWindowMonitor(0);
-    rl.CoreD.SetTargetFPS(60);
+    InitWindow(screenWidth, screenHeight, "test_animator");
+    SetWindowMonitor(0);
+    SetTargetFPS(60);
 
     addScene(MyScene(this));
   }
 
   @override
   void onInput() {
-    if (rl.CoreD.IsKeyPressed(.KEY_Q)) {
+    if (IsKeyPressed(.KEY_Q)) {
       callback(() => app.exit());
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_D)) {
+    if (IsKeyPressed(.KEY_D)) {
       final player = scene.QueryEntity.On<PlayerEntity>().First;
       print(player.getAll<CCollider<G>>());
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_SPACE)) {
+    if (IsKeyPressed(.KEY_SPACE)) {
       final player = scene.QueryEntity.On<PlayerEntity>().First;
       scene.removeEntity(player);
       time.setFPS(30);

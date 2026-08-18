@@ -1,5 +1,6 @@
 // dart run arkanoid_test.dart
 import 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart';
+import 'package:raylib_dartified_unhinged/backends/raylib/backend.dart';
 
 typedef G = Arkanoid;
 

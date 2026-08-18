@@ -34,14 +34,14 @@ class PerformanceScene extends DrawScene<G> {
       addEntity(Entity(app)
         .addComp(CTransform(app,
           position: .vec2(
-            app.screenWidth / 2 + ((rl.rand() * 200) * (rl.rand() < .5 ? 1 : -1)),
-            app.screenHeight / 2 + ((rl.rand() * 200) * (rl.rand() < .5 ? 1 : -1)),
+            app.screenWidth / 2 + ((rand() * 200) * (rand() < .5 ? 1 : -1)),
+            app.screenHeight / 2 + ((rand() * 200) * (rand() < .5 ? 1 : -1)),
           ),
         ))
         .addComp(CVelocity(app,
           velocity: .vec2(
-            (rl.rand() * 220) * (rl.rand() < .5 ? 1 : -1),
-            (rl.rand() * 260) * (rl.rand() < .5 ? 1 : -1)
+            (rand() * 220) * (rand() < .5 ? 1 : -1),
+            (rand() * 260) * (rand() < .5 ? 1 : -1)
           ),
           linearDamping: .05,
         ))
@@ -61,7 +61,7 @@ class PerformanceScene extends DrawScene<G> {
 
   @override
   void onDrawBackground() {
-    rl.CoreD.DrawText(
+    DrawText(
       'PERFORMANCE TEST',
       20, 20, 20, .RAYWHITE,
     );
@@ -71,11 +71,11 @@ class PerformanceScene extends DrawScene<G> {
     final fs = 20;
     final y = app.screenHeight - 100;
     final text = 'Ball Count: $ballCount';
-    final textw = rl.CoreD.MeasureText(text, fs);
+    final textw = MeasureText(text, fs);
 
-    rl.CoreD.DrawRectangle(x - pad, y - pad, textw + pad * 2, fs * 2 + pad * 2, rl.CoreD.Fade(.BLUE, 0.5));
-    rl.CoreD.DrawText(text, x, y, fs, .WHITE);
-    rl.CoreD.DrawFPS(x, y + fs);
+    DrawRectangle(x - pad, y - pad, textw + pad * 2, fs * 2 + pad * 2, Fade(.BLUE, 0.5));
+    DrawText(text, x, y, fs, .WHITE);
+    DrawFPS(x, y + fs);
   }
 }
 
@@ -86,9 +86,9 @@ class PerformanceTest extends ExampleRaylibApp<G> {
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(800, 450, "test_performance");
-    rl.CoreD.SetWindowMonitor(0);
-    rl.CoreD.SetTargetFPS(60);
+    InitWindow(800, 450, "test_performance");
+    SetWindowMonitor(0);
+    SetTargetFPS(60);
 
     addScene(PerformanceScene(app));
   }

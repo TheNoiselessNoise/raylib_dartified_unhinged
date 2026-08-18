@@ -88,8 +88,8 @@ class CHealthBar extends Comp<G> {
     final shown = _displayHealth ?? health.currentHealth;
     final ratio = (shown / health.maxHealth).clamp(0.0, 1.0);
 
-    rl.CoreD.DrawRectangle(b.left, b.top - offsetY, width, height, .DARKGRAY);
-    rl.CoreD.DrawRectangle(b.left, b.top - offsetY, width * ratio, height, .GREEN);
+    DrawRectangle(b.left, b.top - offsetY, width, height, .DARKGRAY);
+    DrawRectangle(b.left, b.top - offsetY, width * ratio, height, .GREEN);
 
     for (final p in _popups) {
       final t = (p.age / popupDuration).clamp(0.0, 1.0);
@@ -103,7 +103,7 @@ class CHealthBar extends Comp<G> {
         .fontSize(popupFontSize)
         .position(b.left + width / 2, b.top - offsetY - rise)
         .sentence()
-          .text('-${p.amount}', rl.CoreD.Fade(.RED, alpha))
+          .text('-${p.amount}', Fade(.RED, alpha))
         .flush(halign: .center, valign: .bottom);
     }
   });
@@ -131,7 +131,7 @@ class CDeathAnim extends Comp<G> {
     final progress = (_elapsed / _duration).clamp(0.0, 1.0);
     final alpha = 255 * (1 - progress);
     final shrink = 1 - progress * 0.5;
-    rl.CoreD.DrawRectangle(b.left, b.top, ENTITY_SIZE.x * shrink, ENTITY_SIZE.y * shrink, .color(255, 0, 0, alpha));
+    DrawRectangle(b.left, b.top, ENTITY_SIZE.x * shrink, ENTITY_SIZE.y * shrink, .color(255, 0, 0, alpha));
   });
 }
 
@@ -161,7 +161,7 @@ class CExplosionAnim extends Comp<G> {
     final radius = _maxRadius * progress;
     final alpha = 255 * (1 - progress);
     final pos = entity.worldPosition;
-    rl.CoreD.DrawCircle(pos.x, pos.y, radius, .color(255, 140, 0, alpha));
+    DrawCircle(pos.x, pos.y, radius, .color(255, 140, 0, alpha));
   }
 }
 
@@ -302,7 +302,7 @@ class TestWhateverScene extends FWidgetScene<G> {
   void onDrawBackground() {
     int y = 10;
     for (final (i, e) in getEntities().indexed) {
-      rl.CoreD.DrawText('$i) ${e.namedId}', 150, y, 20, .WHITE);
+      DrawText('$i) ${e.namedId}', 150, y, 20, .WHITE);
       y += 20;
     }
 
@@ -315,15 +315,15 @@ class TestWhateverScene extends FWidgetScene<G> {
 
   @override
   void onInput() {
-    final mouseDelta = rl.CoreD.GetMouseWheelMoveV();
+    final mouseDelta = GetMouseWheelMoveV();
 
     int up = 0;
-    if (rl.CoreD.IsKeyDown(.KEY_W) && time.frameCount % 20 == 0) up = 1;
+    if (IsKeyDown(.KEY_W) && time.frameCount % 20 == 0) up = 1;
     if (mouseDelta.y > 0) up = (mouseDelta.y * 2).toInt();
     bulletDamage += up;
     
     int down = 0;
-    if (rl.CoreD.IsKeyDown(.KEY_S) && time.frameCount % 20 == 0) down = 1;
+    if (IsKeyDown(.KEY_S) && time.frameCount % 20 == 0) down = 1;
     if (mouseDelta.y < 0) down = -(mouseDelta.y * 2).toInt();
     bulletDamage -= down;
   }
@@ -336,9 +336,9 @@ class TestWhateverApp extends ExampleRaylibApp<G> {
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(screenWidth, screenHeight, "test_whatever");
-    rl.CoreD.SetWindowMonitor(0);
-    rl.CoreD.SetTargetFPS(60);
+    InitWindow(screenWidth, screenHeight, "test_whatever");
+    SetWindowMonitor(0);
+    SetTargetFPS(60);
 
     addScene(TestWhateverScene(app));
   }

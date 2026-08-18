@@ -31,7 +31,7 @@ class TestDevDebugScene extends DrawScene<G> {
 
   @override
   void onInput() {
-    if (rl.CoreD.IsKeyPressed(.KEY_SPACE)) {
+    if (IsKeyPressed(.KEY_SPACE)) {
       emit(MyEvent(app), scope: .global);
     }
   }
@@ -46,9 +46,9 @@ class TestDevDebugApp extends ExampleRaylibApp<G> {
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(screenWidth, screenHeight, "test_dev_debug");
-    rl.CoreD.SetWindowMonitor(0);
-    rl.CoreD.SetTargetFPS(60);
+    InitWindow(screenWidth, screenHeight, "test_dev_debug");
+    SetWindowMonitor(0);
+    SetTargetFPS(60);
 
     addScene(TestDevDebugScene(app));
     addSystem(debugSystem = DebugAppSystem(app));

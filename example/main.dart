@@ -3,6 +3,8 @@
 //     particles, and a button that switches to the next scene.
 //   - [SecondScene] which switches back to the first scene after 5 seconds.
 import 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart';
+import 'package:raylib_dartified_unhinged/backends/raylib/backend.dart';
+import 'package:raylib_dartified_unhinged/backends/raylib/abbr.dart';
 
 /// Shorthand alias for [MyApp].
 typedef G = MyApp;
@@ -62,7 +64,7 @@ class BallEntityFollowingMouse extends Entity<G> {
 
   @override
   void onUpdate(double dt) => onTransform((t) {
-    t.position = rl.CoreD.GetMousePosition();
+    t.position = GetMousePosition();
   });
 }
 
@@ -80,10 +82,10 @@ class FirstScene extends FWidgetScene<G> {
 
   @override
   void onDrawBackground() {
-    rl.CoreD.DrawText('FirstScene', 20, 20, 20, .WHITE);
+    DrawText('FirstScene', 20, 20, 20, .WHITE);
 
     final particlesCount = QueryEntity.On<ParticleEntity>().Count;
-    rl.CoreD.DrawText('ParticleEntity count: $particlesCount', 20, 60, 20, .WHITE);
+    DrawText('ParticleEntity count: $particlesCount', 20, 60, 20, .WHITE);
   }
 
   @override
@@ -116,8 +118,8 @@ class SecondScene extends DrawScene<G> {
 
   @override
   void onDrawBackground() {
-    rl.CoreD.DrawText('SecondScene', 20, 20, 20, .WHITE);
-    rl.CoreD.DrawText('Will go back to first scene after ${(_switchAfter - _elapsed).f3} seconds.', 20, 50, 20, .WHITE);
+    DrawText('SecondScene', 20, 20, 20, .WHITE);
+    DrawText('Will go back to first scene after ${(_switchAfter - _elapsed).f3} seconds.', 20, 50, 20, .WHITE);
   }
 
   @override
@@ -140,21 +142,16 @@ class SecondScene extends DrawScene<G> {
   APP
 ========================= */
 
-/// Extension to access Raylib from anywhere.
-extension on HasAppAccess<G> {
-  Raylib get rl => (backend as RaylibBackend).rl;
-}
-
 /// The application.
 class MyApp extends App<G> {
   MyApp(super.backend);
 
   @override
-  bool shouldExit() => rl.CoreD.WindowShouldClose();
+  bool shouldExit() => WindowShouldClose();
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(screenWidth, screenHeight, 'pub.dev example');
+    InitWindow(screenWidth, screenHeight, 'pub.dev example');
     addScene(FirstScene(app));
     addScene(SecondScene(app));
   }
