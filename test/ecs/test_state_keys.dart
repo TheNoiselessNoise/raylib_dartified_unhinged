@@ -21,7 +21,7 @@ class MyEntity extends Entity<G> {
   MyEntity(super.app, this.value);
 }
 
-class MyClonePolicy extends DefaultPolicy<G> {
+class MyClonePolicy extends ClonePolicy<G> {
   @override
   bool allow(CloneKind kind, {ECSBase<G>? owner, Object? payload})
     => true; // allow everything, even identity
@@ -36,8 +36,8 @@ void main() {
     test('identity', () {
       // NOTE: i don't know why would you want to do this, but here we go
       final entity = app.testScene.entity1;
-      // using `default` EntityCloner with our policy
-      final clonedEntity = entity.clone(.Default(MyClonePolicy()));
+      // using our policy
+      final clonedEntity = entity.clone(MyClonePolicy());
       expect(clonedEntity.id, equals(entity.id));
       expect(clonedEntity.namedId, equals(entity.namedId));
       expect(clonedEntity.name, equals(entity.name));

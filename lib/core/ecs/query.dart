@@ -74,7 +74,7 @@ abstract class QueryComponentManagable<
 > extends ECSBase<T> with
     
   Self<Q>,
-  IsCloneable<T, Q, Cloner<T>>,
+  IsCloneable<T, Q>,
   HasAppAccess<T>
 
 {

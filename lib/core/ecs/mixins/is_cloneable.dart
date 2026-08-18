@@ -19,8 +19,7 @@ part of '../../raylib_dartified_unhinged.dart';
 /// [_doCloneState], see its doc for the design rationale.
 mixin IsCloneable<
   T extends App<T>,
-  E extends ECSBase<T>,
-  C extends Cloner<T>
+  E extends ECSBase<T>
 > on
   Self<E>,
   ECSBase<T>
@@ -49,18 +48,18 @@ mixin IsCloneable<
 
   /// Registers [clone] as a copy of this object. No-op if already assigned.
   void _assignClone(E clone) {
-    if (clone is! IsCloneable<T, E, C>) return;
+    if (clone is! IsCloneable<T, E>) return;
     if (clone._isCloneAssigned) return;
     clone._isCloneAssigned = true;
     _clones.add(clone);
   }
 
-  X cloneInto<X extends E>(X target, [C? cloner]) {
-    if (!_doCloneBefore(target, cloner)) return target;
+  X cloneInto<X extends E>(X target, [ClonePolicy<T>? policy]) {
+    if (!_doCloneBefore(target, policy)) return target;
     _assignClone(target);
-    _doOnClone(target, cloner);
-    _doCloneState(target, cloner);
-    _doCloneAfter(target, cloner);
+    _doOnClone(target, policy);
+    _doCloneState(target, policy);
+    _doCloneAfter(target, policy);
     return target;
   }
 
@@ -69,11 +68,11 @@ mixin IsCloneable<
   /// Uses [cloner] to check what hooks/state to clone.
   /// If no [cloner] is provided, cloning behaves like it has
   /// [DefaultPolicy] policy.
-  X clone<X extends E>([C? cloner]) {
+  X clone<X extends E>([ClonePolicy<T>? policy]) {
     final newInstance = _doWhenCreateInstance(self) ?? createInstance();
 
-    if (newInstance is! IsCloneable<T, E, C>) {
-      throw StateError('Invalid (${newInstance.runtimeType}) newInstance returned, expected ${IsCloneable<T, E, C>}!');
+    if (newInstance is! IsCloneable<T, E>) {
+      throw StateError('Invalid (${newInstance.runtimeType}) newInstance returned, expected ${IsCloneable<T, E>}!');
     }
     
     _assignClone(newInstance);
@@ -83,10 +82,10 @@ mixin IsCloneable<
       return (_doWhenCloned(self, newInstance) ?? newInstance) as X;
     }
 
-    final readyToClone = _doWhenClone(self, cloner) ?? createClone(newInstance, cloner);
+    final readyToClone = _doWhenClone(self, policy) ?? createClone(newInstance, policy);
 
-    if (readyToClone is! IsCloneable<T, E, C>) {
-      throw StateError('Invalid (${readyToClone.runtimeType}) readyToClone returned, expected ${IsCloneable<T, E, C>}!');
+    if (readyToClone is! IsCloneable<T, E>) {
+      throw StateError('Invalid (${readyToClone.runtimeType}) readyToClone returned, expected ${IsCloneable<T, E>}!');
     }
 
     _doCheckIsCloneFresh(readyToClone);
@@ -94,7 +93,7 @@ mixin IsCloneable<
       return (_doWhenCloned(self, readyToClone) ?? readyToClone) as X;
     }
 
-    final fullyCloned = cloneInto(readyToClone, cloner);
+    final fullyCloned = cloneInto(readyToClone, policy);
     return (_doWhenCloned(self, fullyCloned) ?? fullyCloned) as X;
   }
 
@@ -106,15 +105,15 @@ mixin IsCloneable<
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  late final hookOnBeforeCloneKey = ECSHookKey<bool Function(E self, E copy, [C? cloner])>(
+  late final hookOnBeforeCloneKey = ECSHookKey<bool Function(E self, E copy, [ClonePolicy<T>? policy])>(
     'IsCloneable', 'onBeforeClone'
   );
 
-  late final hookOnCloneKey = ECSHookKey<bool Function(E self, E copy, [C? cloner])>(
+  late final hookOnCloneKey = ECSHookKey<bool Function(E self, E copy, [ClonePolicy<T>? policy])>(
     'IsCloneable', 'onClone'
   );
 
-  late final hookOnAfterCloneKey = ECSHookKey<bool Function(E self, E copy, [C? cloner])>(
+  late final hookOnAfterCloneKey = ECSHookKey<bool Function(E self, E copy, [ClonePolicy<T>? policy])>(
     'IsCloneable', 'onAfterClone'
   );
 
@@ -122,13 +121,13 @@ mixin IsCloneable<
     'IsCloneable', 'onCloned'
   );
 
-  Iterable<bool Function(E self, E copy, [C? cloner])> get _onBeforeCloneFns
+  Iterable<bool Function(E self, E copy, [ClonePolicy<T>? policy])> get _onBeforeCloneFns
     => hooksOf(hookOnBeforeCloneKey);
 
-  Iterable<void Function(E self, E copy, [C? cloner])> get _onCloneFns
+  Iterable<void Function(E self, E copy, [ClonePolicy<T>? policy])> get _onCloneFns
     => hooksOf(hookOnCloneKey);
 
-  Iterable<void Function(E self, E copy, [C? cloner])> get _onAfterCloneFns
+  Iterable<void Function(E self, E copy, [ClonePolicy<T>? policy])> get _onAfterCloneFns
     => hooksOf(hookOnAfterCloneKey);
 
   Iterable<void Function(E self, E original)> get _onClonedFns
@@ -138,7 +137,7 @@ mixin IsCloneable<
   ///
   /// [fn] returning `false` cancels the clone.
   @nonVirtual
-  E listenOnBeforeClone(bool Function(E self, E copy, [C? cloner]) fn) {
+  E listenOnBeforeClone(bool Function(E self, E copy, [ClonePolicy<T>? policy]) fn) {
     addHook(hookOnBeforeCloneKey, fn);
     return self;
   }
@@ -147,7 +146,7 @@ mixin IsCloneable<
   ///
   /// Called when the clone operation is about to happen and was not canceled.
   @nonVirtual
-  E listenOnClone(void Function(E self, E copy, [C? cloner]) fn) {
+  E listenOnClone(void Function(E self, E copy, [ClonePolicy<T>? policy]) fn) {
     addHook(hookOnCloneKey, fn);
     return self;
   }
@@ -156,7 +155,7 @@ mixin IsCloneable<
   ///
   /// Called only if the clone was not canceled.
   @nonVirtual
-  E listenOnAfterClone(void Function(E self, E copy, [C? cloner]) fn) {
+  E listenOnAfterClone(void Function(E self, E copy, [ClonePolicy<T>? policy]) fn) {
     addHook(hookOnAfterCloneKey, fn);
     return self;
   }
@@ -174,22 +173,22 @@ mixin IsCloneable<
   ///
   /// Returns `false` if any listener or the override cancels the clone.
   @nonVirtual
-  bool _doOnBeforeClone(E copy, [C? cloner]) {
-    if (!_onBeforeCloneFns.every((f) => f(self, copy, cloner))) return false;
-    return onBeforeClone(copy, cloner);
+  bool _doOnBeforeClone(E copy, [ClonePolicy<T>? policy]) {
+    if (!_onBeforeCloneFns.every((f) => f(self, copy, policy))) return false;
+    return onBeforeClone(copy, policy);
   }
 
   /// Runs all clone listeners and [onClone].
-  void _doOnClone(E copy, [C? cloner]) {
-    _onCloneFns.forEach((f) => f(self, copy, cloner));
-    onClone(copy, cloner);
+  void _doOnClone(E copy, [ClonePolicy<T>? policy]) {
+    _onCloneFns.forEach((f) => f(self, copy, policy));
+    onClone(copy, policy);
   }
 
   /// Runs all after-clone listeners and [onAfterClone].
   @nonVirtual
-  void _doOnAfterClone(E copy, [C? cloner]) {
-    _onAfterCloneFns.forEach((f) => f(self, copy, cloner));
-    onAfterClone(copy, cloner);
+  void _doOnAfterClone(E copy, [ClonePolicy<T>? policy]) {
+    _onAfterCloneFns.forEach((f) => f(self, copy, policy));
+    onAfterClone(copy, policy);
   }
 
   /// Runs all cloned listeners and [onCloned].
@@ -201,17 +200,17 @@ mixin IsCloneable<
   /// Override to cancel cloning from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeClone] listeners.
-  bool onBeforeClone(E copy, [C? cloner]) => true;
+  bool onBeforeClone(E copy, [ClonePolicy<T>? policy]) => true;
 
   /// Override to react when cloning is about to complete.
   ///
   /// Called by the host after all before-checks have passed.
-  void onClone(E copy, [C? cloner]) {}
+  void onClone(E copy, [ClonePolicy<T>? policy]) {}
 
   /// Override to react after cloning has completed.
   ///
   /// Called after all registered [listenOnAfterClone] listeners.
-  void onAfterClone(E copy, [C? cloner]) {}
+  void onAfterClone(E copy, [ClonePolicy<T>? policy]) {}
 
   /// Called on the *copy* after cloning completes, with a reference to [original].
   ///
@@ -222,7 +221,7 @@ mixin IsCloneable<
   ///
   /// [_whenOnCloneFn] receives `self` and must return a fresh instance. Returning `self`
   /// is a runtime error caught by [_doCheckIsCloneFresh].
-  E Function(E self, [C? cloner])? _whenOnCloneFn;
+  E Function(E self, [ClonePolicy<T>? policy])? _whenOnCloneFn;
 
   /// Overrides what happens with the cloned instance after it is produced.
   ///
@@ -238,15 +237,15 @@ mixin IsCloneable<
   E Function(E self)? _whenOnCreateInstanceFn;
 
   /// Registers [fn] as the clone factory, replacing the default [clone] behavior.
-  E whenClone(E Function(E self, [C? cloner]) fn) {
+  E whenClone(E Function(E self, [ClonePolicy<T>? policy]) fn) {
     _whenOnCloneFn = fn;
     return self;
   }
 
   @nonVirtual
-  E? _doWhenClone(E self, [C? cloner]) {
+  E? _doWhenClone(E self, [ClonePolicy<T>? policy]) {
     if (_whenOnCloneFn == null) return null;
-    return _whenOnCloneFn!(self, cloner);
+    return _whenOnCloneFn!(self, policy);
   }
 
   /// Registers [fn] to run after the clone is produced.
@@ -286,9 +285,9 @@ mixin IsCloneable<
   ///
   /// Returns `false` if any before-hook cancels the clone.
   @nonVirtual
-  bool _doCloneBefore(E target, [C? cloner]) {
-    if (!_doOnBeforeClone(target, cloner)) return false;
-    if (target is IsCloneable<T, E, C>) {
+  bool _doCloneBefore(E target, [ClonePolicy<T>? policy]) {
+    if (!_doOnBeforeClone(target, policy)) return false;
+    if (target is IsCloneable<T, E>) {
       target.isClone = true;
       target.isCloning = true;
     }
@@ -297,13 +296,13 @@ mixin IsCloneable<
 
   /// Finalizes the clone pipeline: clears [isCloning], sets [isCloned], and
   /// calls [onCloned] on the copy followed by after-hooks on the origin.
-  void _doCloneAfter(E target, [C? cloner]) {
-    if (target is IsCloneable<T, E, C>) {
+  void _doCloneAfter(E target, [ClonePolicy<T>? policy]) {
+    if (target is IsCloneable<T, E>) {
       target.isCloning = false;
       target.isCloned = true;
       target._doOnCloned(self);
     }
-    _doOnAfterClone(target, cloner);
+    _doOnAfterClone(target, policy);
   }
 
   /// Override to provide a fresh uninitialized instance of this type.
@@ -324,14 +323,14 @@ mixin IsCloneable<
   /// Override to customize how state is copied into [newInstance].
   ///
   /// Returns the populated copy. By default returns [newInstance] unchanged.
-  E createClone(E newInstance, [C? cloner]) => newInstance;
+  E createClone(E newInstance, [ClonePolicy<T>? policy]) => newInstance;
 
-  void _doCloneState(E target, C? cloner) {
+  void _doCloneState(E target, ClonePolicy<T>? policy) {
     
     // hooks
 
     bool allowedHook(ECSHookKey hook)
-      => cloner == null || cloner.allowHook(target, hook);
+      => policy == null || policy.allowHook(target, hook);
 
     if (self case HasExternalHooks<T> from) {
       if (target case HasExternalHooks<T> to) {
@@ -342,7 +341,7 @@ mixin IsCloneable<
     // state
 
     bool allowedState(ECSStateKey state)
-      => cloner == null || cloner.allowState(target, state);
+      => policy == null || policy.allowState(target, state);
 
     if (self case HasCloneableState<T> from) {
       if (target case HasCloneableState<T> to) {
@@ -352,7 +351,7 @@ mixin IsCloneable<
 
     // identity
 
-    if (cloner?.allowState(target, target.stateIdentityKey) ?? false) {
+    if (policy?.allowState(target, target.stateIdentityKey) ?? false) {
       target._id = self._id;
       target._namedId = self._namedId;
       target.name = self.name;

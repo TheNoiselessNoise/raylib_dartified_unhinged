@@ -11,7 +11,7 @@ class Comp<T extends App<T>> extends ECSBase<T> with
 
   // is
   IsAddable<T, Comp<T>>,
-  IsCloneable<T, Comp<T>, Cloner<T>>,
+  IsCloneable<T, Comp<T>>,
   IsDisposable<T, Comp<T>>,
   IsDrawable<T, Comp<T>>,
   IsEnableable<T, Comp<T>>,
@@ -104,29 +104,29 @@ class Comp<T extends App<T>> extends ECSBase<T> with
 
   @override
   @nonVirtual
-  void _doOnClone(Comp<T> copy, [Cloner<T>? cloner]) {
+  void _doOnClone(Comp<T> copy, [ClonePolicy<T>? policy]) {
     copy.entity = entity;
 
     emit(EventCompCloning(app, self, copy));
 
     _components.forEach((childComp) {
-      if (!(cloner?.allowComp(copy, childComp) ?? true)) return;
+      if (!(policy?.allowComp(copy, childComp) ?? true)) return;
 
       _doCloneComp(
         to: copy,
         what: childComp,
-        cloner: cloner,
+        policy: policy,
         replaceComponent: true,
       );
     });
 
-    super._doOnClone(copy, cloner);
+    super._doOnClone(copy, policy);
   }
 
   @override
   @nonVirtual
-  void _doCloneAfter(Comp<T> target, [Cloner<T>? cloner]) {
-    super._doCloneAfter(target, cloner);
+  void _doCloneAfter(Comp<T> target, [ClonePolicy<T>? policy]) {
+    super._doCloneAfter(target, policy);
     emit(EventCompCloned(app, self, target));
   }
 

@@ -20,7 +20,7 @@ class MyScene extends Scene<G> {
 }
 
 // NOTE: [CLONING], simple policy
-class MyAppCloningPolicy extends DefaultPolicy<G> {
+class MyAppCloningPolicy extends ClonePolicy<G> {
   @override
   bool allow(CloneKind kind, { ECSBase<G>? owner, Object? payload }) {
     // we are currently cloning a `scene`
@@ -62,7 +62,8 @@ void main() {
 
   // === TEST #1 ===
   // create clone of the entire app
-  // if no cloner is provided, cloning behaves like `DefaultPolicy`
+  // if no cloning policy is provided, cloning behaves like default
+  // `ClonePolicy.allow` implementation (everything except identity)
   final appClone = app.clone()..init();
 
   assert(app.myScene.intValue == appClone.myScene.intValue);
@@ -74,7 +75,8 @@ void main() {
 
   // === TEST #2 ===
   // create a direct clone of a scene 
-  // if no cloner is provided, cloning behaves like `DefaultPolicy`
+  // if no cloning policy is provided, cloning behaves like default
+  // `ClonePolicy.allow` implementation (everything except identity)
   final MyScene sceneClone = app.myScene.clone();
 
   assert(app.myScene.intValue == sceneClone.intValue);
@@ -87,8 +89,8 @@ void main() {
   // === TEST #3 ===
   // test our `MyAppCloningPolicy`
   app.myScene.intValue = 101; // bigger than 100
-  // we use default cloner with our custom `MyAppCloningPolicy` policy
-  final appCloneWithPolicy = app.clone(.Default(MyAppCloningPolicy()));
+  // we use our custom `MyAppCloningPolicy` policy
+  final appCloneWithPolicy = app.clone(MyAppCloningPolicy());
   // we expect no `MyScene` scene to exist
   assert(appCloneWithPolicy.getScene<MyScene>() == null);
 

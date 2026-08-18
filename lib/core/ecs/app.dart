@@ -130,7 +130,7 @@ class App<T extends App<T>> extends ECSBase<T> with
 
   IsAppSystemManagable<T, T>,
   IsBeginEndFrameable<T, T>,
-  IsCloneable<T, T, AppCloner<T>>,
+  IsCloneable<T, T>,
   IsDebuggable<T, T>,
   IsDisposable<T, T>,
   IsInputHandleable<T, T>,
@@ -457,7 +457,7 @@ class App<T extends App<T>> extends ECSBase<T> with
 
   @override
   @nonVirtual
-  void _doOnClone(T copy, [AppCloner<T>? cloner]) {
+  void _doOnClone(T copy, [ClonePolicy<T>? policy]) {
     // NOTE: we can call cloneInto without createInstance()
     _doCloneDependencies(copy);
 
@@ -466,22 +466,22 @@ class App<T extends App<T>> extends ECSBase<T> with
     _doOnEvent(EventAppCloning(self, self, copy));
 
     _scenes.forEach((s) {
-      if (!(cloner?.allowScene(copy, s) ?? true)) return;
-      copy.replaceScene(s.clone(cloner?.sceneCloner));
+      if (!(policy?.allowScene(copy, s) ?? true)) return;
+      copy.replaceScene(s.clone(policy));
     });
 
     _systems.forEach((s) {
-      if (!(cloner?.allowAppSystem(copy, s) ?? true)) return;
-      copy.replaceSystem(s.clone(cloner?.systemCloner));
+      if (!(policy?.allowAppSystem(copy, s) ?? true)) return;
+      copy.replaceSystem(s.clone(policy));
     });
 
-    super._doOnClone(copy, cloner);
+    super._doOnClone(copy, policy);
   }
 
   @override
   @nonVirtual
-  void _doCloneAfter(T target, [AppCloner<T>? cloner]) {
-    super._doCloneAfter(target, cloner);
+  void _doCloneAfter(T target, [ClonePolicy<T>? policy]) {
+    super._doCloneAfter(target, policy);
     app._doOnEvent(EventAppCloned(app, self, target));
   }
 

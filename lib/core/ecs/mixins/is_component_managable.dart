@@ -540,16 +540,16 @@ mixin IsComponentManagable<
   // ───────
 
   void mergeCompsInto<X extends IsAnyComponentManagable<T>>(X into, {
-    Cloner<T>? cloner,
+    ClonePolicy<T>? policy,
     bool replaceComponents = true,
   }) {
     _components.forEach((childComp) {
-      if (!(cloner?.allowComp(into, childComp) ?? true)) return;
+      if (!(policy?.allowComp(into, childComp) ?? true)) return;
 
       _doCloneComp(
         to: into,
         what: childComp,
-        cloner: cloner,
+        policy: policy,
         replaceComponent: replaceComponents,
       );
     });
@@ -728,7 +728,7 @@ mixin IsComponentManagable<
   void _doCloneComp({
     required IsAnyComponentManagable<T> to,
     required Comp<T> what,
-    Cloner<T>? cloner,
+    ClonePolicy<T>? policy,
     bool replaceComponent = false,
   }) {
     if (!what.isCloneable) return;
@@ -737,7 +737,7 @@ mixin IsComponentManagable<
     _doOnCompClone(what);
     // This clone() call ALREADY does everything.
     // Returns the fully cloned component
-    final fullyClonedComp = what.clone(cloner);
+    final fullyClonedComp = what.clone(policy);
 
     if (replaceComponent) {
       to.replaceComp(fullyClonedComp);

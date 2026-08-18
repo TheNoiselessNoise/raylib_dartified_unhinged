@@ -48,7 +48,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
 
   // is
   IsAddable<T, Entity<T>>,
-  IsCloneable<T, Entity<T>, EntityCloner<T>>,
+  IsCloneable<T, Entity<T>>,
   IsDisposable<T, Entity<T>>,
   IsDrawable<T, Entity<T>>,
   IsEnableable<T, Entity<T>>,
@@ -266,31 +266,31 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   //  ░██   ░██ ░██          ░██   ░██  ░██   ░████ ░██         
   //   ░██████  ░██████████   ░██████   ░██    ░███ ░██████████ 
 
-  void _doOnCloneEntityStart(Entity<T> copy, [EntityCloner<T>? cloner]) {
+  void _doOnCloneEntityStart(Entity<T> copy, [ClonePolicy<T>? policy]) {
     emit(EventEntityCloning(app, self, copy));
 
     _components.forEach((comp) {
-      if (!(cloner?.allowComp(copy, comp) ?? true)) return;
+      if (!(policy?.allowComp(copy, comp) ?? true)) return;
 
       _doCloneComp(
         to: copy,
         what: comp,
-        cloner: cloner,
+        policy: policy,
         replaceComponent: true,
       );
     });
   }
 
   @override
-  void _doOnClone(Entity<T> copy, [EntityCloner<T>? cloner]) {
-    _doOnCloneEntityStart(copy, cloner);
-    super._doOnClone(copy, cloner);
+  void _doOnClone(Entity<T> copy, [ClonePolicy<T>? policy]) {
+    _doOnCloneEntityStart(copy, policy);
+    super._doOnClone(copy, policy);
   }
 
   @override
   @nonVirtual
-  void _doCloneAfter(Entity<T> target, [EntityCloner<T>? cloner]) {
-    super._doCloneAfter(target, cloner);
+  void _doCloneAfter(Entity<T> target, [ClonePolicy<T>? policy]) {
+    super._doCloneAfter(target, policy);
     emit(EventEntityCloned(app, self, target));
   }
 
@@ -425,21 +425,21 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   //  ░██   ░██ ░██          ░██   ░██  ░██   ░████ ░██         
   //   ░██████  ░██████████   ░██████   ░██    ░███ ░██████████ 
 
-  void _doOnCloneEntityGroupStart(Entity<T> copy, [EntityCloner<T>? cloner]) {
+  void _doOnCloneEntityGroupStart(Entity<T> copy, [ClonePolicy<T>? policy]) {
     if (copy is! EntityGroup<T, E>) throw StateError('unreachable');
 
-    _doOnCloneEntityStart(copy, cloner);
+    _doOnCloneEntityStart(copy, policy);
 
     _entities.forEach((e) {
-      if (!(cloner?.allowEntity(copy, e) ?? true)) return;
-      copy.addEntity(e.clone(cloner));
+      if (!(policy?.allowEntity(copy, e) ?? true)) return;
+      copy.addEntity(e.clone(policy));
     });
   }
 
   @override
-  void _doOnClone(Entity<T> copy, [EntityCloner<T>? cloner]) {
-    _doOnCloneEntityGroupStart(copy, cloner);
-    super._doOnClone(copy, cloner);
+  void _doOnClone(Entity<T> copy, [ClonePolicy<T>? policy]) {
+    _doOnCloneEntityGroupStart(copy, policy);
+    super._doOnClone(copy, policy);
   }
 
   //   ░██████   ░██     ░██ ░██████████ ░█████████  ░██     ░██ 

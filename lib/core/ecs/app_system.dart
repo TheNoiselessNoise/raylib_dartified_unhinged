@@ -22,7 +22,7 @@ class AppSystem<T extends App<T>> extends ECSBase<T> with
   // is
   IsAddable<T, AppSystem<T>>,
   IsBeginEndFrameable<T, AppSystem<T>>,
-  IsCloneable<T, AppSystem<T>, AppSystemCloner<T>>,
+  IsCloneable<T, AppSystem<T>>,
   IsDisposable<T, AppSystem<T>>,
   IsEventEmittable<T, AppSystem<T>>,
   IsEventHistoryHolder<T, AppSystem<T>>,
@@ -89,15 +89,15 @@ class AppSystem<T extends App<T>> extends ECSBase<T> with
 
   @override
   @nonVirtual
-  void _doOnClone(AppSystem<T> copy, [AppSystemCloner<T>? cloner]) {
+  void _doOnClone(AppSystem<T> copy, [ClonePolicy<T>? policy]) {
     app._doOnEvent(EventAppSystemCloning(app, self, copy));
-    super._doOnClone(copy, cloner);
+    super._doOnClone(copy, policy);
   }
 
   @override
   @nonVirtual
-  void _doCloneAfter(AppSystem<T> target, [AppSystemCloner<T>? cloner]) {
-    super._doCloneAfter(target, cloner);
+  void _doCloneAfter(AppSystem<T> target, [ClonePolicy<T>? policy]) {
+    super._doCloneAfter(target, policy);
     app._doOnEvent(EventAppSystemCloned(app, self, target));
   }
 

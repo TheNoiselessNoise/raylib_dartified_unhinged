@@ -16,7 +16,7 @@ class SceneSystem<T extends App<T>> extends ECSBase<T> with
   // is
   IsAddable<T, SceneSystem<T>>,
   IsBeginEndFrameable<T, SceneSystem<T>>,
-  IsCloneable<T, SceneSystem<T>, SceneSystemCloner<T>>,
+  IsCloneable<T, SceneSystem<T>>,
   IsDisposable<T, SceneSystem<T>>,
   IsEnableable<T, SceneSystem<T>>,
   IsEventEmittable<T, SceneSystem<T>>,
@@ -85,15 +85,15 @@ class SceneSystem<T extends App<T>> extends ECSBase<T> with
 
   @override
   @nonVirtual
-  void _doOnClone(SceneSystem<T> copy, [SceneSystemCloner<T>? cloner]) {
+  void _doOnClone(SceneSystem<T> copy, [ClonePolicy<T>? policy]) {
     emit(EventSceneSystemCloning(app, self, copy));
-    super._doOnClone(copy, cloner);
+    super._doOnClone(copy, policy);
   }
 
   @override
   @nonVirtual
-  void _doCloneAfter(SceneSystem<T> target, [SceneSystemCloner<T>? cloner]) {
-    super._doCloneAfter(target, cloner);
+  void _doCloneAfter(SceneSystem<T> target, [ClonePolicy<T>? policy]) {
+    super._doCloneAfter(target, policy);
     emit(EventSceneSystemCloned(app, self, target));
   }
 

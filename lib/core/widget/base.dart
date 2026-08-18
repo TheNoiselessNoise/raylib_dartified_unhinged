@@ -378,10 +378,10 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
   void cloneWidgetInto(FWidget<T> copy) {}
 
   @override
-  void _doOnClone(Entity<T> copy, [EntityCloner<T>? cloner]) {
-    _doOnCloneEntityGroupStart(copy, cloner);
+  void _doOnClone(Entity<T> copy, [ClonePolicy<T>? policy]) {
+    _doOnCloneEntityGroupStart(copy, policy);
     cloneWidgetInto(copy as FWidget<T>);
-    super._doOnClone(copy, cloner);
+    super._doOnClone(copy, policy);
   }
 
   // ░██            ░███    ░██     ░██   ░██████   ░██     ░██ ░██████████

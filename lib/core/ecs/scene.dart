@@ -71,7 +71,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   // is
   IsAddable<T, Scene<T>>,
   IsBeginEndFrameable<T, Scene<T>>,
-  IsCloneable<T, Scene<T>, SceneCloner<T>>,
+  IsCloneable<T, Scene<T>>,
   IsDisposable<T, Scene<T>>,
   IsDrawable<T, Scene<T>>,
   IsEnterable<T, Scene<T>>,
@@ -138,26 +138,26 @@ class Scene<T extends App<T>> extends ECSBase<T> with
 
   @override
   @nonVirtual
-  void _doOnClone(Scene<T> copy, [SceneCloner<T>? cloner]) {
+  void _doOnClone(Scene<T> copy, [ClonePolicy<T>? policy]) {
     emit(EventSceneCloning(app, self, copy));
 
     _entities.forEach((e) {
-      if (!(cloner?.allowEntity(copy, e) ?? true)) return;
-      copy.addEntity(e.clone(cloner?.entityCloner));
+      if (!(policy?.allowEntity(copy, e) ?? true)) return;
+      copy.addEntity(e.clone(policy));
     });
 
     _systems.forEach((s) {
-      if (!(cloner?.allowSceneSystem(copy, s) ?? true)) return;
-      copy.replaceSystem(s.clone(cloner?.systemCloner));
+      if (!(policy?.allowSceneSystem(copy, s) ?? true)) return;
+      copy.replaceSystem(s.clone(policy));
     });
 
-    super._doOnClone(copy, cloner);
+    super._doOnClone(copy, policy);
   }
 
   @override
   @nonVirtual
-  void _doCloneAfter(Scene<T> target, [SceneCloner<T>? cloner]) {
-    super._doCloneAfter(target, cloner);
+  void _doCloneAfter(Scene<T> target, [ClonePolicy<T>? policy]) {
+    super._doCloneAfter(target, policy);
     emit(EventSceneCloned(app, self, target));
   }
 
