@@ -52,7 +52,7 @@ class TestSpawnerScene extends DrawScene<G> {
   void onInput() {
     if (IsKeyPressed(.KEY_SPACE)) {
       QueryEntity.DoFirst<SpawnerEntity>((s) {
-        s.get<CAnyParticleEmitter<G>>()!.toggleActive();
+        s.get<CAnyParticleEmitter<G>>()!.toggleEnabled();
       });
     }
   }

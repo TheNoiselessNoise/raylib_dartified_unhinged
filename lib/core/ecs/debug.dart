@@ -40,8 +40,8 @@ class DebugCompWidget<T extends App<T>> extends FWidget<T> {
         sizedTitle('Is Active'),
 
         FCheckbox(app,
-          checked: targetComp.isActive,
-          onChangeFn: (_, v) => debugWidget.setState(() => targetComp.setActive(v)),
+          checked: targetComp.isEnabled,
+          onChangeFn: (_, v) => debugWidget.setState(() => targetComp.setEnabled(v)),
         ),
       ],
     ),
@@ -122,7 +122,7 @@ class DebugCompWidget<T extends App<T>> extends FWidget<T> {
             initialValue: t.scale.x,
             onChangeEndFn: (_, v) => setState(() {
               t.entity.getAll<IsComponentScaleMutable<T>>()
-                .forEach((c) => c.setActive(false));
+                .forEach((c) => c.setEnabled(false));
               t.scale.x = v;
             }),
           ),
@@ -135,7 +135,7 @@ class DebugCompWidget<T extends App<T>> extends FWidget<T> {
             initialValue: t.scale.y,
             onChangeEndFn: (_, v) => setState(() {
               t.entity.getAll<IsComponentScaleMutable<T>>()
-                .forEach((c) => c.setActive(false));
+                .forEach((c) => c.setEnabled(false));
               t.scale.y = v;
             }),
           ),

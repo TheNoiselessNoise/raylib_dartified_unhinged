@@ -147,7 +147,7 @@ class MyApp extends App<G> {
   MyApp(super.backend);
 
   @override
-  bool shouldExit() => WindowShouldClose();
+  bool onShouldExit() => WindowShouldClose();
 
   @override
   void onInit() {

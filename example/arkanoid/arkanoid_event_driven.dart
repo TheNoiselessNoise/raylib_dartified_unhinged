@@ -217,7 +217,7 @@ class Arkanoid extends App<G> {
   Arkanoid(super.backend);
 
   @override
-  bool shouldExit() => WindowShouldClose();
+  bool onShouldExit() => WindowShouldClose();
 
   @override
   void onInit() {

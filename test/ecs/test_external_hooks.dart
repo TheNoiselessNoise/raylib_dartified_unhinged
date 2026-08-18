@@ -22,74 +22,74 @@ void main2() {
   final app = createTestApp();
   final sceneSystem = app.testScene.sceneSystem;
 
-  sceneSystem.listenOnActivate((self) {
-    print('I have been de/activated: ${self.isActive}');
+  sceneSystem.listenOnEnable((self) {
+    print('${self.isEnabled}) I have been ${self.isEnabled ? 'enabled' : 'disabled'}');
   });
 
-  print(sceneSystem.hooksOf(sceneSystem.hookOnActivateKey));
+  print(sceneSystem.hooksOf(sceneSystem.hookOnEnableKey));
 
   final clonedSceneSystem = sceneSystem.clone();
   app.testScene.replaceSystem(clonedSceneSystem);
-  print(clonedSceneSystem.hooksOf(clonedSceneSystem.hookOnActivateKey));
+  print(clonedSceneSystem.hooksOf(clonedSceneSystem.hookOnEnableKey));
 
-  clonedSceneSystem.setActive(false);
-  clonedSceneSystem.setActive(true);
+  clonedSceneSystem.setEnabled(false);
+  clonedSceneSystem.setEnabled(true);
 }
 
 void main() {
   group('External Hooks', () {
-    bool? isActive;
+    bool? isEnabled;
     late G app;
     late SceneSystem<G> sceneSystem;
 
-    void doOnActivate(SceneSystem<G> sceneSystem) => isActive = sceneSystem.isActive;
+    void doOnEnabled(SceneSystem<G> sceneSystem) => isEnabled = sceneSystem.isEnabled;
 
     setUp(() {
-      isActive = null;
+      isEnabled = null;
       app = createTestApp();
       sceneSystem = app.testScene.sceneSystem;
     });
 
     test('Registration', () {
-      sceneSystem.listenOnActivate(doOnActivate);
-      sceneSystem.setActive(false);
-      expect(isActive, isFalse);
+      sceneSystem.listenOnEnable(doOnEnabled);
+      sceneSystem.setEnabled(false);
+      expect(isEnabled, isFalse);
     });
 
     test('Clone', () {
-      sceneSystem.listenOnActivate(doOnActivate);
+      sceneSystem.listenOnEnable(doOnEnabled);
       final clonedSceneSystem = sceneSystem.clone();
-      clonedSceneSystem.setActive(false);
-      expect(isActive, isFalse);
+      clonedSceneSystem.setEnabled(false);
+      expect(isEnabled, isFalse);
     });
 
     test('Clone independence', () {
-      sceneSystem.listenOnActivate(doOnActivate);
+      sceneSystem.listenOnEnable(doOnEnabled);
       final clonedSceneSystem = sceneSystem.clone();
-      sceneSystem.clearExternalHooks([sceneSystem.hookOnActivateKey]);
-      clonedSceneSystem.setActive(false);
-      expect(isActive, isFalse); // clone's hook should still fire
+      sceneSystem.clearExternalHooks([sceneSystem.hookOnEnableKey]);
+      clonedSceneSystem.setEnabled(false);
+      expect(isEnabled, isFalse); // clone's hook should still fire
     });
 
     test('Unregister (by closure)', () {
-      sceneSystem.listenOnActivate(doOnActivate);
-      sceneSystem.removeHook(sceneSystem.hookOnActivateKey, doOnActivate);
-      sceneSystem.setActive(false);
-      expect(isActive, isNull);
+      sceneSystem.listenOnEnable(doOnEnabled);
+      sceneSystem.removeHook(sceneSystem.hookOnEnableKey, doOnEnabled);
+      sceneSystem.setEnabled(false);
+      expect(isEnabled, isNull);
     });
 
     test('Unregister (by key)', () {
-      sceneSystem.listenOnActivate(doOnActivate);
-      sceneSystem.clearExternalHooks([sceneSystem.hookOnActivateKey]);
-      sceneSystem.setActive(false);
-      expect(isActive, isNull);
+      sceneSystem.listenOnEnable(doOnEnabled);
+      sceneSystem.clearExternalHooks([sceneSystem.hookOnEnableKey]);
+      sceneSystem.setEnabled(false);
+      expect(isEnabled, isNull);
     });
 
     test('Unregister (by family)', () {
-      sceneSystem.listenOnActivate(doOnActivate);
-      sceneSystem.clearExternalHookFamily('IsActivatable');
-      sceneSystem.setActive(false);
-      expect(isActive, isNull);
+      sceneSystem.listenOnEnable(doOnEnabled);
+      sceneSystem.clearExternalHookFamily('IsEnableable');
+      sceneSystem.setEnabled(false);
+      expect(isEnabled, isNull);
     });
   });
 }

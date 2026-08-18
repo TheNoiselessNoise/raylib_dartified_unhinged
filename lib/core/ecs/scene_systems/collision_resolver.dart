@@ -283,8 +283,8 @@ class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
     final n = mtv.normal;
     final p = mtv.depth;
 
-    final invMassA = (pA?.isActive ?? false) ? pA!.invMass : 0.0;
-    final invMassB = (pB?.isActive ?? false) ? pB!.invMass : 0.0;
+    final invMassA = (pA?.isEnabled ?? false) ? pA!.invMass : 0.0;
+    final invMassB = (pB?.isEnabled ?? false) ? pB!.invMass : 0.0;
     final sum = invMassA + invMassB;
 
     // Both immovable
@@ -327,12 +327,12 @@ class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
     final impulseX = j * n.x;
     final impulseY = j * n.y;
 
-    if (vA?.isActive ?? false) {
+    if (vA?.isEnabled ?? false) {
       vA?.velocity.x += impulseX * invMassA;
       vA?.velocity.y += impulseY * invMassA;
     }
 
-    if (vB?.isActive ?? false) {
+    if (vB?.isEnabled ?? false) {
       vB?.velocity.x -= impulseX * invMassB;
       vB?.velocity.y -= impulseY * invMassB;
     }

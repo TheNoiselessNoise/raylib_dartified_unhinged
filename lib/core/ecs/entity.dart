@@ -47,11 +47,11 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   HasVars<T, Entity<T>>,
 
   // is
-  IsActivatable<T, Entity<T>>,
   IsAddable<T, Entity<T>>,
   IsCloneable<T, Entity<T>, EntityCloner<T>>,
   IsDisposable<T, Entity<T>>,
   IsDrawable<T, Entity<T>>,
+  IsEnableable<T, Entity<T>>,
   IsEventEmittable<T, Entity<T>>,
   IsEventHistoryHolder<T, Entity<T>>,
   IsRemovable<T, Entity<T>>,

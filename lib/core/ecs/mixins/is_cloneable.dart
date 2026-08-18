@@ -94,12 +94,6 @@ mixin IsCloneable<
     return (_doWhenCloned(self, fullyCloned) ?? fullyCloned) as X;
   }
 
-  // TODO: make it a hook as well
-  /// Called on the *copy* after cloning completes, with a reference to [original].
-  ///
-  /// Override to perform post-clone fixup on the new instance.
-  void onCloned(E original) {}
-
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██ ░██     ░██ ░██     ░██ ░██   ░██   ░██         
@@ -120,6 +114,10 @@ mixin IsCloneable<
     'IsCloneable', 'onAfterClone'
   );
 
+  late final hookOnClonedKey = ECSHookKey<void Function(E self, E original)>(
+    'IsCloneable', 'onCloned'
+  );
+
   Iterable<bool Function(E copy, [C? cloner])> get _onBeforeCloneFns
     => hooksOf(hookOnBeforeCloneKey);
 
@@ -128,6 +126,9 @@ mixin IsCloneable<
 
   Iterable<void Function(E copy, [C? cloner])> get _onAfterCloneFns
     => hooksOf(hookOnAfterCloneKey);
+
+  Iterable<void Function(E self, E original)> get _onClonedFns
+    => hooksOf(hookOnClonedKey);
 
   /// Registers [fn] as a before-clone listener.
   ///
@@ -156,6 +157,15 @@ mixin IsCloneable<
     return self;
   }
 
+  /// Registers [fn] as a cloned listener.
+  ///
+  /// Called on cloned reference.
+  @nonVirtual
+  E listenOnCloned(void Function(E self, E original) fn) {
+    addHook(hookOnClonedKey, fn);
+    return self;
+  }
+
   /// Runs all before-clone listeners and [onBeforeClone].
   ///
   /// Returns `false` if any listener or the override cancels the clone.
@@ -178,6 +188,12 @@ mixin IsCloneable<
     onAfterClone(copy, cloner);
   }
 
+  /// Runs all cloned listeners and [onCloned].
+  void _doOnCloned(E original) {
+    _onClonedFns.forEach((f) => f(self, original));
+    onCloned(original);
+  }
+
   /// Override to cancel cloning from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeClone] listeners.
@@ -192,6 +208,11 @@ mixin IsCloneable<
   ///
   /// Called after all registered [listenOnAfterClone] listeners.
   void onAfterClone(E copy, [C? cloner]) {}
+
+  /// Called on the *copy* after cloning completes, with a reference to [original].
+  ///
+  /// Override to perform post-clone fixup on the new instance.
+  void onCloned(E original) {}
 
   /// Overrides the default clone behavior.
   ///
@@ -276,7 +297,7 @@ mixin IsCloneable<
     if (target is IsCloneable<T, E, C>) {
       target.isCloning = false;
       target.isCloned = true;
-      target.onCloned(self);
+      target._doOnCloned(self);
     }
     _doOnAfterClone(target, cloner);
   }

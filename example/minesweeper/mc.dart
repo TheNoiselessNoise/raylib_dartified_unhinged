@@ -611,7 +611,7 @@ class Minesweeper extends App<G> {
   Minesweeper(super.backend);
 
   @override
-  bool shouldExit() => WindowShouldClose();
+  bool onShouldExit() => WindowShouldClose();
 
   @override
   void onInit() {

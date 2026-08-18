@@ -270,20 +270,20 @@ mixin IsComponentManagable<
 
   /// Activates every top-level component of type [C].
   E enableComp<C extends Comp<T>>() {
-    getAll<C>().forEach((c) => c.setActive(true));
+    getAll<C>().forEach((c) => c.setEnabled(true));
     return self;
   }
 
   /// Activates all top-level components.
   E enableComps() {
-    _components.forEach((c) => c.setActive(true));
+    _components.forEach((c) => c.setEnabled(true));
     return self;
   }
 
   /// Recursively activates every component, including nested ones.
   E enableEverything() {
     _components.forEach((c) {
-      c.setActive(true);
+      c.setEnabled(true);
       c.enableEverything();
     });
     return self;
@@ -291,20 +291,20 @@ mixin IsComponentManagable<
 
   /// Deactivates every top-level component of type [C].
   E disableComp<C extends Comp<T>>() {
-    getAll<C>().forEach((c) => c.setActive(false));
+    getAll<C>().forEach((c) => c.setEnabled(false));
     return self;
   }
 
   /// Deactivates all top-level components (not nested).
   E disableComps() {
-    _components.forEach((c) => c.setActive(false));
+    _components.forEach((c) => c.setEnabled(false));
     return self;
   }
 
   /// Recursively deactivates every component, including nested ones.
   E disableEverything() {
     _components.forEach((c) {
-      c.setActive(false);
+      c.setEnabled(false);
       c.disableEverything();
     });
     return self;

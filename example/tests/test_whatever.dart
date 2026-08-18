@@ -117,7 +117,7 @@ class CDeathAnim extends Comp<G> {
 
   @override
   void onAdd(ECSBase<G> parent) {
-    entity.get<CRectCollider<G>>()?.setActive(false);
+    entity.get<CRectCollider<G>>()?.setEnabled(false);
   }
 
   @override
@@ -236,7 +236,7 @@ class Entity2 extends Entity<G> {
   Entity2(super.app) {
     // BOTTOM-RIGHT CORNER
     addComp(CTransform(app, position: sceneSize.sub(ENTITY_SIZE)));
-    addComp(CMoveUpDown(app)..setActive(false)); // it's here, because `update` is in insertion order
+    addComp(CMoveUpDown(app)..setEnabled(false)); // it's here, because `update` is in insertion order
     addComp(CRectCollider(app, tag: TAG_ENTITY2, size: ENTITY_SIZE.copy(), debugColor: .GREEN, debugDraw: true));
     addComp(CHealth(app, maxHealth: 100)..onZero = () {
       disableEverything();
@@ -246,7 +246,7 @@ class Entity2 extends Entity<G> {
   }
 
   @override
-  void onAdd(ECSBase<G> parent) => get<CMoveUpDown>()?.setActive(true);
+  void onAdd(ECSBase<G> parent) => get<CMoveUpDown>()?.setEnabled(true);
 
   @override
   void onRemove() {

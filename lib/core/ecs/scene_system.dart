@@ -14,11 +14,11 @@ class SceneSystem<T extends App<T>> extends ECSBase<T> with
   HasVars<T, SceneSystem<T>>,
   
   // is
-  IsActivatable<T, SceneSystem<T>>,
   IsAddable<T, SceneSystem<T>>,
   IsBeginEndFrameable<T, SceneSystem<T>>,
   IsCloneable<T, SceneSystem<T>, SceneSystemCloner<T>>,
   IsDisposable<T, SceneSystem<T>>,
+  IsEnableable<T, SceneSystem<T>>,
   IsEventEmittable<T, SceneSystem<T>>,
   IsEventHistoryHolder<T, SceneSystem<T>>,
   IsInputHandleable<T, SceneSystem<T>>,
