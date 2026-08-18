@@ -115,15 +115,15 @@ mixin IsDebuggable<
     return self;
   }
 
-  late final hookOnDebugMessageKey = ECSHookKey<void Function(ECSDebugMessage msg)>(
+  late final hookOnDebugMessageKey = ECSHookKey<void Function(E self, ECSDebugMessage msg)>(
     'IsDebuggable', 'onDebugMessage'
   );
 
-  Iterable<void Function(ECSDebugMessage msg)> get _onDebugMessageFns
+  Iterable<void Function(E self, ECSDebugMessage msg)> get _onDebugMessageFns
     => hooksOf(hookOnDebugMessageKey);
 
   @nonVirtual
-  E listenOnDebugMessage(void Function(ECSDebugMessage msg) fn) {
+  E listenOnDebugMessage(void Function(E self, ECSDebugMessage msg) fn) {
     addHook(hookOnDebugMessageKey, fn);
     return self;
   }
@@ -152,7 +152,7 @@ mixin IsDebuggable<
   }
 
   void _doOnDebugMessage(ECSDebugMessage msg, {bool propagate = false}) {
-    _onDebugMessageFns.forEach((f) => f(msg));
+    _onDebugMessageFns.forEach((f) => f(self, msg));
     onDebugMessage(msg);
     emit(EventDebugMessage(app, msg), scope: .self);
     if (propagate) debugParent?._doOnDebugMessage(msg, propagate: true);

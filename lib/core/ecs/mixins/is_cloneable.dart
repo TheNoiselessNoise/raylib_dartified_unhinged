@@ -106,15 +106,15 @@ mixin IsCloneable<
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  late final hookOnBeforeCloneKey = ECSHookKey<bool Function(E copy, [C? cloner])>(
+  late final hookOnBeforeCloneKey = ECSHookKey<bool Function(E self, E copy, [C? cloner])>(
     'IsCloneable', 'onBeforeClone'
   );
 
-  late final hookOnCloneKey = ECSHookKey<bool Function(E copy, [C? cloner])>(
+  late final hookOnCloneKey = ECSHookKey<bool Function(E self, E copy, [C? cloner])>(
     'IsCloneable', 'onClone'
   );
 
-  late final hookOnAfterCloneKey = ECSHookKey<bool Function(E copy, [C? cloner])>(
+  late final hookOnAfterCloneKey = ECSHookKey<bool Function(E self, E copy, [C? cloner])>(
     'IsCloneable', 'onAfterClone'
   );
 
@@ -122,13 +122,13 @@ mixin IsCloneable<
     'IsCloneable', 'onCloned'
   );
 
-  Iterable<bool Function(E copy, [C? cloner])> get _onBeforeCloneFns
+  Iterable<bool Function(E self, E copy, [C? cloner])> get _onBeforeCloneFns
     => hooksOf(hookOnBeforeCloneKey);
 
-  Iterable<void Function(E copy, [C? cloner])> get _onCloneFns
+  Iterable<void Function(E self, E copy, [C? cloner])> get _onCloneFns
     => hooksOf(hookOnCloneKey);
 
-  Iterable<void Function(E copy, [C? cloner])> get _onAfterCloneFns
+  Iterable<void Function(E self, E copy, [C? cloner])> get _onAfterCloneFns
     => hooksOf(hookOnAfterCloneKey);
 
   Iterable<void Function(E self, E original)> get _onClonedFns
@@ -138,7 +138,7 @@ mixin IsCloneable<
   ///
   /// [fn] returning `false` cancels the clone.
   @nonVirtual
-  E listenOnBeforeClone(bool Function(E copy, [C? cloner]) fn) {
+  E listenOnBeforeClone(bool Function(E self, E copy, [C? cloner]) fn) {
     addHook(hookOnBeforeCloneKey, fn);
     return self;
   }
@@ -147,7 +147,7 @@ mixin IsCloneable<
   ///
   /// Called when the clone operation is about to happen and was not canceled.
   @nonVirtual
-  E listenOnClone(void Function(E copy, [C? cloner]) fn) {
+  E listenOnClone(void Function(E self, E copy, [C? cloner]) fn) {
     addHook(hookOnCloneKey, fn);
     return self;
   }
@@ -156,7 +156,7 @@ mixin IsCloneable<
   ///
   /// Called only if the clone was not canceled.
   @nonVirtual
-  E listenOnAfterClone(void Function(E copy, [C? cloner]) fn) {
+  E listenOnAfterClone(void Function(E self, E copy, [C? cloner]) fn) {
     addHook(hookOnAfterCloneKey, fn);
     return self;
   }
@@ -175,20 +175,20 @@ mixin IsCloneable<
   /// Returns `false` if any listener or the override cancels the clone.
   @nonVirtual
   bool _doOnBeforeClone(E copy, [C? cloner]) {
-    if (!_onBeforeCloneFns.every((f) => f(copy, cloner))) return false;
+    if (!_onBeforeCloneFns.every((f) => f(self, copy, cloner))) return false;
     return onBeforeClone(copy, cloner);
   }
 
   /// Runs all clone listeners and [onClone].
   void _doOnClone(E copy, [C? cloner]) {
-    _onCloneFns.forEach((f) => f(copy, cloner));
+    _onCloneFns.forEach((f) => f(self, copy, cloner));
     onClone(copy, cloner);
   }
 
   /// Runs all after-clone listeners and [onAfterClone].
   @nonVirtual
   void _doOnAfterClone(E copy, [C? cloner]) {
-    _onAfterCloneFns.forEach((f) => f(copy, cloner));
+    _onAfterCloneFns.forEach((f) => f(self, copy, cloner));
     onAfterClone(copy, cloner);
   }
 

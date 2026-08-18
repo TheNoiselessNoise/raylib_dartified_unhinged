@@ -17,6 +17,9 @@ class CStateMachineTransition {
   CStateMachineTransition(this.from, this.to, this.when);
 }
 
+/// TODO: maybe some factory for callbacks?
+/// onEnter: CallbackId('player.walking.enter'),
+
 /// ***WARNING***:
 /// CStateMachine cannot be fully restored from persistable data because its
 /// states and transitions contain closures (`onEnter`, `onExit`, `onUpdate`,
