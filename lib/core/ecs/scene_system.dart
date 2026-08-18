@@ -17,7 +17,7 @@ class SceneSystem<T extends App<T>> extends ECSBase<T> with
   IsActivatable<T, SceneSystem<T>>,
   IsAddable<T, SceneSystem<T>>,
   IsBeginEndFrameable<T, SceneSystem<T>>,
-  IsClonable<T, SceneSystem<T>, SceneSystemCloner<T>>,
+  IsCloneable<T, SceneSystem<T>, SceneSystemCloner<T>>,
   IsDisposable<T, SceneSystem<T>>,
   IsEventEmittable<T, SceneSystem<T>>,
   IsEventHistoryHolder<T, SceneSystem<T>>,

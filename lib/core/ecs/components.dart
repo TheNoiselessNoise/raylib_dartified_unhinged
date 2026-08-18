@@ -12,7 +12,7 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   // is
   IsActivatable<T, Comp<T>>,
   IsAddable<T, Comp<T>>,
-  IsClonable<T, Comp<T>, Cloner<T>>,
+  IsCloneable<T, Comp<T>, Cloner<T>>,
   IsDisposable<T, Comp<T>>,
   IsDrawable<T, Comp<T>>,
   IsEventEmittable<T, Comp<T>>,

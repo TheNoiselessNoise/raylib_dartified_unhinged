@@ -49,7 +49,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   // is
   IsActivatable<T, Entity<T>>,
   IsAddable<T, Entity<T>>,
-  IsClonable<T, Entity<T>, EntityCloner<T>>,
+  IsCloneable<T, Entity<T>, EntityCloner<T>>,
   IsDisposable<T, Entity<T>>,
   IsDrawable<T, Entity<T>>,
   IsEventEmittable<T, Entity<T>>,

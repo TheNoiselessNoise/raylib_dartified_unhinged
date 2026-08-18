@@ -71,7 +71,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   // is
   IsAddable<T, Scene<T>>,
   IsBeginEndFrameable<T, Scene<T>>,
-  IsClonable<T, Scene<T>, SceneCloner<T>>,
+  IsCloneable<T, Scene<T>, SceneCloner<T>>,
   IsDisposable<T, Scene<T>>,
   IsDrawable<T, Scene<T>>,
   IsEnterable<T, Scene<T>>,

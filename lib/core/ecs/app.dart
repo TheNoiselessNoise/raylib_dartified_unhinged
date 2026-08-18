@@ -130,7 +130,7 @@ class App<T extends App<T>> extends ECSBase<T> with
 
   IsAppSystemManagable<T, T>,
   IsBeginEndFrameable<T, T>,
-  IsClonable<T, T, AppCloner<T>>,
+  IsCloneable<T, T, AppCloner<T>>,
   IsDebuggable<T, T>,
   IsDisposable<T, T>,
   IsInputHandleable<T>,

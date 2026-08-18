@@ -22,7 +22,7 @@ class AppSystem<T extends App<T>> extends ECSBase<T> with
   // is
   IsAddable<T, AppSystem<T>>,
   IsBeginEndFrameable<T, AppSystem<T>>,
-  IsClonable<T, AppSystem<T>, AppSystemCloner<T>>,
+  IsCloneable<T, AppSystem<T>, AppSystemCloner<T>>,
   IsDisposable<T, AppSystem<T>>,
   IsEventEmittable<T, AppSystem<T>>,
   IsEventHistoryHolder<T, AppSystem<T>>,
