@@ -121,7 +121,6 @@ class App<T extends App<T>> extends ECSBase<T> with
   Self<T>,
 
   // has
-  HasSceneAccess<T>,
   HasVars<T, T>,
 
   // is

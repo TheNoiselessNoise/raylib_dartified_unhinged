@@ -113,13 +113,13 @@ class HeadlessCollisionBackend extends CollisionBackend {
 
 class HeadlessAssetManager extends AssetManager {
   @override
-  ImageD image(String id, {String? path}) => .zero();
+  UnhingedAsset<ImageD> image(String id, {String? path}) => .new(id, .zero());
 
   @override
-  TextureD texture(String id, {String? path}) => .zero();
+  UnhingedAsset<TextureD> texture(String id, {String? path}) => .new(id, .zero());
 
   @override
-  FontD font(String id, {String? path, int fontSize = 32}) => .zero();
+  UnhingedAsset<FontD> font(String id, {String? path, int fontSize = 32}) => .new(id, .zero());
 }
 
 class HeadlessBackend extends UnhingedBackend {

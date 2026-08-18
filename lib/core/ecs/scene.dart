@@ -66,7 +66,6 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   Self<Scene<T>>,
 
   // has
-  HasSceneAccess<T>,
   HasVars<T, Scene<T>>,
 
   // is

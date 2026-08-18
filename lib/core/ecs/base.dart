@@ -209,7 +209,7 @@ abstract class UnhingedRaylibGame<T extends App<T>> extends RaylibGame {
   bool shouldClose(Raylib rl) => app.shouldAppExit;
 
   @override
-  void loop(Raylib rl) => app.frame();
+  Future<void> loop(Raylib rl) async => app.frame();
 
   @override
   void close(Raylib rl) => app.exit();

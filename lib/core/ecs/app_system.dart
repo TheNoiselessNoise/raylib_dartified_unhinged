@@ -17,7 +17,7 @@ class AppSystem<T extends App<T>> extends ECSBase<T> with
   Self<AppSystem<T>>,
 
   // has
-  HasSceneAccess<T>,
+  HasVars<T, AppSystem<T>>,
 
   // is
   IsAddable<T, AppSystem<T>>,

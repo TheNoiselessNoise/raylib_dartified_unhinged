@@ -77,6 +77,26 @@ class Animation {
   }
 }
 
+/// ***WARNING***:
+/// CAnimator cannot be fully restored from persistable data because it
+/// contain closures (`onComplete`).
+///
+/// Either:
+/// - Extend this class and override `onRestorePersistableData` to set up
+///   the closures there.
+///
+/// - Listen on `factories.comp` (see [App.factories], [ECSFactoryRegistry.comp])
+///   and setup closures when the restored instance matches your type.
+///
+/// ```dart
+/// MyApp(super.backend) {
+///   factories.comp.listen((typeId, instance) {
+///     if (instance is CAnimator) {
+///       instance.onComplete = ...;
+///     }
+///   });
+/// }
+/// ```
 class CAnimator<T extends App<T>> extends Comp<T> {
   TextureD? sheet;
   Map<String, TextureD>? sheets;
@@ -94,9 +114,10 @@ class CAnimator<T extends App<T>> extends Comp<T> {
   Vector2D origin = .zero();
   
   CAnimator(super.app, {
+    super.populateDefaults,
     this.sheet, // single sheet
     this.sheets, // or multiple sheets
-    required this.animations,
+    this.animations = const {},
     String? currentAnimName,
     this.onComplete,
   }) : currentAnimName = currentAnimName ?? animations.keys.first,
@@ -120,7 +141,7 @@ class CAnimator<T extends App<T>> extends Comp<T> {
     
     for (final aninName in animationNames) {
       final animPath = path.join(groupPath, '$aninName.$extension');
-      final sheet = app.backend.assets.texture(aninName, path: animPath);
+      final sheet = app.backend.assets.texture(aninName, path: animPath).asset;
       if (frameWidth == null && sheet.width > maxWidth) maxWidth = sheet.width;
       if (frameHeight == null && sheet.height > maxHeight) maxHeight = sheet.height;
       sheets[aninName] = sheet;
@@ -135,7 +156,7 @@ class CAnimator<T extends App<T>> extends Comp<T> {
       animations[aninName] = anim;
     }
 
-    return CAnimator(app,
+    return .new(app,
       sheets: sheets,
       animations: animations,
       currentAnimName: initialAnimation ?? animations.keys.first,
@@ -354,6 +375,86 @@ class CAnimator<T extends App<T>> extends Comp<T> {
   static const typeId = '__comp__CAnimator';
   
   @override String get persistentTypeId => typeId;
+
+  @override
+  @mustCallSuper
+  MapData getPersistableData({bool force = false}) => {
+    ...super.getPersistableData(force: force),
+    'sheetKey': sheet?.id, // assumes TextureD exposes a stable asset key
+    'sheets': sheets?.map((k, tex) => MapEntry(k, tex.id)),
+    'animations': animations.map((k, anim) => MapEntry(k, _animToData(anim))),
+    // record which anims were fps-derived so we can re-null their
+    // frameDuration on restore and let onAdd rebind them
+    'fpsBoundAnimNames': _fpsBoundAnimations.map((a) => a.name).toList(),
+    'currentAnimName': currentAnimName,
+    'currentFrame': currentFrame,
+    'frameTime': frameTime,
+    'isPlaying': isPlaying,
+  };
+
+  @override
+  @mustCallSuper
+  void setPersistableData(MapTraversable data, {String? id}) {
+    super.setPersistableData(data, id: id);
+
+    final sheetKey = data.getStringOrNull('sheetKey');
+    if (sheetKey != null) sheet = app.backend.assets.texture(sheetKey).asset;
+
+    final sheetsData = data.getMap<String>('sheets');
+    sheets = sheetsData.map((k, key) => MapEntry(k, app.backend.assets.texture(key).asset));
+
+    final animData = data.getMap<MapData>('animations');
+    animations = animData.map((k, v) => .new(k, _animFromData(.new(v))));
+
+    final fpsBoundNames = data.getList<String>('fpsBoundAnimNames');
+    _fpsBoundAnimations = [];
+    for (final name in fpsBoundNames) {
+      final anim = animations[name];
+      if (anim != null) {
+        anim.frameDuration = null; // let onAdd rebind it against current fps
+        _fpsBoundAnimations.add(anim);
+      }
+    }
+
+    currentAnimName = data.getString('currentAnimName', animations.keys.first);
+    currentFrame = data.getInt('currentFrame', 0);
+    frameTime = data.getDouble('frameTime', 0);
+    isPlaying = data.getBool('isPlaying', true);
+  }
+
+  static MapData _animToData(Animation a) => {
+    'name': a.name,
+    'frameCount': a.frameCount,
+    'frameDuration': a.frameDuration,
+    'frameWidth': a.frameWidth,
+    'frameHeight': a.frameHeight,
+    'startRow': a.startRow,
+    'maxColumns': a.maxColumns,
+    'loop': a.loop,
+    'sheetKey': a.sheetKey,
+    'nextAnimation': a.nextAnimation,
+    'paddingX': a.paddingX,
+    'paddingY': a.paddingY,
+    'offsetX': a.offsetX,
+    'offsetY': a.offsetY,
+  };
+
+  static Animation _animFromData(MapTraversable d) => Animation(
+    name: d.getString('name', ''),
+    frameCount: d.getIntOrNull('frameCount'),
+    frameDuration: d.getDoubleOrNull('frameDuration'),
+    frameWidth: d.getInt('frameWidth', 0),
+    frameHeight: d.getInt('frameHeight', 0),
+    startRow: d.getInt('startRow', 0),
+    maxColumns: d.getIntOrNull('maxColumns'),
+    loop: d.getBool('loop', true),
+    sheetKey: d.getStringOrNull('sheetKey'),
+    nextAnimation: d.getStringOrNull('nextAnimation'),
+    paddingX: d.getInt('paddingX', 0),
+    paddingY: d.getInt('paddingY', 0),
+    offsetX: d.getInt('offsetX', 0),
+    offsetY: d.getInt('offsetY', 0),
+  );
 }
 
 class CAnimatorSnapshot<T extends App<T>> extends CompSnapshot<T, CAnimator<T>> {

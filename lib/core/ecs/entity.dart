@@ -43,7 +43,6 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   Self<Entity<T>>,
 
   // has
-  HasSceneAccess<T>,
   HasEntityAccess<T>,
   HasVars<T, Entity<T>>,
 

@@ -72,9 +72,9 @@ enum EventScope {
 /// over the scope passed at the call site.
 abstract class Event<T extends App<T>> extends ECSBase<T> with
   Self<Event<T>>,
-  HasSceneAccess<T>
+  HasAppAccess<T>,
+  IsCancelable<T, Event<T>> // TODO: experimental, maybe remove
 {
-
   @override
   final T app;
 
@@ -116,7 +116,7 @@ abstract class Event<T extends App<T>> extends ECSBase<T> with
   bool _isStopped = false;
 
   /// Whether propagation has been halted via [stopPropagation].
-  bool get isStopped => _isStopped;
+  bool get isStopped => _isStopped || _isCanceled;
 
   /// Halts further propagation of this event (and any event linked via
   /// [setLink]). Already-visited nodes are unaffected; only handlers
@@ -130,6 +130,14 @@ abstract class Event<T extends App<T>> extends ECSBase<T> with
   bool _wasDispatched = false;
   bool _originRecorded = false;
   bool _rootRecorded = false;
+
+  @override
+  bool cancel() {
+    if (isStopped) return false;
+    final result = super.cancel();
+    if (result) stopPropagation();
+    return result;
+  }
 }
 
 // BASE EVENTS

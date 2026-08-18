@@ -6,7 +6,6 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   Self<Comp<T>>,
 
   // has
-  HasSceneAccess<T>,
   HasEntityAccess<T>,
   HasVars<T, Comp<T>>,
 

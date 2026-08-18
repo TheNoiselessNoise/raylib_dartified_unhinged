@@ -82,12 +82,19 @@ abstract class CollisionBackend {
   void dispose() {}
 }
 
+class UnhingedAsset<X> {
+  final String id;
+  final X asset;
+
+  UnhingedAsset(this.id, this.asset);
+}
+
 abstract class AssetManager {
-  ImageD image(String id, {String? path});
+  UnhingedAsset<ImageD> image(String id, {String? path});
 
-  TextureD texture(String id, {String? path});
+  UnhingedAsset<TextureD> texture(String id, {String? path});
 
-  FontD font(String id, {String? path, int fontSize = 32});
+  UnhingedAsset<FontD> font(String id, {String? path, int fontSize = 32});
 
   void dispose() {}
 }

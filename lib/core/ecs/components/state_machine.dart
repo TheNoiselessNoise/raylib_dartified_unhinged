@@ -23,7 +23,7 @@ class CStateMachineTransition {
 /// and `when`).
 ///
 /// Either:
-/// - Extend this class and override `onsetPersistableData` to set up
+/// - Extend this class and override `onRestorePersistableData` to set up
 ///   states and transitions there.
 ///
 /// - Listen on `factories.comp` (see [App.factories], [ECSFactoryRegistry.comp])

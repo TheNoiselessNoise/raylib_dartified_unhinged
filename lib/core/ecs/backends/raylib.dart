@@ -182,24 +182,24 @@ class RaylibAssetManager extends AssetManager {
   final Map<String, FontD> _fonts = {};
 
   @override
-  ImageD image(String id, {String? path}) {
+  UnhingedAsset<ImageD> image(String id, {String? path}) {
     var existing = _images[id] ?? _images[path];
-    if (existing != null) return existing;
-    return _images[id] = rl.CoreD.LoadImage(path ?? id);
+    if (existing != null) return .new(id, existing);
+    return .new(id, _images[id] = rl.CoreD.LoadImage(path ?? id));
   }
 
   @override
-  TextureD texture(String id, {String? path}) {
+  UnhingedAsset<TextureD> texture(String id, {String? path}) {
     var existing = _textures[id] ?? _textures[path];
-    if (existing != null) return existing;
-    return _textures[id] = rl.CoreD.LoadTexture(path ?? id);
+    if (existing != null) return .new(id, existing);
+    return .new(id, _textures[id] = rl.CoreD.LoadTexture(path ?? id));
   }
 
   @override
-  FontD font(String id, {String? path, int fontSize = 32}) {
+  UnhingedAsset<FontD> font(String id, {String? path, int fontSize = 32}) {
     var existing = _fonts[id] ?? _fonts[path];
-    if (existing != null) return existing;
-    return _fonts[id] = rl.CoreD.LoadFontEx(path ?? id, fontSize);
+    if (existing != null) return .new(id, existing);
+    return .new(id, _fonts[id] = rl.CoreD.LoadFontEx(path ?? id, fontSize));
   }
 
   @override

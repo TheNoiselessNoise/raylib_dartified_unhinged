@@ -57,7 +57,7 @@ class ECSFactoryRegistry<T extends App<T>> {
 
   void _registerComponents() {
     // TODO: add CAnimation
-    // TODO: add CAnimator
+    comp.register(CAnimator.typeId, CAnimator<T>.new);
     comp.register(CBoundsBounce.typeId, CBoundsBounce<T>.new);
     comp.register(CBoundsConstraint.typeId, CBoundsConstraint<T>.new);
     comp.register(CBoundsWrap.typeId, CBoundsWrap<T>.new);

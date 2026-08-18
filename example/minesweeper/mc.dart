@@ -602,7 +602,7 @@ class SettingsScene extends FWidgetScene<G> {
 
 extension on AssetManager {
   Vector2D get atlasTileSize => .vec2(16, 16);
-  TextureD get atlas => texture('xp.png');
+  TextureD get atlas => texture('xp.png').asset;
 }
 
 extension on HasAppAccess<G> {

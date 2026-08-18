@@ -11,7 +11,7 @@ typedef CAnyParticleEmitter<T extends App<T>> = CParticleEmitter<T, Entity<T>>;
 /// its factory is a closure.
 /// 
 /// Either:
-/// - Extend this class and override `onsetPersistableData` to reassign
+/// - Extend this class and override `onRestorePersistableData` to reassign
 /// `factory` there.
 /// 
 /// - Listen on `factories.comp` (see [App.factories], [ECSFactoryRegistry.comp])
