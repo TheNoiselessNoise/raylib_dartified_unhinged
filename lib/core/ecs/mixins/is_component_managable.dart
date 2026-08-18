@@ -135,46 +135,55 @@ mixin IsComponentManagable<
     return self;
   }
 
+  @mustCallSuper
   bool _doOnBeforeCompAdd(Comp<T> component) {
     if (!_onBeforeCompAddFns.every((f) => f(self, component))) return false;
     return onBeforeCompAdd(component);
   }
   
+  @mustCallSuper
   void _doOnCompAdd(Comp<T> component) {
     _onCompAddFns.forEach((f) => f(self, component));
     onCompAdd(component);
   }
 
+  @mustCallSuper
   void _doOnAfterCompAdd(Comp<T> component) {
     _onAfterCompAddFns.forEach((f) => f(self, component));
     onAfterCompAdd(component);
   }
 
+  @mustCallSuper
   bool _doOnBeforeCompRemove(Comp<T> component) {
     if (!_onBeforeCompRemoveFns.every((f) => f(self, component))) return false;
     return onBeforeCompRemove(component);
   }
 
+  @mustCallSuper
   void _doOnCompRemove(Comp<T> component) {
     _onCompRemoveFns.forEach((f) => f(self, component));
     onCompRemove(component);
   }
 
+  @mustCallSuper
   void _doOnAfterCompRemove(Comp<T> component) {
     _onAfterCompRemoveFns.forEach((f) => f(self, component));
     onAfterCompRemove(component);
   }
 
+  @mustCallSuper
   bool _doOnBeforeCompClone(Comp<T> component) {
     if (!_onBeforeCompCloneFns.every((f) => f(self, component))) return false;
     return onBeforeCompClone(component);
   }
 
+  @mustCallSuper
   void _doOnCompClone(Comp<T> component) {
     _onCompCloneFns.forEach((f) => f(self, component));
     onCompClone(component);
   }
 
+  @mustCallSuper
   void _doOnAfterCompClone(Comp<T> component) {
     _onAfterCompCloneFns.forEach((f) => f(self, component));
     onAfterCompClone(component);
@@ -207,6 +216,7 @@ mixin IsComponentManagable<
   // ░██████████    ░███    ░██████████ ░██    ░███     ░██      ░██████   
 
   @override
+  @mustCallSuper
   bool _doEventLocal(Event<T> event) {
     if (event.scope == .root) return false;
     if (event.scope == .sceneOnly) return false;
@@ -750,6 +760,7 @@ mixin IsComponentManagable<
   }
 
   @override
+  @mustCallSuper
   void _doOnDispose() {
     _components.forEach((s) => s._doOnDispose());
     super._doOnDispose();

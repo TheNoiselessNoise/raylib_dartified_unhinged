@@ -253,13 +253,14 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
     }
   }
 
-  void _detachChild(FWidget child) {
+  void _detachChild(FWidget<T> child) {
     _entities.remove(child);
     child.parentWidget = null;
     // deliberately no removeEntity, no clearChildren, we don't know if it's still alive elsewhere
   }
 
   @override
+  @mustCallSuper
   void _doUpdate(double dt) {
     if (_dirty) {
       _dirty = false;
@@ -273,6 +274,7 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
   }
 
   @override
+  @mustCallSuper
   void _doDraw(double dt) {
     super._doDraw(dt);
 
@@ -378,6 +380,7 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
   void cloneWidgetInto(FWidget<T> copy) {}
 
   @override
+  @mustCallSuper
   void _doOnClone(Entity<T> copy, [ClonePolicy<T>? policy]) {
     _doOnCloneEntityGroupStart(copy, policy);
     cloneWidgetInto(copy as FWidget<T>);
@@ -394,6 +397,7 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
 
   void _layoutSelf() => _doLayout(.tight(size));
 
+  @mustCallSuper
   void _doLayout(FConstraints constraints) {
     layout(constraints);
     if (size.x.isNaN || size.y.isNaN || size.x.isInfinite || size.y.isInfinite) {

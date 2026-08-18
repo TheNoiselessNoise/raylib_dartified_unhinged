@@ -70,8 +70,6 @@ class ArkanoidInline extends UnhingedRaylibGame<G> {
       SetTargetFPS(60);
     });
 
-    app.listenOnShouldExit((app) => WindowShouldClose());
-
     /* =========================
       SCENE
     ========================= */

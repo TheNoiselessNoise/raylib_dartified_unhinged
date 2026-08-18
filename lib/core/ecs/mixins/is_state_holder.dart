@@ -62,6 +62,7 @@ abstract class StateSnapshot<T extends App<T>, E extends ECSBase<T>> with HasExt
   /// Runs all should-recreate-missing listeners and [onShouldRecreateMissing].
   ///
   /// Returns `false` if any listener or the override cancels the recreation of missing.
+  @mustCallSuper
   bool _doShouldRecreateMissing(String sourceId) {
     if (!_onShouldRecreateMissingFns.every((f) => f(sourceId))) return false;
     return onShouldRecreateMissing(sourceId);
@@ -70,6 +71,7 @@ abstract class StateSnapshot<T extends App<T>, E extends ECSBase<T>> with HasExt
   /// Runs all should-delete-extra listeners and [onShouldDeleteExtra].
   ///
   /// Returns `false` if any listener or the override cancels the deletion of extra.
+  @mustCallSuper
   bool _doShouldDeleteExtra(ECSBase<T> target) {
     if (!_onShouldDeleteExtraFns.every((f) => f(target))) return false;
     return onShouldDeleteExtra(target);

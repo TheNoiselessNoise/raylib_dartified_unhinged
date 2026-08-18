@@ -50,6 +50,7 @@ class SceneSystem<T extends App<T>> extends ECSBase<T> with
   // ░██████████    ░███    ░██████████ ░██    ░███     ░██      ░██████   
 
   @override
+  @mustCallSuper
   bool _doEventLocal(Event<T> event) {
     if (event.scope == .root) return false;
 

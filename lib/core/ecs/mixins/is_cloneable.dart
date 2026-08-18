@@ -179,6 +179,7 @@ mixin IsCloneable<
   }
 
   /// Runs all clone listeners and [onClone].
+  @mustCallSuper
   void _doOnClone(E copy, [ClonePolicy<T>? policy]) {
     _onCloneFns.forEach((f) => f(self, copy, policy));
     onClone(copy, policy);
@@ -192,6 +193,7 @@ mixin IsCloneable<
   }
 
   /// Runs all cloned listeners and [onCloned].
+  @mustCallSuper
   void _doOnCloned(E original) {
     _onClonedFns.forEach((f) => f(self, original));
     onCloned(original);
@@ -296,6 +298,7 @@ mixin IsCloneable<
 
   /// Finalizes the clone pipeline: clears [isCloning], sets [isCloned], and
   /// calls [onCloned] on the copy followed by after-hooks on the origin.
+  @mustCallSuper
   void _doCloneAfter(E target, [ClonePolicy<T>? policy]) {
     if (target is IsCloneable<T, E>) {
       target.isCloning = false;
@@ -325,6 +328,7 @@ mixin IsCloneable<
   /// Returns the populated copy. By default returns [newInstance] unchanged.
   E createClone(E newInstance, [ClonePolicy<T>? policy]) => newInstance;
 
+  @mustCallSuper
   void _doCloneState(E target, ClonePolicy<T>? policy) {
     
     // hooks

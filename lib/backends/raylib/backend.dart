@@ -6,7 +6,7 @@ import '';
 import 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart'
   show App, RaylibBackend;
 
-abstract class UnhingedRaylibGame<T extends App<T>> extends RaylibGame {
+abstract class UnhingedRaylibGame<T extends App<T>> extends RaylibAppBase<Raylib> {
   late T app;
 
   T create(RaylibBackend backend);
@@ -15,14 +15,11 @@ abstract class UnhingedRaylibGame<T extends App<T>> extends RaylibGame {
   void init(Raylib rl) => app = create(.new(rl))..init();
 
   @override
-  bool shouldClose(Raylib rl) => app.shouldAppExit;
+  bool shouldClose(Raylib rl) => app.shouldAppExit || super.shouldClose(rl);
 
   @override
   Future<void> loop(Raylib rl) async => app.frame();
 
   @override
   void close(Raylib rl) => app.exit();
-
-  @override
-  void dispose(Raylib rl) {}
 }

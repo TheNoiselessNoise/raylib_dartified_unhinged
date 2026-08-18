@@ -33,6 +33,7 @@ mixin IsTaskProcessable<
     return self;
   }
 
+  @mustCallSuper
   bool _doCanceledTask(Task<T> task) {
     if (!task.isCanceled) return false;
     emit(EventTaskCancelled(app, task));
@@ -41,6 +42,7 @@ mixin IsTaskProcessable<
 
   // (internal) called by task system to propagate task
   // by default just call the hooks
+  @mustCallSuper
   bool _doTask(Task<T> task, double dt) {
     final isFirstRun = !task._hasStarted;
     task._hasStarted = true;

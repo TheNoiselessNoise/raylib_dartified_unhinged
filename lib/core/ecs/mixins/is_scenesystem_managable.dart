@@ -122,18 +122,21 @@ mixin IsSceneSystemManagable<
   /// Runs all before-add listeners and [onBeforeSceneSystemAdd].
   ///
   /// Returns `false` if any listener or the override cancels the add.
+  @mustCallSuper
   bool _doOnBeforeSceneSystemAdd(SceneSystem<T> system) {
     if (!_onBeforeSceneSystemAddFns.every((f) => f(self, system))) return false;
     return onBeforeSceneSystemAdd(system);
   }
 
   /// Runs all add listeners and [onSceneSystemAdd].
+  @mustCallSuper
   void _doOnSceneSystemAdd(SceneSystem<T> system) {
     _onSceneSystemAddFns.forEach((f) => f(self, system));
     onSceneSystemAdd(system);
   }
 
   /// Runs all after-add listeners and [onAfterSceneSystemAdd].
+  @mustCallSuper
   void _doOnAfterSceneSystemAdd(SceneSystem<T> system) {
     _onAfterSceneSystemAddFns.forEach((f) => f(self, system));
     onAfterSceneSystemAdd(system);
@@ -142,18 +145,21 @@ mixin IsSceneSystemManagable<
   /// Runs all before-remove listeners and [onBeforeSceneSystemRemove].
   ///
   /// Returns `false` if any listener or the override cancels the remove.
+  @mustCallSuper
   bool _doOnBeforeSceneSystemRemove(SceneSystem<T> system) {
     if (!_onBeforeSceneSystemRemoveFns.every((f) => f(self, system))) return false;
     return onBeforeSceneSystemRemove(system);
   }
 
   /// Runs all remove listeners and [onSceneSystemRemove].
+  @mustCallSuper
   void _doOnSceneSystemRemove(SceneSystem<T> system) {
     _onSceneSystemRemoveFns.forEach((f) => f(self, system));
     onSceneSystemRemove(system);
   }
 
   /// Runs all after-remove listeners and [onAfterSceneSystemRemove].
+  @mustCallSuper
   void _doOnAfterSceneSystemRemove(SceneSystem<T> system) {
     _onAfterSceneSystemRemoveFns.forEach((f) => f(self, system));
     onAfterSceneSystemRemove(system);
@@ -274,6 +280,7 @@ mixin IsSceneSystemManagable<
       return;
     }
 
+    system.parent = self;
     _doOnSceneSystemAdd(system);
     if (!system.isClone) system._doAdd(self);
     

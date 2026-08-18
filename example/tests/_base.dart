@@ -8,9 +8,6 @@ abstract class ExampleRaylibApp<T extends ExampleRaylibApp<T>> extends App<T> {
 
   @override
   void onInit() => InitWindow(screenWidth, screenHeight, 'Example App');
-
-  @override
-  bool onShouldExit() => WindowShouldClose();
 }
 
 class ExampleRaylibBridge<T extends ExampleRaylibApp<T>> extends UnhingedRaylibGame<ExampleRaylibApp<T>> {

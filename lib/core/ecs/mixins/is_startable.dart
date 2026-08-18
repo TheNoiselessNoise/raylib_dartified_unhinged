@@ -33,6 +33,7 @@ mixin IsStartable<
   /// Commits the start: sets [hasStarted], notifies listeners, and calls [onStart].
   ///
   /// No-op if already started.
+  @mustCallSuper
   void _doStart() {
     if (hasStarted) return;
     hasStarted = true;

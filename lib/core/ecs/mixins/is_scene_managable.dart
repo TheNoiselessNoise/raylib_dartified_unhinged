@@ -122,18 +122,21 @@ mixin IsSceneManagable<
   /// Runs all before-add listeners and [onBeforeSceneAdd].
   ///
   /// Returns `false` if any listener or the override cancels the add.
+  @mustCallSuper
   bool _doOnBeforeSceneAdd(Scene<T> scene) {
     if (!_onBeforeSceneAddFns.every((f) => f(self, scene))) return false;
     return onBeforeSceneAdd(scene);
   }
 
   /// Runs all add listeners and [onSceneAdd].
+  @mustCallSuper
   void _doOnSceneAdd(Scene<T> scene) {
     _onSceneAddFns.forEach((f) => f(self, scene));
     onSceneAdd(scene);
   }
 
   /// Runs all after-add listeners and [onAfterSceneAdd].
+  @mustCallSuper
   void _doOnAfterSceneAdd(Scene<T> scene) {
     _onAfterSceneAddFns.forEach((f) => f(self, scene));
     onAfterSceneAdd(scene);
@@ -142,18 +145,21 @@ mixin IsSceneManagable<
   /// Runs all before-remove listeners and [onBeforeSceneRemove].
   ///
   /// Returns `false` if any listener or the override cancels the remove.
+  @mustCallSuper
   bool _doOnBeforeSceneRemove(Scene<T> scene) {
     if (!_onBeforeSceneRemoveFns.every((f) => f(self, scene))) return false;
     return onBeforeSceneRemove(scene);
   }
 
   /// Runs all remove listeners and [onSceneRemove].
+  @mustCallSuper
   void _doOnSceneRemove(Scene<T> scene) {
     _onSceneRemoveFns.forEach((f) => f(self, scene));
     onSceneRemove(scene);
   }
 
   /// Runs all after-remove listeners and [onAfterSceneRemove].
+  @mustCallSuper
   void _doOnAfterSceneRemove(Scene<T> scene) {
     _onAfterSceneRemoveFns.forEach((f) => f(self, scene));
     onAfterSceneRemove(scene);
@@ -298,6 +304,7 @@ mixin IsSceneManagable<
       _scenes.clear();
     }
     
+    scene.parent = self;
     _doOnSceneAdd(scene);
     if (!scene.isClone) scene._doAdd(self);
     _scenes.add(scene);
@@ -378,10 +385,11 @@ mixin IsSceneManagable<
       return false;
     }
 
+    if (!scene.isClone) scene._doStart();
+
     _doOnSceneEnter(scene);
     scene._doOnEnter();
     _currentScene = scene;
-    if (!scene.isClone) scene._doStart();
 
     _doOnAfterSceneEnter(scene);
     scene._doOnAfterEnter();

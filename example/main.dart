@@ -147,9 +147,6 @@ class MyApp extends App<G> {
   MyApp(super.backend);
 
   @override
-  bool onShouldExit() => WindowShouldClose();
-
-  @override
   void onInit() {
     InitWindow(screenWidth, screenHeight, 'pub.dev example');
     addScene(FirstScene(app));

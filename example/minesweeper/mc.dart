@@ -374,7 +374,7 @@ class MinesweeperScene extends DrawScene<G> {
     msState.grid = CellGrid2D(app,
       width: msState.gridSize.x,
       height: msState.gridSize.y,
-    );
+    )..initialize();
 
     // prepare bombs
     final positions = msState.grid!.positions();
@@ -592,10 +592,10 @@ class ChooseDifficultyWidget extends FWidget<G> {
 }
 
 class SettingsScene extends FWidgetScene<G> {
-  late final ChooseDifficultyWidget widget = ChooseDifficultyWidget(app);
+  late final ChooseDifficultyWidget widget;
   
   SettingsScene(super.app) {
-    addEntity(widget);
+    addEntity(widget = .new(app));
   }
 
   @override
@@ -611,13 +611,11 @@ class Minesweeper extends App<G> {
   Minesweeper(super.backend);
 
   @override
-  bool onShouldExit() => WindowShouldClose();
-
-  @override
   void onInit() {
     InitWindow(screenWidth, screenHeight, "Minesweeper");
     SetWindowMonitor(0);
     SetTargetFPS(60);
+
     addScene(MainMenuScene(app));
     addScene(SettingsScene(app));
     addScene(MinesweeperScene(app));

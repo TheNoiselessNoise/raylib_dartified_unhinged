@@ -63,18 +63,21 @@ mixin IsEnterable<
   /// Runs all before-enter listeners and [onBeforeEnter].
   ///
   /// Returns `false` if any listener or the override cancels the enter.
+  @mustCallSuper
   bool _doOnBeforeEnter() {
     if (!_onBeforeEnterFns.every((f) => f(self))) return false;
     return onBeforeEnter();
   }
 
   /// Runs all enter listeners and [onEnter].
+  @mustCallSuper
   void _doOnEnter() {
     _onEnterFns.forEach((f) => f(self));
     onEnter();
   }
 
   /// Runs all after-enter listeners and [onAfterEnter].
+  @mustCallSuper
   void _doOnAfterEnter() {
     _onAfterEnterFns.forEach((f) => f(self));
     onAfterEnter();

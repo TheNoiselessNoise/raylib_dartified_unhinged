@@ -65,11 +65,9 @@ class InputSystem<T extends App<T>> extends AppSystem<T> {
     _keyPressedKeycodes.clear();
     _keyPressedUnicodes.clear();
     _poll();
-  }
 
-  @override
-  @mustCallSuper
-  void _doEndFrame(double dt) {}
+    super._doBeginFrame(dt);
+  }
 
   void _poll() {
     // --- Keys ---

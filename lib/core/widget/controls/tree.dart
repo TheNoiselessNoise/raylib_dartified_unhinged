@@ -41,6 +41,7 @@ class FTree<T extends App<T>> extends FWidget<T> {
   }
 
   @override
+  @mustCallSuper
   void _doDraw(double dt) {
     super._doDraw(dt);
 
@@ -60,6 +61,7 @@ class FTreeNode<T extends App<T>> extends FWidget<T> {
   final List<FTreeNode<T>> nodes;
 
   void Function(FTreeNode<T> self)? onClickFn;
+  void Function(FTreeNode<T> self)? onExpandedChanged;
 
   FTreeNode(
     super.app, {
@@ -69,6 +71,7 @@ class FTreeNode<T extends App<T>> extends FWidget<T> {
     this.expanded = false,
     this.selected = false,
     this.onClickFn,
+    this.onExpandedChanged,
   }) : super(children: [header, ...nodes]);
 
   @override
@@ -90,6 +93,7 @@ class FTreeNode<T extends App<T>> extends FWidget<T> {
   }
 
   @override
+  @mustCallSuper
   void _doUpdate(double dt) {
     header._doUpdate(dt);
 
@@ -101,6 +105,7 @@ class FTreeNode<T extends App<T>> extends FWidget<T> {
           onClickFn?.call(this);
           selected = !selected;
           expanded = !expanded;
+          onExpandedChanged?.call(this);
         });
       }
     }

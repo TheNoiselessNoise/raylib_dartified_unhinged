@@ -283,6 +283,7 @@ class App<T extends App<T>> extends ECSBase<T> with
     return self;
   }
 
+  @nonVirtual
   bool _doShouldExit() {
     if (_onShouldExitFns.any((f) => f(self))) return true;
     return onShouldExit();
@@ -342,6 +343,7 @@ class App<T extends App<T>> extends ECSBase<T> with
   }
 
   @override
+  @mustCallSuper
   bool _doEventLocal(Event<T> event) {
     if (_doEventVisitedCheck(event)) return true;
     if (event.isStopped) return true;
@@ -390,14 +392,17 @@ class App<T extends App<T>> extends ECSBase<T> with
   //   ░██  ░██       ░██ ░██         ░██         
   // ░██████░██       ░██ ░██         ░██████████ 
 
+  @mustCallSuper
   void _doUpdate(double dt) {
     _doFrame(dt, time.frameCount);
     currentScene._doUpdate(dt);
   }
 
+  @mustCallSuper
   void _doDraw(double dt) => currentScene._doDraw(dt);
 
   @override
+  @mustCallSuper
   void _doHandleInput() {
     _systems.forEach((s) => s._doHandleInput());
     currentScene._doHandleInput();
@@ -405,6 +410,7 @@ class App<T extends App<T>> extends ECSBase<T> with
   }
 
   @override
+  @mustCallSuper
   void _doBeginFrame(double dt) {
     backend.beginFrame();
     input._doBeginFrame(dt);
@@ -415,6 +421,7 @@ class App<T extends App<T>> extends ECSBase<T> with
   }
 
   @override
+  @mustCallSuper
   void _doEndFrame(double dt) {
     super._doEndFrame(dt); // observe before teardown begins
     currentScene._doEndFrame(dt);
@@ -424,6 +431,7 @@ class App<T extends App<T>> extends ECSBase<T> with
   }
 
   @override
+  @mustCallSuper
   void _doOnDispose() {
     _scenes.forEach((s) => s._doOnDispose());
     _systems.forEach((s) => s._doOnDispose());
@@ -440,6 +448,7 @@ class App<T extends App<T>> extends ECSBase<T> with
   //  ░██   ░██ ░██          ░██   ░██  ░██   ░████ ░██         
   //   ░██████  ░██████████   ░██████   ░██    ░███ ░██████████ 
 
+  @mustCallSuper
   void _doCloneDependencies(T target) {
     if (target._dependenciesAssigned) return;
     _clones.add(target);

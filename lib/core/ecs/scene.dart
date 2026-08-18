@@ -322,8 +322,10 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   //   ░██  ░██       ░██ ░██         ░██         
   // ░██████░██       ░██ ░██         ░██████████ 
 
-  /// Runs one update tick: `input` > `pre-update` > `systems (pre)` > `entities` >
-  /// `systems (post)` > `post-update`.
+  String? renderLayerOverride;
+
+  /// Runs one update tick:
+  /// `pre-update` > `systems (pre)` > `entities` > `systems (post)` > `post-update`.
   void _updateScene(double dt) {
     _doPreUpdate(dt);
 
@@ -333,7 +335,21 @@ class Scene<T extends App<T>> extends ECSBase<T> with
 
     _doPostUpdate(dt);
   }
-  
+
+  @override
+  @nonVirtual
+  void _doOnEntityAdd(Entity<T> entity) {
+    _indexEntity(entity);
+    super._doOnEntityAdd(entity);
+  }
+
+  @override
+  @nonVirtual
+  void _doOnEntityRemove(Entity<T> entity) {
+    _unindexEntity(entity);
+    super._doOnEntityRemove(entity);
+  }
+
   @override
   @nonVirtual
   void _doHandleInput() {
@@ -356,6 +372,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   /// hooks on the appropriate layers and calling system and entity draw methods
   /// for each layer.
   @override
+  @mustCallSuper
   void _doDraw(double dt) {
     _doOnPreDraw(dt);
 
@@ -367,7 +384,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
       }
 
       _runDrawSystems(.preEntities, dt);
-      _drawEntities(dt);
+      _drawLayeredEntities(dt, renderLayerOverride);
       _runDrawSystems(.postEntities, dt);
 
       if (layer.name == RenderLayers.foreground.name) {
@@ -381,11 +398,13 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   }
 
   @override
+  @mustCallSuper
   void _doBeginFrame(double dt) {
     super._doBeginFrame(dt);
     _systems.forEach((s) => s._doBeginFrame(dt));
   }
 
+  @mustCallSuper
   void _doDrainLoop() {
     const maxIterations = 8;
     var iterations = 0;
@@ -420,6 +439,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   ///
   /// Drains the callback queue, then events.
   @override
+  @mustCallSuper
   void _doEndFrame(double dt) {
     _doDrainLoop();
     _processTasks(dt);
@@ -451,6 +471,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   // ░██████████    ░███    ░██████████ ░██    ░███     ░██      ░██████   
 
   @override
+  @mustCallSuper
   bool _doEventLocal(Event<T> event) {
     if (event.scope == .root) return false;
 
@@ -522,6 +543,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   }
 
   @override
+  @mustCallSuper
   void _doOnDispose() {
     _entities.forEach((s) => s._doOnDispose());
     _systems.forEach((s) => s._doOnDispose());
@@ -544,6 +566,7 @@ class DrawScene<T extends App<T>> extends Scene<T> {
   ColorD get backgroundColor => .BLACK;
 
   @override
+  @mustCallSuper
   void _doBeginFrame(double dt) {
     backend.render.beginDrawing();
     backend.render.clearBackground(backgroundColor);
@@ -551,6 +574,7 @@ class DrawScene<T extends App<T>> extends Scene<T> {
   }
 
   @override
+  @mustCallSuper
   void _doEndFrame(double dt) {
     super._doEndFrame(dt);
     backend.render.endDrawing();

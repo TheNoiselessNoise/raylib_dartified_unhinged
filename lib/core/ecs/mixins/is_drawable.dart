@@ -25,6 +25,7 @@ mixin IsDrawable<
   }
 
   /// Propagates the draw phase through listeners and the [onDraw] hook.
+  @mustCallSuper
   void _doDraw(double dt) {
     _onDrawFns.forEach((f) => f(self, dt));
     onDraw(dt);

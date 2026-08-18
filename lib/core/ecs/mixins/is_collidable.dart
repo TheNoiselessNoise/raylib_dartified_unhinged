@@ -66,18 +66,21 @@ mixin IsCollidable<
   /// Runs all before-collision listeners and [onBeforeCollision].
   ///
   /// Returns `false` if any listener or the override cancels the collision.
+  @mustCallSuper
   bool _doOnBeforeCollision(C other) {
     if (!_onBeforeCollisionFns.every((f) => f(self, other))) return false;
     return onBeforeCollision(other);
   }
 
   /// Runs all collision listeners and [onCollision].
+  @mustCallSuper
   void _doOnCollision(C other) {
     _onCollisionFns.forEach((f) => f(self, other));
     onCollision(other);
   }
 
   /// Runs all after-collision listeners and [onAfterCollision].
+  @mustCallSuper
   void _doOnAfterCollision(C other) {
     _onAfterCollisionFns.forEach((f) => f(self, other));
     onAfterCollision(other);

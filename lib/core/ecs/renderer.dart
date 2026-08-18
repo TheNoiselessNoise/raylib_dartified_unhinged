@@ -41,5 +41,4 @@ class Renderer<T extends App<T>> extends AppService<T> {
   String _activeLayer = RenderLayers.background.name;
   String get activeLayer => _activeLayer;
   void setLayer(String name) => _activeLayer = name;
-  bool inLayer(String name) => _activeLayer == name;
 }

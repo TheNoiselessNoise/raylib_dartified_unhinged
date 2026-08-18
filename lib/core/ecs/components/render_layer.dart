@@ -1,12 +1,29 @@
 part of '../../raylib_dartified_unhinged.dart';
 
 class CRenderLayer<T extends App<T>> extends Comp<T> {
-  late String layer;
+  late String _layer;
+
+  String get layer => _layer;
+
+  set layer(String value) {
+    final oldLayer = _layer;
+    _layer = value;
+
+    // We only care if parent of this component is Entity
+    // not another component for example
+    if (parent case Entity<T> entity) {
+      // We only care if parent of Entity is `Scene`
+      // not `EntityGroup` for example
+      if (entity.parent case Scene<T> scene) {
+        scene._onLayerChanged(entity, oldLayer, value);
+      }
+    }
+  }
 
   CRenderLayer(super.app, {
     super.populateDefaults,
     String? layer,
-  }) : layer = layer ?? RenderLayers.world.name;
+  }) : _layer = layer ?? RenderLayers.world.name;
 
   // clone
 
@@ -29,7 +46,7 @@ class CRenderLayer<T extends App<T>> extends Comp<T> {
   void restoreSnapshot(covariant CRenderLayerSnapshot<T> snapshot) {
     super.restoreSnapshot(snapshot);
     
-    layer = snapshot.layer;
+    _layer = snapshot.layer;
   }
 
   // persistence
@@ -50,7 +67,7 @@ class CRenderLayer<T extends App<T>> extends Comp<T> {
   void setPersistableData(MapTraversable data, {String? id}) {
     super.setPersistableData(data, id: id);
 
-    layer = data.getString('layer');
+    _layer = data.getString('layer');
   }
 }
 

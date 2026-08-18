@@ -67,18 +67,21 @@ mixin IsRemovable<
   /// Runs all before-remove listeners and [onBeforeRemove].
   ///
   /// Returns `false` if any listener or the override cancels removal.
+  @mustCallSuper
   bool _doOnBeforeRemove() {
     if (!_onBeforeRemoveFns.every((f) => f(self))) return false;
     return onBeforeRemove();
   }
 
   /// Runs all remove listeners and [onRemove].
+  @mustCallSuper
   void _doOnRemove() {
     _onRemoveFns.forEach((f) => f(self));
     onRemove();
   }
 
   /// Runs all after-remove listeners and [onAfterRemove].
+  @mustCallSuper
   void _doOnAfterRemove() {
     _onAfterRemoveFns.forEach((f) => f(self));
     onAfterRemove();
@@ -87,6 +90,7 @@ mixin IsRemovable<
   /// Notifies listeners and calls [onRemove] immediately before removal completes.
   ///
   /// Sets [isRemoved] and is a no-op if already removed.
+  @mustCallSuper
   void _doRemove() {
     if (isRemoved) return;
     isRemoved = true;

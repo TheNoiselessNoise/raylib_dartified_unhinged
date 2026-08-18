@@ -39,12 +39,14 @@ mixin IsPrePostUpdatable<
   }
 
   /// Notifies all pre-update listeners and calls [onPreUpdate].
+  @mustCallSuper
   void _doPreUpdate(double dt) {
     _onPreUpdateFns.forEach((f) => f(self, dt));
     onPreUpdate(dt);
   }
 
   /// Notifies all post-update listeners and calls [onPostUpdate].
+  @mustCallSuper
   void _doPostUpdate(double dt) {
     _onPostUpdateFns.forEach((f) => f(self, dt));
     onPostUpdate(dt);

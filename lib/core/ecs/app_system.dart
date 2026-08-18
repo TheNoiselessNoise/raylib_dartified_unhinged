@@ -53,6 +53,7 @@ class AppSystem<T extends App<T>> extends ECSBase<T> with
   // ░██████████    ░███    ░██████████ ░██    ░███     ░██      ░██████   
 
   @override
+  @mustCallSuper
   bool _doEventLocal(Event<T> event) {
     if (_doEventVisitedCheck(event)) return true;
     if (event.isStopped) return true;

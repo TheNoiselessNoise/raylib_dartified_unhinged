@@ -71,6 +71,11 @@ class Entity<T extends App<T>> extends ECSBase<T> with
     bool populateDefaults = true,
   }) {
     this.populateDefaults = populateDefaults;
+
+    if (populateDefaults) {
+      addCompIfNotExists(CRenderLayer<T>(app, layer: RenderLayers.world.name));
+    }
+
     emit(EventEntityInitialized(app, this));
   }
 
@@ -187,6 +192,9 @@ class Entity<T extends App<T>> extends ECSBase<T> with
     return self;
   }
 
+  // NOTE: renderLayer is expected to exist
+  CRenderLayer<T> get renderLayer => get<CRenderLayer<T>>()!;
+
   CTransform<T>? get transform => get<CTransform<T>>();
   Entity<T> onTransform(void Function(CTransform<T> t) fn) => on<CTransform<T>>(fn);
 
@@ -218,6 +226,40 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   Entity<T> removeThis() {
     callback(() => scene.removeEntity(self));
     return self;
+  }
+
+  @override
+  @mustCallSuper
+  void _doOnCompAdd(Comp<T> component) {
+    // Before we add CRenderLayer, let's get rid of all of existing
+    if (component is CRenderLayer<T>) {
+      while (has<CRenderLayer<T>>()) {
+        removeComp<CRenderLayer<T>>();
+      }
+    }
+    super._doOnCompAdd(component);
+  }
+
+  @override
+  void _doOnAfterCompAdd(Comp<T> component) {
+    if (component is CRenderLayer<T>) {
+      if (parent case Scene<T> scene) {
+        scene._indexEntity(self);
+      }
+    }
+    
+    super._doOnAfterCompAdd(component);
+  }
+
+  @override
+  void _doOnCompRemove(Comp<T> component) {
+    if (component is CRenderLayer<T>) {
+      if (parent case Scene<T> scene) {
+        scene._unindexEntity(self);
+      }
+    }
+
+    super._doOnCompRemove(component);
   }
 
   /// Advances all components by [dt], fires update listeners, then calls
@@ -266,6 +308,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   //  ░██   ░██ ░██          ░██   ░██  ░██   ░████ ░██         
   //   ░██████  ░██████████   ░██████   ░██    ░███ ░██████████ 
 
+  @mustCallSuper
   void _doOnCloneEntityStart(Entity<T> copy, [ClonePolicy<T>? policy]) {
     emit(EventEntityCloning(app, self, copy));
 
@@ -282,6 +325,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   }
 
   @override
+  @mustCallSuper
   void _doOnClone(Entity<T> copy, [ClonePolicy<T>? policy]) {
     _doOnCloneEntityStart(copy, policy);
     super._doOnClone(copy, policy);
@@ -393,6 +437,10 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   EntityGroup(super.app);
 
   @override
+  Map<String, Set<Entity<T>>> getEntitiesByLayer()
+    => throw StateError('Entities by layer are only available in a Scene, not in EntityGroup.');
+
+  @override
   Bounds? get bounds {
     Bounds? result;
 
@@ -412,6 +460,7 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   }
 
   @override
+  @mustCallSuper
   void _doRemove() {
     super._doRemove();
     _entities.toList().forEach(removeEntity);
@@ -425,6 +474,7 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   //  ░██   ░██ ░██          ░██   ░██  ░██   ░████ ░██         
   //   ░██████  ░██████████   ░██████   ░██    ░███ ░██████████ 
 
+  @mustCallSuper
   void _doOnCloneEntityGroupStart(Entity<T> copy, [ClonePolicy<T>? policy]) {
     if (copy is! EntityGroup<T, E>) throw StateError('unreachable');
 
@@ -437,6 +487,7 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   }
 
   @override
+  @mustCallSuper
   void _doOnClone(Entity<T> copy, [ClonePolicy<T>? policy]) {
     _doOnCloneEntityGroupStart(copy, policy);
     super._doOnClone(copy, policy);
@@ -459,6 +510,7 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   /// Advances the group itself, then advances each member entity.
   /// Member updates are skipped when the group is disabled.
   @override
+  @mustCallSuper
   void _doUpdate(double dt) {
     super._doUpdate(dt);
     if (isDisabled) return;
@@ -468,10 +520,11 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   /// Draws the group itself, then draws each member entity.
   /// Member draws are skipped when the group is disabled.
   @override
+  @mustCallSuper
   void _doDraw(double dt) {
     super._doDraw(dt);
     if (isDisabled) return;
-    _drawEntities(dt);
+    _drawAllEntities(dt);
   }
 
   /// Dispatches [event] to the group itself, then to each member entity.

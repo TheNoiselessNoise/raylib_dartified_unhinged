@@ -39,12 +39,14 @@ mixin IsBeginEndFrameable<
   }
 
   /// Notifies all begin-frame listeners and calls [onBeginFrame].
+  @mustCallSuper
   void _doBeginFrame(double dt) {
     _onBeginFrameFns.forEach((f) => f(self, dt));
     onBeginFrame(dt);
   }
 
   /// Notifies all end-frame listeners and calls [onEndFrame].
+  @mustCallSuper
   void _doEndFrame(double dt) {
     _onEndFrameFns.forEach((f) => f(self, dt));
     onEndFrame(dt);

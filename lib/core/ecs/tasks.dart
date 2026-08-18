@@ -16,6 +16,7 @@ abstract class Task<T extends App<T>> extends ECSBase<T> with
 
   bool update(double dt);
 
+  @mustCallSuper
   bool _doUpdate(double dt) {
     if (isCanceled) return true;
     return update(dt);

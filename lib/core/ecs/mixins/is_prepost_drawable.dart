@@ -39,12 +39,14 @@ mixin IsPrePostDrawable<
   }
 
   /// Notifies all pre-draw listeners and calls [onPreDraw].
+  @mustCallSuper
   void _doOnPreDraw(double dt) {
     _onPreDrawFns.forEach((f) => f(self, dt));
     onPreDraw(dt);
   }
 
   /// Notifies all post-draw listeners and calls [onPostDraw].
+  @mustCallSuper
   void _doOnPostDraw(double dt) {
     _onPostDrawFns.forEach((f) => f(self, dt));
     onPostDraw(dt);

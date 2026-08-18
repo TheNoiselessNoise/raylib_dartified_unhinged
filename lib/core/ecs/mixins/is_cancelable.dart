@@ -83,18 +83,21 @@ mixin IsCancelable<
   /// Runs all before-cancel listeners and [onBeforeCancel].
   ///
   /// Returns `false` if any listener or the override cancels the cancel.
+  @mustCallSuper
   bool _doOnBeforeCancel() {
     if (!_onBeforeCancelFns.every((f) => f(self))) return false;
     return onBeforeCancel();
   }
 
   /// Runs all cancel listeners and [onCancel].
+  @mustCallSuper
   void _doOnCancel() {
     _onCancelFns.forEach((f) => f(self));
     onCancel();
   }
 
   /// Runs all after-cancel listeners and [onAfterCancel].
+  @mustCallSuper
   void _doOnAfterCancel() {
     _onAfterCancelFns.forEach((f) => f(self));
     onAfterCancel();

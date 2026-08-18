@@ -44,7 +44,7 @@ mixin IsEnableable<
   }
 
   /// Notifies all listeners and calls [onEnable].
-  @nonVirtual
+  @mustCallSuper
   void _doOnEnable() {
     _onEnableFns.forEach((f) => f(self));
     onEnable();

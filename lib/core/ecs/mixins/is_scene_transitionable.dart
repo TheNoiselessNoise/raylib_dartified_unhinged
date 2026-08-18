@@ -160,18 +160,21 @@ mixin IsSceneTransitionable<
   /// Runs all before-enter listeners and [onBeforeSceneEnter].
   ///
   /// Returns `false` if any listener or the override cancels the enter.
+  @mustCallSuper
   bool _doOnBeforeSceneEnter(Scene<T> scene) {
     if (!_onBeforeSceneEnterFns.every((f) => f(self, scene))) return false;
     return onBeforeSceneEnter(scene);
   }
 
   /// Runs all enter listeners and [onSceneEnter].
+  @mustCallSuper
   void _doOnSceneEnter(Scene<T> scene) {
     _onSceneEnterFns.forEach((f) => f(self, scene));
     onSceneEnter(scene);
   }
 
   /// Runs all after-enter listeners and [onAfterSceneEnter].
+  @mustCallSuper
   void _doOnAfterSceneEnter(Scene<T> scene) {
     _onAfterSceneEnterFns.forEach((f) => f(self, scene));
     onAfterSceneEnter(scene);
@@ -180,18 +183,21 @@ mixin IsSceneTransitionable<
   /// Runs all before-leave listeners and [onBeforeSceneLeave].
   ///
   /// Returns `false` if any listener or the override cancels the leave.
+  @mustCallSuper
   bool _doOnBeforeSceneLeave(Scene<T> scene) {
     if (!_onBeforeSceneLeaveFns.every((f) => f(self, scene))) return false;
     return onBeforeSceneLeave(scene);
   }
 
   /// Runs all leave listeners and [onSceneLeave].
+  @mustCallSuper
   void _doOnSceneLeave(Scene<T> scene) {
     _onSceneLeaveFns.forEach((f) => f(self, scene));
     onSceneLeave(scene);
   }
 
   /// Runs all after-leave listeners and [onAfterSceneLeave].
+  @mustCallSuper
   void _doOnAfterSceneLeave(Scene<T> scene) {
     _onAfterSceneLeaveFns.forEach((f) => f(self, scene));
     onAfterSceneLeave(scene);
@@ -200,18 +206,21 @@ mixin IsSceneTransitionable<
   /// Runs all before-transition listeners and [onBeforeSceneTransition].
   ///
   /// Returns `false` if any listener or the override cancels the transition.
+  @mustCallSuper
   bool _doOnBeforeSceneTransition(Scene<T> from, Scene<T> to) {
     if (!_onBeforeSceneTransitionFns.every((f) => f(self, from, to))) return false;
     return onBeforeSceneTransition(from, to);
   }
 
   /// Runs all transition listeners and [onSceneTransition].
+  @mustCallSuper
   void _doOnSceneTransition(Scene<T> from, Scene<T> to) {
     _onSceneTransitionFns.forEach((f) => f(self, from, to));
     onSceneTransition(from, to);
   }
 
   /// Runs all after-transition listeners and [onAfterSceneTransition].
+  @mustCallSuper
   void _doOnAfterSceneTransition(Scene<T> from, Scene<T> to) {
     _onAfterSceneTransitionFns.forEach((f) => f(self, from, to));
     onAfterSceneTransition(from, to);

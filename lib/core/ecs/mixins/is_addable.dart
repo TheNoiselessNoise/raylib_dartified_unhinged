@@ -70,18 +70,21 @@ mixin IsAddable<
   /// Runs all before-add listeners and [onBeforeAdd].
   ///
   /// Returns `false` if any listener or the override cancels the add.
+  @mustCallSuper
   bool _doOnBeforeAdd(ECSBase<T> parent) {
     if (!_onBeforeAddFns.every((f) => f(self, parent))) return false;
     return onBeforeAdd(parent);
   }
 
   /// Runs all add listeners and [onAdd].
+  @mustCallSuper
   void _doOnAdd(ECSBase<T> parent) {
     _onAddFns.forEach((f) => f(self, parent));
     onAdd(parent);
   }
 
   /// Runs all after-add listeners and [onAfterAdd].
+  @mustCallSuper
   void _doOnAfterAdd(ECSBase<T> parent) {
     _onAfterAddFns.forEach((f) => f(self, parent));
     onAfterAdd(parent);
@@ -105,6 +108,7 @@ mixin IsAddable<
   /// Commits the add: sets [isAdded], assigns [parent], and notifies listeners.
   ///
   /// No-op if already added.
+  @mustCallSuper
   void _doAdd(ECSBase<T> parent) {
     if (isAdded) return;
     this.parent ??= parent;

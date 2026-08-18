@@ -63,18 +63,21 @@ mixin IsLeavable<
   /// Runs all before-leave listeners and [onBeforeLeave].
   ///
   /// Returns `false` if any listener or the override cancels the leave.
+  @mustCallSuper
   bool _doOnBeforeLeave() {
     if (!_onBeforeLeaveFns.every((f) => f(self))) return false;
     return onBeforeLeave();
   }
 
   /// Runs all leave listeners and [onLeave].
+  @mustCallSuper
   void _doOnLeave() {
     _onLeaveFns.forEach((f) => f(self));
     onLeave();
   }
 
   /// Runs all after-leave listeners and [onAfterLeave].
+  @mustCallSuper
   void _doOnAfterLeave() {
     _onAfterLeaveFns.forEach((f) => f(self));
     onAfterLeave();

@@ -70,12 +70,14 @@ mixin IsEventHistoryHolder<
   /// Runs all before-event-record listeners and [onBeforeEventRecorded].
   ///
   /// Returns `false` if any listener or the override cancels the event recording.
+  @mustCallSuper
   bool _doOnBeforeEventRecorded(Event<T> event) {
     if (!_onBeforeEventRecordedFns.every((f) => f(self, event))) return false;
     return onBeforeEventRecorded(event);
   }
 
   /// Propagates [event] through listeners and the [onEventRecorded] hook.
+  @mustCallSuper
   void _doOnEventRecorded(Event<T> event) {
     _onEventRecordedFns.forEach((f) => f(self, event));
     onEventRecorded(event);

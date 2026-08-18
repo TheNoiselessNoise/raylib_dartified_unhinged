@@ -123,18 +123,21 @@ mixin IsAppSystemManagable<
   /// Runs all before-add listeners and [onBeforeAppSystemAdd].
   ///
   /// Returns `false` if any listener or the override cancels the add.
+  @mustCallSuper
   bool _doOnBeforeAppSystemAdd(AppSystem<T> system) {
     if (!_onBeforeAppSystemAddFns.every((f) => f(self, system))) return false;
     return onBeforeAppSystemAdd(system);
   }
   
   /// Runs all add listeners and [onAppSystemAdd].
+  @mustCallSuper
   void _doOnAppSystemAdd(AppSystem<T> system) {
     _onAppSystemAddFns.forEach((f) => f(self, system));
     onAppSystemAdd(system);
   }
 
   /// Runs all after-add listeners and [onAfterAppSystemAdd].
+  @mustCallSuper
   void _doOnAfterAppSystemAdd(AppSystem<T> system) {
     _onAfterAppSystemAddFns.forEach((f) => f(self, system));
     onAfterAppSystemAdd(system);
@@ -143,18 +146,21 @@ mixin IsAppSystemManagable<
   /// Runs all before-remove listeners and [onBeforeAppSystemRemove].
   ///
   /// Returns `false` if any listener or the override cancels the remove.
+  @mustCallSuper
   bool _doOnBeforeAppSystemRemove(AppSystem<T> system) {
     if (!_onBeforeAppSystemRemoveFns.every((f) => f(self, system))) return false;
     return onBeforeAppSystemRemove(system);
   }
 
   /// Runs all remove listeners and [onAppSystemRemove].
+  @mustCallSuper
   void _doOnAppSystemRemove(AppSystem<T> system) {
     _onAppSystemRemoveFns.forEach((f) => f(self, system));
     onAppSystemRemove(system);
   }
 
   /// Runs all after-remove listeners and [onAfterAppSystemRemove].
+  @mustCallSuper
   void _doOnAfterAppSystemRemove(AppSystem<T> system) {
     _onAfterAppSystemRemoveFns.forEach((f) => f(self, system));
     onAfterAppSystemRemove(system);
@@ -262,6 +268,7 @@ mixin IsAppSystemManagable<
       return;
     }
 
+    system.parent = self;
     _doOnAppSystemAdd(system);
     if (!system.isClone) system._doAdd(self);
 

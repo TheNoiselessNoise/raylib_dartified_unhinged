@@ -97,6 +97,7 @@ implements
   /// Runs all before-persistence listeners and [onBeforeStorePersistable].
   ///
   /// Returns `false` if any listener or the override cancels the persistence.
+  @mustCallSuper
   bool _doOnBeforeStorePersistable() {
     if (!_onBeforeStorePersistableFns.every((f) => f(self))) return false;
     return onBeforeStorePersistable();

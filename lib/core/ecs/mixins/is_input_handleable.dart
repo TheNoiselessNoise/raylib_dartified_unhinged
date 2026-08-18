@@ -29,6 +29,7 @@ mixin IsInputHandleable<
   }
 
   /// Propagates the input phase through listeners and the [onInput] hook.
+  @mustCallSuper
   void _doHandleInput() {
     _onHandleInputFns.forEach((f) => f(self));
     onInput();

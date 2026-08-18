@@ -879,9 +879,6 @@ typedef G = Arkanoid;
 class Arkanoid extends App<G> {
   Arkanoid(super.backend);
 
-  @override
-  bool onShouldExit() => WindowShouldClose();
-
   bool gamePaused = false;
 
   @override

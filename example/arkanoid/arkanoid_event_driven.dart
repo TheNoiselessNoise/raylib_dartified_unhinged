@@ -217,9 +217,6 @@ class Arkanoid extends App<G> {
   Arkanoid(super.backend);
 
   @override
-  bool onShouldExit() => WindowShouldClose();
-
-  @override
   void onInit() {
     InitWindow(800, 450, 'arkanoid_structure_first');
     SetWindowMonitor(0);
@@ -241,6 +238,9 @@ class Arkanoid extends App<G> {
 class ArkanoidEventDriven extends UnhingedRaylibGame<G> {
   @override
   G create(RaylibBackend backend) => G(backend);
+
+  @override
+  bool shouldClose(Raylib rl) => app.shouldAppExit || super.shouldClose(rl);
 }
 
 void main() => runRaylib(

@@ -143,18 +143,21 @@ mixin IsEntityManagable<
   /// Runs all before-add listeners and [onBeforeEntityAdd].
   ///
   /// Returns `false` if any listener or the override cancels the add.
+  @mustCallSuper
   bool _doOnBeforeEntityAdd(I entity) {
     if (!_onBeforeEntityAddFns.every((f) => f(self, entity))) return false;
     return onBeforeEntityAdd(entity);
   }
 
   /// Runs all add listeners and [onEntityAdd].
+  @mustCallSuper
   void _doOnEntityAdd(I entity) {
     _onEntityAddFns.forEach((f) => f(self, entity));
     onEntityAdd(entity);
   }
 
   /// Runs all after-add listeners and [onAfterEntityAdd].
+  @mustCallSuper
   void _doOnAfterEntityAdd(I entity) {
     _onAfterEntityAddFns.forEach((f) => f(self, entity));
     onAfterEntityAdd(entity);
@@ -163,18 +166,21 @@ mixin IsEntityManagable<
   /// Runs all before-remove listeners and [onBeforeEntityRemove].
   ///
   /// Returns `false` if any listener or the override cancels the remove.
+  @mustCallSuper
   bool _doOnBeforeEntityRemove(I entity) {
     if (!_onBeforeEntityRemoveFns.every((f) => f(self, entity))) return false;
     return onBeforeEntityRemove(entity);
   }
 
   /// Runs all remove listeners and [onEntityRemove].
+  @mustCallSuper
   void _doOnEntityRemove(I entity) {
     _onEntityRemoveFns.forEach((f) => f(self, entity));
     onEntityRemove(entity);
   }
 
   /// Runs all after-remove listeners and [onAfterEntityRemove].
+  @mustCallSuper
   void _doOnAfterEntityRemove(I entity) {
     _onAfterEntityRemoveFns.forEach((f) => f(self, entity));
     onAfterEntityRemove(entity);
@@ -220,8 +226,63 @@ mixin IsEntityManagable<
 
   final Set<I> _entities = {};
 
+  final Map<String, Set<Entity<T>>> _entitiesByLayer = {};
+  final Map<Entity<T>, String> _entityLayers = {};
+
+  String _getEntityLayer(Entity<T> e) {
+    final renderLayer = e.get<CRenderLayer<T>>();
+
+    if (renderLayer == null) {
+      throw StateError(
+        'Entity $e is expected to have CRenderLayer component.',
+      );
+    }
+
+    return renderLayer.layer;
+  }
+
+  void _indexEntity(Entity<T> e, [String? layer]) {
+    layer ??= _getEntityLayer(e);
+
+    (_entitiesByLayer[layer] ??= {}).add(e);
+    _entityLayers[e] = layer;
+  }
+
+  void _unindexEntity(Entity<T> e) {
+    final layer = _entityLayers.remove(e);
+    if (layer == null) return;
+
+    final entities = _entitiesByLayer[layer];
+
+    entities?.remove(e);
+    _entityLayers.remove(e);
+
+    if (entities?.isEmpty ?? false) {
+      _entitiesByLayer.remove(layer);
+    }
+  }
+
+  void _onLayerChanged(
+    Entity<T> entity,
+    String oldLayer,
+    String newLayer,
+  ) {
+    if (oldLayer == newLayer) return;
+
+    _unindexEntity(entity);
+    _indexEntity(entity, newLayer);
+  }
+
   /// Returns all entities currently registered.
   Set<I> getEntities() => _entities;
+
+  /// Returns all entities currently registered mapped to specific layers.
+  Map<String, Set<Entity<T>>> getEntitiesByLayer() => _entitiesByLayer;
+  
+  /// Returns all entities currently registered mapped to specific [layer].
+  Set<Entity<T>> getEntitiesInLayer(String layer) => _entitiesByLayer[layer] ?? {};
+
+  Map<Entity<T>, String> getEntityLayers() => _entityLayers;
 
   /// Registers [entity] and runs the full add lifecycle.
   ///
@@ -245,6 +306,7 @@ mixin IsEntityManagable<
       return false;
     }
 
+    entity.parent = self;
     _doOnEntityAdd(entity);
     if (!entity.isClone) entity._doAdd(self);
     _entities.add(entity);
@@ -301,13 +363,24 @@ mixin IsEntityManagable<
 
   /// Calls `_doDraw` on entities whose scene-level draw is enabled and whose
   /// render layer matches the renderer's currently active layer.
-  void _drawEntities(double dt) {
+  void _drawLayeredEntities(double dt, [String? layerOverride]) {
+    final layer = layerOverride ?? renderer.activeLayer;
+    final Set<Entity<T>> entities = _entitiesByLayer[layer] ?? const {};
+
+    for (final e in entities) {
+      if (!e._drawEnabled) continue;
+      if (!e._sceneLevelDrawEnabled) continue;
+      e._doDraw(dt);
+    }
+  }
+
+  // WARNING: This is for `EntityGroup` which does not care about its
+  //          entities layers. The `EntityGroup` itself is the one
+  //          filtered by `_drawLayeredEntities`.
+  void _drawAllEntities(double dt) {
     for (final e in _entities) {
       if (!e._drawEnabled) continue;
       if (!e._sceneLevelDrawEnabled) continue;
-      final renderLayer = e.get<CRenderLayer<T>>();
-      final entityLayer = renderLayer?.layer ?? RenderLayers.world.name;
-      if (!renderer.inLayer(entityLayer)) continue;
       e._doDraw(dt);
     }
   }

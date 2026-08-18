@@ -98,12 +98,14 @@ mixin IsEventEmittable<
   /// Runs all before-event listeners and [onBeforeEvent].
   ///
   /// Returns `false` if any listener or the override cancels the event handling.
+  @mustCallSuper
   bool _doOnBeforeEvent(Event<T> event) {
     if (!_onBeforeEventFns.every((f) => f(self, event))) return false;
     return onBeforeEvent(event);
   }
 
   /// Runs [onBeforeEventEmit] first and then all before-event-emit listeners.
+  @mustCallSuper
   void _doOnBeforeEventEmit(Event<T> event) {
     onBeforeEventEmit(event);
     if (event.isCanceled) return;
@@ -115,6 +117,7 @@ mixin IsEventEmittable<
   }
 
   /// Runs [onBeforeEventDispatch] first and then all before-event-dispatch listeners.
+  @mustCallSuper
   void _doOnBeforeEventDispatch(Event<T> event) {
     onBeforeEventDispatch(event);
     if (event.isCanceled) return;
@@ -129,6 +132,7 @@ mixin IsEventEmittable<
   ///
   /// No-op if the event is already stopped. Sets [Event.parent] to `self`
   /// if not already assigned.
+  @mustCallSuper
   void _doOnEvent(Event<T> event) {
     event.origin ??= self;
 
@@ -272,8 +276,10 @@ mixin IsEventEmittable<
   bool _doEventLocal(Event<T> event);
 
   // already processed by `self`
+  @mustCallSuper
   bool _doEventVisitedCheck(Event<T> event) => !event._visited.add(self);
 
+  @mustCallSuper
   bool _doEventSelfCheck(Event<T> event) {
     if (event.scope == .self) {
       if (event.origin == self) {

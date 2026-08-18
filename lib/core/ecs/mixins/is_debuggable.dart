@@ -151,6 +151,7 @@ mixin IsDebuggable<
     _doOnDebugMessage(_msg(message, level, tag), propagate: true);
   }
 
+  @mustCallSuper
   void _doOnDebugMessage(ECSDebugMessage msg, {bool propagate = false}) {
     _onDebugMessageFns.forEach((f) => f(self, msg));
     onDebugMessage(msg);

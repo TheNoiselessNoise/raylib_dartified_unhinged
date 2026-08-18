@@ -25,6 +25,7 @@ mixin IsUpdatable<
   }
 
   /// Propagates the update phase through listeners and the [onUpdate] hook.
+  @mustCallSuper
   void _doUpdate(double dt) {
     _onUpdateFns.forEach((f) => f(self, dt));
     onUpdate(dt);
