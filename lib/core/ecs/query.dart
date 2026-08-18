@@ -131,7 +131,7 @@ abstract class QueryComponentManagable<
 
   /// **[Query-like]** Keeps only elements that have component [C] attached.
   Q With<C extends Comp<T>>() {
-    _groups.last.add((e) => e.has<C>());
+    _groups.last.add((e) => e.containsComp<C>());
     return self;
   }
 
@@ -140,7 +140,7 @@ abstract class QueryComponentManagable<
     A extends Comp<T>,
     B extends Comp<T>
   >() {
-    _groups.last.add((e) => e.has2<A, B>());
+    _groups.last.add((e) => e.containsComp<A>() && e.containsComp<B>());
     return self;
   }
 
@@ -151,7 +151,7 @@ abstract class QueryComponentManagable<
     B extends Comp<T>,
     C extends Comp<T>
   >() {
-    _groups.last.add((e) => e.has3<A, B, C>());
+    _groups.last.add((e) => e.containsComp<A>() && e.containsComp<B>() && e.containsComp<C>());
     return self;
   }
 
@@ -160,13 +160,13 @@ abstract class QueryComponentManagable<
     A extends Comp<T>,
     B extends Comp<T>
   >() {
-    _groups.last.add((e) => e.hasAny<A, B>());
+    _groups.last.add((e) => e.containsComp<A>() || e.containsComp<B>());
     return self;
   }
 
   /// **[Query-like]** Excludes elements that have component [C].
   Q Except<C extends Comp<T>>() {
-    _groups.last.add((e) => !e.has<C>());
+    _groups.last.add((e) => !e.containsComp<C>());
     return self;
   }
 
@@ -175,7 +175,7 @@ abstract class QueryComponentManagable<
     A extends Comp<T>,
     B extends Comp<T>
   >() {
-    _groups.last.add((e) => !e.has<A>() && !e.has<B>());
+    _groups.last.add((e) => !e.containsComp<A>() && !e.containsComp<B>());
     return self;
   }
 
@@ -185,7 +185,7 @@ abstract class QueryComponentManagable<
     B extends Comp<T>,
     C extends Comp<T>
   >() {
-    _groups.last.add((e) => !e.has<A>() && !e.has<B>() && !e.has<C>());
+    _groups.last.add((e) => !e.containsComp<A>() && !e.containsComp<B>() && !e.containsComp<C>());
     return self;
   }
 
@@ -209,7 +209,7 @@ abstract class QueryComponentManagable<
     bool Function(E entity, C c) fn
   ) {
     _groups.last.add((e) {
-      final c = e.get<C>();
+      final c = e.findComp<C>();
       return c != null && fn(e, c);
     });
     return self;
@@ -224,7 +224,7 @@ abstract class QueryComponentManagable<
     bool Function(E entity, A a, B b) fn
   ) {
     _groups.last.add((e) {
-      final a = e.get<A>(), b = e.get<B>();
+      final a = e.findComp<A>(), b = e.findComp<B>();
       return a != null && b != null && fn(e, a, b);
     });
     return self;
@@ -240,7 +240,7 @@ abstract class QueryComponentManagable<
     bool Function(E entity, A a, B b, C c) fn
   ) {
     _groups.last.add((e) {
-      final a = e.get<A>(), b = e.get<B>(), c = e.get<C>();
+      final a = e.findComp<A>(), b = e.findComp<B>(), c = e.findComp<C>();
       return a != null && b != null && c != null && fn(e, a, b, c);
     });
     return self;
@@ -499,7 +499,7 @@ abstract class QueryComponentManagable<
   void DoForEachWith<
     C extends Comp<T>
   >(void Function(E entity, C a) fn)
-    => With<C>().DoForEach<E>((e) => fn(e, e.get<C>()!));
+    => With<C>().DoForEach<E>((e) => fn(e, e.findComp<C>()!));
 
   /// **[Query-like]** For each element that has both [A] and [B], calls [fn]
   /// with the element and both component instances. Implicitly adds a
@@ -508,7 +508,7 @@ abstract class QueryComponentManagable<
     A extends Comp<T>,
     B extends Comp<T>
   >(void Function(E entity, A a, B b) fn)
-    => With2<A, B>().DoForEach<E>((e) => fn(e, e.get<A>()!, e.get<B>()!));
+    => With2<A, B>().DoForEach<E>((e) => fn(e, e.findComp<A>()!, e.findComp<B>()!));
 
   /// **[Query-like]** For each element that has [A], [B], *and* [C], calls
   /// [fn] with the element and all three component instances. Implicitly adds
@@ -518,7 +518,7 @@ abstract class QueryComponentManagable<
     B extends Comp<T>,
     C extends Comp<T>
   >(void Function(E entity, A a, B b, C c) fn)
-    => With3<A, B, C>().DoForEach<E>((e) => fn(e, e.get<A>()!, e.get<B>()!, e.get<C>()!));
+    => With3<A, B, C>().DoForEach<E>((e) => fn(e, e.findComp<A>()!, e.findComp<B>()!, e.findComp<C>()!));
 
   // ░█████████  ░█████████    ░██████       ░█████ 
   // ░██     ░██ ░██     ░██  ░██   ░██        ░██  
@@ -543,20 +543,24 @@ abstract class QueryComponentManagable<
   //  ░██   ░██ ░██          ░██   ░██  ░██   ░████ ░██         
   //   ░██████  ░██████████   ░██████   ░██    ░███ ░██████████ 
 
+  late final stateGroupsKey = ECSStateKey<List<QueryGroup<T, E>>>(
+    'QueryComponentManagable', 'groups',
+    get: () => .from(_groups),
+    set: (value) => _groups = value,
+  );
+
+  late final stateSourceListKey = ECSStateKey<List<E>?>(
+    'QueryComponentManagable', 'sourceList',
+    get: () => _sourceList, // NOTE: do NOT make a copy using `.from(...)`
+    set: (value) => _sourceList = value,
+  );
+
   @override
-  void _doOnClone(Q copy, [Cloner<T>? cloner]) {
-    bool allowedState(CloneStateType state)
-      => cloner == null || cloner.allowState(copy, state);
-
-    if (allowedState(.queryGroups)) {
-      copy._groups = .from(_groups);
-    }
-
-    if (allowedState(.querySourceList) && _sourceList != null) {
-      copy._sourceList = .from(_sourceList!);
-    }
-
-    super._doOnClone(copy, cloner);
+  @mustCallSuper
+  void _registerBuiltinStateKeys() {
+    super._registerBuiltinStateKeys();
+    registerStateKey(stateGroupsKey);
+    registerStateKey(stateSourceListKey);
   }
 }
 

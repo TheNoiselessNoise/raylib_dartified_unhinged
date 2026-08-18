@@ -16,26 +16,26 @@ void main() {
 
     test('initilization of all', () {
       final scene = Scene<G>(app);
-      scene.setVar(idVar, 'myScene');
+      idVar.set(scene, 'myScene');
       app.addScene(scene);
       expect(
-        app.scene.getVar(idVar),
+        idVar.get(app.scene),
         equals('myScene')
       );
 
       final entity = Entity<G>(app);
-      entity.setVar(idVar, 'myEntity');
+      idVar.set(entity, 'myEntity');
       scene.addEntity(entity);
       expect(
-        app.scene.QueryEntity.First.getVar(idVar),
+        idVar.get(app.scene.QueryEntity.First),
         equals('myEntity')
       );
 
       final comp1 = Comp<G>(app);
-      comp1.setVar(idVar, 'myComp');
+      idVar.set(comp1, 'myComp');
       entity.addComp(comp1);
       expect(
-        app.scene.QueryEntity.First.QueryComp.First.getVar(idVar),
+        idVar.get(app.scene.QueryEntity.First.QueryComp.First),
         equals('myComp')
       );
     });

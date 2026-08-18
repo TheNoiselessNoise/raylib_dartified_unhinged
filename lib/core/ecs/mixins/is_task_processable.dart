@@ -72,9 +72,35 @@ mixin IsTaskProcessable<
   //   ░██  ░██       ░██ ░██         ░██         
   // ░██████░██       ░██ ░██         ░██████████ 
 
+  late final stateTaskQueueKey = ECSStateKey<Set<Task<T>>>(
+    'IsTaskProcessable', 'taskQueue',
+    get: () => .from(_taskQueue),
+    set: (value) => _taskQueue = value,
+  );
+
+  late final statePendingTaskQueueKey = ECSStateKey<Set<Task<T>>>(
+    'IsTaskProcessable', 'pendingTaskQueue',
+    get: () => .from(_pendingTaskQueue),
+    set: (value) => _pendingTaskQueue = value,
+  );
+
+  @override
+  @mustCallSuper
+  void _registerBuiltinStateKeys() {
+    super._registerBuiltinStateKeys();
+    registerStateKey(stateTaskQueueKey);
+    registerStateKey(statePendingTaskQueueKey);
+  }
+
   Set<Task<T>> _taskQueue = {};
   
   Set<Task<T>> _pendingTaskQueue = {};
+
+  @visibleForTesting
+  Set<Task<T>> get taskQueueForTesting => _taskQueue;
+
+  @visibleForTesting
+  Set<Task<T>> get pendingTaskQueueForTesting => _pendingTaskQueue;
 
   /// Enqueues [task] for execution starting at the end of the current frame.
   @override
@@ -119,4 +145,12 @@ mixin IsTaskProcessable<
     _taskQueue.clear();
     _pendingTaskQueue.clear();
   }
+
+  /// Synchronously drains the pending task queue.
+  ///
+  /// Intended for tests that need deterministic control over when queued
+  /// tasks are processed, decoupled from [Scene._doEndFrame]'s callback
+  /// interleaving. Not meant for production code.
+  @visibleForTesting
+  void processTaskQueueForTest([double dt = 1]) => _processTasks(dt);
 }

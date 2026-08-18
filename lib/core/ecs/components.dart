@@ -94,11 +94,6 @@ class Comp<T extends App<T>> extends ECSBase<T> with
     super._doDraw(dt);
   }
 
-  @override
-  void _doOnComponentParentSet(Comp<T> component) {
-    component.entity = entity;
-  }
-
   //   ░██████  ░██           ░██████   ░███    ░██ ░██████████ 
   //  ░██   ░██ ░██          ░██   ░██  ░████   ░██ ░██         
   // ░██        ░██         ░██     ░██ ░██░██  ░██ ░██         
@@ -110,6 +105,8 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   @override
   @nonVirtual
   void _doOnClone(Comp<T> copy, [Cloner<T>? cloner]) {
+    copy.entity = entity;
+
     emit(EventCompCloning(app, self, copy));
 
     _components.forEach((childComp) {

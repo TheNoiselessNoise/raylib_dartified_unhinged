@@ -55,24 +55,27 @@ class TestingEvent<T extends App<T>> extends Event<T> {
 
 class TestingApp<T extends TestingApp<T>> extends App<T> with TestingIsOnEventCallbackHandler<T, T> {
   final TestingOnEventCallbackPackage<T>? onEventCallbackPackage;
-  late final TestingAppSystem<T> appSystem;
-  late final TestingScene<T> testScene;
+  TestingAppSystem<T> get appSystem => getSystem()!;
+  TestingScene<T> get testScene => getScene()!;
 
   TestingApp(super.backend, {
     this.onEventCallbackPackage,
+    super.populateDefaults,
   }) {
-    addSystem(appSystem = .new(app));
-    addScene(testScene = .new(app));
-
-    _onEventHandler = onEventCallbackPackage?.appOnEvent;
-    appSystem._onEventHandler = onEventCallbackPackage?.appSystemOnEvent;
-    testScene._onEventHandler = onEventCallbackPackage?.sceneOnEvent;
-    testScene.sceneSystem._onEventHandler = onEventCallbackPackage?.sceneSystemOnEvent;
-    testScene.entity1._onEventHandler = onEventCallbackPackage?.entity1OnEvent;
-    testScene.entity1.comp1._onEventHandler = onEventCallbackPackage?.comp1OnEvent;
-    testScene.entity2._onEventHandler = onEventCallbackPackage?.entity2OnEvent;
-    testScene.entity2.comp2._onEventHandler = onEventCallbackPackage?.comp2OnEvent;
-    testScene.entity2.comp2.comp3._onEventHandler = onEventCallbackPackage?.comp3OnEvent;
+    if (populateDefaults) {
+      addSystem(TestingAppSystem(app));
+      addScene(TestingScene(app));
+      
+      _onEventHandler = onEventCallbackPackage?.appOnEvent;
+      appSystem._onEventHandler = onEventCallbackPackage?.appSystemOnEvent;
+      testScene._onEventHandler = onEventCallbackPackage?.sceneOnEvent;
+      testScene.sceneSystem._onEventHandler = onEventCallbackPackage?.sceneSystemOnEvent;
+      testScene.entity1._onEventHandler = onEventCallbackPackage?.entity1OnEvent;
+      testScene.entity1.comp1._onEventHandler = onEventCallbackPackage?.comp1OnEvent;
+      testScene.entity2._onEventHandler = onEventCallbackPackage?.entity2OnEvent;
+      testScene.entity2.comp2._onEventHandler = onEventCallbackPackage?.comp2OnEvent;
+      testScene.entity2.comp2.comp3._onEventHandler = onEventCallbackPackage?.comp3OnEvent;
+    }
   }
 
   Map<TestingEmitterType, IsAnyEventHistoryHolder<T>> get eventHistoryHolders => {
@@ -86,14 +89,23 @@ class TestingApp<T extends TestingApp<T>> extends App<T> with TestingIsOnEventCa
     .comp2: app.testScene.entity2.comp2,
     .comp3: app.testScene.entity2.comp2.comp3,
   };
+
+  @override
+  T createInstance() => throw StateError('To support cloning of TestingApp, override `createInstance`.');
 }
 
 class TestingAppSystem<T extends TestingApp<T>> extends AppSystem<T> with TestingIsOnEventCallbackHandler<T, AppSystem<T>> {
   TestingAppSystem(super.app);
+
+  @override
+  TestingAppSystem<T> createInstance() => .new(app);
 }
 
 class TestingSceneSystem<T extends TestingApp<T>> extends SceneSystem<T> with TestingIsOnEventCallbackHandler<T, SceneSystem<T>> {
   TestingSceneSystem(super.app);
+
+  @override
+  TestingSceneSystem<T> createInstance() => .new(app);
 }
 
 class TestingScene<T extends TestingApp<T>> extends Scene<T> with TestingIsOnEventCallbackHandler<T, Scene<T>> {
@@ -106,10 +118,16 @@ class TestingScene<T extends TestingApp<T>> extends Scene<T> with TestingIsOnEve
     addEntity(entity1 = .new(app));
     addEntity(entity2 = .new(app));
   }
+
+  @override
+  TestingScene<T> createInstance() => .new(app);
 }
 
 class TestingComponent1<T extends TestingApp<T>> extends Comp<T> with TestingIsOnEventCallbackHandler<T, Comp<T>> {
   TestingComponent1(super.app);
+
+  @override
+  TestingComponent1<T> createInstance() => .new(app);
 }
 
 class TestingEntity1<T extends TestingApp<T>> extends Entity<T> with TestingIsOnEventCallbackHandler<T, Entity<T>> {
@@ -118,12 +136,18 @@ class TestingEntity1<T extends TestingApp<T>> extends Entity<T> with TestingIsOn
   TestingEntity1(super.app) {
     addComp(comp1 = .new(app));
   }
+
+  @override
+  TestingEntity1<T> createInstance() => .new(app);
 }
 
 class TestingComponent2<T extends TestingApp<T>> extends Comp<T> with TestingIsOnEventCallbackHandler<T, Comp<T>> {
   late final TestingComponent3<T> comp3;
 
   TestingComponent2(super.app);
+
+  @override
+  TestingComponent2<T> createInstance() => .new(app);
 }
 
 class TestingEntity2<T extends TestingApp<T>> extends Entity<T> with TestingIsOnEventCallbackHandler<T, Entity<T>> {
@@ -133,8 +157,14 @@ class TestingEntity2<T extends TestingApp<T>> extends Entity<T> with TestingIsOn
     addComp(comp2 = .new(app));
     comp2.addComp(comp2.comp3 = .new(app));
   }
+  
+  @override
+  TestingEntity2<T> createInstance() => .new(app);
 }
 
 class TestingComponent3<T extends TestingApp<T>> extends Comp<T> with TestingIsOnEventCallbackHandler<T, Comp<T>> {
   TestingComponent3(super.app);
+
+  @override
+  TestingComponent3<T> createInstance() => .new(app);
 }

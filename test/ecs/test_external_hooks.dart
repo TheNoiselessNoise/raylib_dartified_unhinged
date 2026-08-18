@@ -5,36 +5,10 @@ import '../mocks.dart';
 typedef G = TestApp;
 
 class TestApp extends TestingApp<G> {
-  TestApp(super.backend, {
-    super.onEventCallbackPackage,
-  });
+  TestApp(super.backend);
 }
 
-TestApp createTestApp({
-  bool clearEventQueue = false,
-}) {
-  final TestApp app = .new(HeadlessBackend())..init();
-  if (clearEventQueue) app.clearEventQueue();
-  return app;
-}
-
-void main2() {
-  final app = createTestApp();
-  final sceneSystem = app.testScene.sceneSystem;
-
-  sceneSystem.listenOnEnable((self) {
-    print('${self.isEnabled}) I have been ${self.isEnabled ? 'enabled' : 'disabled'}');
-  });
-
-  print(sceneSystem.hooksOf(sceneSystem.hookOnEnableKey));
-
-  final clonedSceneSystem = sceneSystem.clone();
-  app.testScene.replaceSystem(clonedSceneSystem);
-  print(clonedSceneSystem.hooksOf(clonedSceneSystem.hookOnEnableKey));
-
-  clonedSceneSystem.setEnabled(false);
-  clonedSceneSystem.setEnabled(true);
-}
+TestApp createTestApp() => .new(HeadlessBackend())..init();
 
 void main() {
   group('External Hooks', () {

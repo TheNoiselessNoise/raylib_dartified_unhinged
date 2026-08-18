@@ -327,11 +327,11 @@ mixin IsCloneable<
   E createClone(E newInstance, [C? cloner]) => newInstance;
 
   void _doCloneState(E target, C? cloner) {
+    
+    // hooks
+
     bool allowedHook(ECSHookKey hook)
       => cloner == null || cloner.allowHook(target, hook);
-
-    bool allowedState(CloneStateType state)
-      => cloner == null || cloner.allowState(target, state);
 
     if (self case HasExternalHooks<T> from) {
       if (target case HasExternalHooks<T> to) {
@@ -339,73 +339,20 @@ mixin IsCloneable<
       }
     }
 
-    // TODO: states
+    // state
 
-    // if (self case IsActivatable<T, E> from) {
-    //   if (target case IsActivatable<T, E> to) {
-    //     if (allowedState(.active)) {
-    //       to._active = from._active;
-    //     }
-    //   }
-    // }
+    bool allowedState(ECSStateKey state)
+      => cloner == null || cloner.allowState(target, state);
 
-    // if (self case IsCancelable<T, E> from) {
-    //   if (target case IsCancelable<T, E> to) {
-    //     if (allowedState(.canceled)) {
-    //       to._isCanceled = from._isCanceled;
-    //     }
-    //   }
-    // }
-
-    // if (self case IsCallbackProcessable<T, E> from) {
-    //   if (target case IsCallbackProcessable<T, E> to) {
-    //     if (allowedState(.callbackQueue)) {
-    //       to._callbackQueue = .from(from._callbackQueue);
-    //     }
-    //   }
-    // }
-
-    // if (self case IsEventHistoryHolder<T, E> from) {
-    //   if (target case IsEventHistoryHolder<T, E> to) {
-    //     if (allowedState(.eventHistory)) {
-    //       to._eventHistory = .from(from._eventHistory);
-    //     }
-    //   }
-    // }
-
-    // if (self case IsEventQueueHolder<T, E> from) {
-    //   if (target case IsEventQueueHolder<T, E> to) {
-    //     if (allowedState(.eventQueue)) {
-    //       to._eventQueue = .from(from._eventQueue);
-    //     }
-    //   }
-    // }
-
-    // if (self case IsTaskProcessable<T, E> from) {
-    //   if (target case IsTaskProcessable<T, E> to) {
-    //     if (allowedState(.pendingTaskQueue)) {
-    //       to._pendingTaskQueue = .from(from._pendingTaskQueue);
-    //     }
-
-    //     if (allowedState(.taskQueue)) {
-    //       to._taskQueue = .from(from._taskQueue);
-    //     }
-    //   }
-    // }
-
-    // //////////////// //
-    // ADDITIONAL STATE //
-    // //////////////// //
-
-    if (self case HasVars<T, E> from) {
-      if (target case HasVars<T, E> to) {
-        if (allowedState(.vars)) {
-          to._vars = .from(from._vars);
-        }
+    if (self case HasCloneableState<T> from) {
+      if (target case HasCloneableState<T> to) {
+        from._copyStateTo(to, allowedState);
       }
     }
 
-    if (cloner?.allowState(target, .identity) ?? false) {
+    // identity
+
+    if (cloner?.allowState(target, target.stateIdentityKey) ?? false) {
       target._id = self._id;
       target._namedId = self._namedId;
       target.name = self.name;

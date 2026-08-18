@@ -118,8 +118,8 @@ class ArkanoidInline extends UnhingedRaylibGame<G> {
          * PADDLE ENTITY
          */
 
-        final varSpeed = VarKey<double>('speed');
-        final varPoints = VarKey<int>('points');
+        final varSpeed = VarNumKey<double>('speed');
+        final varPoints = VarNumKey<int>('points');
         scene.addEntity(
           Entity(app)
           .addComp(CIsPaddle(app))
@@ -137,29 +137,29 @@ class ArkanoidInline extends UnhingedRaylibGame<G> {
             debugDraw: true,
           ))
           .listenOnAdd((self, parent) {
-            self.setVar(varSpeed, 600.0);
-            self.setVar(varPoints, 0);
+            varSpeed.set(self, 600.0);
+            varPoints.set(self, 0);
           })
           .listenOnUpdate((self, dt) => self.onVelocity((v) {
             v.velocity.x = 0;
-            final speed = self.getVar(varSpeed)!;
+            final speed = varSpeed.get(self);
             if (scene.input.isKeyDown(K_left)) v.velocity.x = -speed;
             if (scene.input.isKeyDown(K_right)) v.velocity.x = speed;
-            if (scene.input.isKeyDown(K_up)) self.incVar(varSpeed, 100*dt);
-            if (scene.input.isKeyDown(K_down)) self.decVar(varSpeed, 100*dt);
+            if (scene.input.isKeyDown(K_up)) varSpeed.inc(self, 100*dt);
+            if (scene.input.isKeyDown(K_down)) varSpeed.dec(self, 100*dt);
           }))
           .listenOnDraw((self, alpha) {
-            final speed = self.getVar(varSpeed)!;
-            final points = self.getVar(varPoints)!;
+            final speed = varSpeed.get(self);
+            final points = varPoints.get(self);
             DrawText('Speed: ${speed.f2}', 50, app.screenHeight - 160, 20, .WHITE);
             DrawText('Points: $points', 50, app.screenHeight - 140, 20, .WHITE);
           })
           .listenOnEvent((self, e) {
             if (e is BallLost) {
-              self.decVar(varPoints, 100);
+              varPoints.dec(self, 100);
             }
             if (e is BallHitBrick) {
-              self.incVar(varPoints, 10);
+              varPoints.inc(self, 10);
             }
           })
         );

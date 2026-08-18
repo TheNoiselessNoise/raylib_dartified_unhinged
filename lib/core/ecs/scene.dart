@@ -416,12 +416,6 @@ class Scene<T extends App<T>> extends ECSBase<T> with
     _pendingTaskQueue.isEmpty
   );
 
-  /// Synchronously processes the task queue.
-  ///
-  /// Intended for tests. Not meant for production code.
-  @visibleForTesting
-  void processTaskQueueForTest() => _processTasks(app.time.dt);
-
   /// Called by the app at the very end of each frame, after update and render.
   ///
   /// Drains the callback queue, then events.

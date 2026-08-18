@@ -220,11 +220,6 @@ class Entity<T extends App<T>> extends ECSBase<T> with
     return self;
   }
 
-  @override
-  void _doOnComponentParentSet(Comp<T> component) {
-    component.entity = self;
-  }
-
   /// Advances all components by [dt], fires update listeners, then calls
   /// [onUpdate]. Skipped entirely when the entity is disabled.
   @override

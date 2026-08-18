@@ -10,33 +10,28 @@ mixin IsEnableable<
   Self<E>,
   ECSBase<T>
 {
-  late final hookOnEnableKey = ECSHookKey<void Function(E self)>(
-    'IsEnableable', 'onEnable'
+  late final stateIsEnabledKey = ECSStateKey<bool>(
+    'IsEnableable', 'isEnabled',
+    get: () => _isEnabled,
+    set: (value) => _isEnabled = value,
   );
 
-  bool _enabled = true;
-
-  /// Whether this object is currently enabled.
-  bool get isEnabled => _enabled;
-
-  /// Whether this object is currently disabled.
-  bool get isDisabled => !_enabled;
-
-  /// Sets the enabled state to [enabled] and fires the hook.
+  @override
   @mustCallSuper
-  E setEnabled(bool enabled) {
-    _enabled = enabled;
-    _doOnEnable();
-    return self;
+  void _registerBuiltinStateKeys() {
+    super._registerBuiltinStateKeys();
+    registerStateKey(stateIsEnabledKey);
   }
 
-  /// Toggles the enabled state and fires the hook.
-  @mustCallSuper
-  E toggleEnabled() {
-    _enabled = !_enabled;
-    _doOnEnable();
-    return self;
-  }
+  // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
+  // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
+  // ░██     ░██ ░██     ░██ ░██     ░██ ░██   ░██   ░██         
+  // ░██████████ ░██     ░██ ░██     ░██ ░███████     ░████████  
+  // ░██     ░██ ░██     ░██ ░██     ░██ ░██   ░██           ░██ 
+  // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
+  // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
+
+  late final hookOnEnableKey = ECSHookKey<void Function(E self)>('IsEnableable', 'onEnable');
 
   Iterable<void Function(E self)> get _onEnableFns
     => hooksOf(hookOnEnableKey);
@@ -60,4 +55,36 @@ mixin IsEnableable<
   /// Called after all registered [listenOnEnable] listeners.
   /// Check [isEnabled] or [isDisabled] to determine the new state.
   void onEnable() {}
+
+  // ░██████░███     ░███ ░█████████  ░██         
+  //   ░██  ░████   ░████ ░██     ░██ ░██         
+  //   ░██  ░██░██ ░██░██ ░██     ░██ ░██         
+  //   ░██  ░██ ░████ ░██ ░█████████  ░██         
+  //   ░██  ░██  ░██  ░██ ░██         ░██         
+  //   ░██  ░██       ░██ ░██         ░██         
+  // ░██████░██       ░██ ░██         ░██████████ 
+
+  bool _isEnabled = true;
+
+  /// Whether this object is currently enabled.
+  bool get isEnabled => _isEnabled;
+
+  /// Whether this object is currently disabled.
+  bool get isDisabled => !_isEnabled;
+
+  /// Sets the enabled state to [enabled] and fires the hook.
+  @mustCallSuper
+  E setEnabled(bool enabled) {
+    _isEnabled = enabled;
+    _doOnEnable();
+    return self;
+  }
+
+  /// Toggles the enabled state and fires the hook.
+  @mustCallSuper
+  E toggleEnabled() {
+    _isEnabled = !_isEnabled;
+    _doOnEnable();
+    return self;
+  }
 }

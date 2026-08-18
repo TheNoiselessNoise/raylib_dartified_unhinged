@@ -25,39 +25,39 @@ enum CloneKind {
 ///
 /// Passed to [Cloner.allowState] so a [ClonePolicy] can selectively include
 /// or exclude state categories from the cloned object.
-enum CloneStateType {
-  /// The object's identity fields (e.g. [ECSBase.id], [ECSBase.name]).
-  ///
-  /// Excluded by [DefaultPolicy], clones always receive their own identity.
-  identity,
+// enum CloneStateType {
+//   /// The object's identity fields (e.g. [ECSBase.id], [ECSBase.name]).
+//   ///
+//   /// Excluded by [DefaultPolicy], clones always receive their own identity.
+//   identity,
 
-  /// The object's active/disabled state ([IsActivatable]).
-  active,
+//   /// The object's active/disabled state ([IsActivatable]).
+//   active,
 
-  /// User-defined variables stored on the object ([HasVars]).
-  vars,
+//   /// User-defined variables stored on the object ([HasVars]).
+//   vars,
 
-  /// Event history state. ([IsEventHistoryHolder]).
-  eventHistory,
+//   /// Event history state. ([IsEventHistoryHolder]).
+//   eventHistory,
 
-  /// Event queue state. ([IsEventQueueHolder]).
-  eventQueue,
+//   /// Event queue state. ([IsEventQueueHolder]).
+//   eventQueue,
 
-  /// Callbackl queue state. ([IsCallbackProcessable]).
-  callbackQueue,
+//   /// Callbackl queue state. ([IsCallbackProcessable]).
+//   callbackQueue,
 
-  /// Groups ([QueryGroup]) within a [QueryComponentManagable].
-  queryGroups,
+//   /// Groups ([QueryGroup]) within a [QueryComponentManagable].
+//   queryGroups,
 
-  /// Source list within a [QueryComponentManagable].
-  querySourceList,
+//   /// Source list within a [QueryComponentManagable].
+//   querySourceList,
 
-  /// Pending task queue state. ([IsTaskProcessable]).
-  pendingTaskQueue,
+//   /// Pending task queue state. ([IsTaskProcessable]).
+//   pendingTaskQueue,
 
-  /// Task queue state. ([IsTaskProcessable]).
-  taskQueue,
-}
+//   /// Task queue state. ([IsTaskProcessable]).
+//   taskQueue,
+// }
 
 /// Defines the allow/deny rules for a cloning operation.
 ///
@@ -117,7 +117,7 @@ abstract class Cloner<T extends App<T>> {
     => allow(.hook, owner: owner, payload: type);
 
   /// Whether the state category identified by [type] should be copied to the clone.
-  bool allowState(ECSBase<T> owner, CloneStateType type)
+  bool allowState(ECSBase<T> owner, ECSStateKey type)
     => allow(.state, owner: owner, payload: type);
 }
 
@@ -130,8 +130,13 @@ class DefaultPolicy<T extends App<T>> implements ClonePolicy<T> {
   const DefaultPolicy();
 
   @override
-  bool allow(CloneKind kind, {ECSBase<T>? owner, Object? payload})
-    => payload != CloneStateType.identity;
+  bool allow(CloneKind kind, {ECSBase<T>? owner, Object? payload}) {
+    if (kind == .state) {
+      return payload != owner?.stateIdentityKey;
+    }
+
+    return true;
+  }
 }
 
 /// A [Cloner] scoped to [Entity] cloning operations.

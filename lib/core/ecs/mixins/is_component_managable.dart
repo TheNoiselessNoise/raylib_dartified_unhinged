@@ -10,8 +10,6 @@ mixin IsComponentManagable<
   IsEventEmittable<T, E>,
   IsDisposable<T, E>
 {
-  void _doOnComponentParentSet(Comp<T> component);
-
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██ ░██     ░██ ░██     ░██ ░██   ░██   ░██         
@@ -357,7 +355,7 @@ mixin IsComponentManagable<
     }
 
     component.parent = self;
-    _doOnComponentParentSet(component);
+    component.entity = entity;
 
     _doOnCompAdd(component);
     if (!component.isClone) component._doAdd(self);
@@ -740,7 +738,7 @@ mixin IsComponentManagable<
     // This clone() call ALREADY does everything.
     // Returns the fully cloned component
     final fullyClonedComp = what.clone(cloner);
-    
+
     if (replaceComponent) {
       to.replaceComp(fullyClonedComp);
     } else {

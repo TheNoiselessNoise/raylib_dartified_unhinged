@@ -9,27 +9,6 @@ class _GlobalIdCounter {
     => _counters[type] = _counters.putIfAbsent(type, () => 0) + 1;
 }
 
-/// Single key to external hook storage.
-final class ECSHookKey<F extends Function> {
-  // for group-clearing, since there's no enum to group by
-  final String family;
-
-  final String name;
-
-  const ECSHookKey(this.family, this.name);
-
-  String get fullId => '$family.$name';
-
-  @override
-  bool operator ==(Object other) => other is ECSHookKey<F> && other.fullId == fullId;
-
-  @override
-  int get hashCode => Object.hash(F, fullId);
-
-  @override
-  String toString() => fullId;
-}
-
 /// Base class for all ECS objects.
 ///
 /// Provides a per-type auto-incrementing [id] and a default [name] derived from it
@@ -37,16 +16,21 @@ final class ECSHookKey<F extends Function> {
 abstract class ECSBase<T extends App<T>> with
   HasAppAccess<T>,
   HasSceneAccess<T>,
+  HasCloneableState<T>,
   HasExternalHooks<T>
 {
+  late final stateIdentityKey = ECSStateTagKey(
+    'ECSBase', 'identity',
+  );
+
   /// See [id].
-  late final int _id;
+  late int _id;
 
   /// Per-type unique identifier, auto-assigned in the constructor.
   int get id => _id;
 
   /// See [namedId].
-  late final String _namedId;
+  late String _namedId;
 
   /// Per-type unique String identifier, auto-assigned in the constructor.
   /// Defaults to `<runtimeType>_<id>`.
@@ -64,6 +48,7 @@ abstract class ECSBase<T extends App<T>> with
     _id = _GlobalIdCounter.nextIdForType(runtimeType);
     _namedId = '${runtimeType}_$id';
     name = _namedId;
+    _registerBuiltinStateKeys();
   }
 
   /// The parent object in the ECS tree, if any.
@@ -115,48 +100,6 @@ abstract class ECSBase<T extends App<T>> with
 
   @override
   String toString() => '$runtimeType(id=$id)';
-}
-
-class VarKey<T> {
-  final String name;
-  
-  const VarKey(this.name);
-}
-
-mixin HasVars<T extends App<T>, E extends ECSBase<T>> on Self<E> {
-  Map<VarKey<dynamic>, dynamic> _vars = {};
-
-  V? getVar<V>(VarKey<V> key) => _vars[key] as V?;
-
-  V getVarSafe<V>(VarKey<V> key, V fallback)
-    => _vars[key] is V ? _vars[key] as V : fallback;
-
-  bool hasVar(VarKey key) => _vars.containsKey(key);
-
-  V incVar<V extends num>(VarKey<V> key, [V? amount]) {
-    final value = getVarSafe(key, 0);
-    final next = (value + (amount ?? 1)) as V;
-    setVar(key, next);
-    return next;
-  }
-
-  V decVar<V extends num>(VarKey<V> key, [V? amount]) {
-    final value = getVarSafe(key, 0);
-    final next = (value - (amount ?? 1)) as V;
-    setVar(key, next);
-    return next;
-  }
-
-  E setVar<V>(VarKey<V> key, V value) {
-    _vars[key] = value;
-    return self;
-  }
-
-  V getOrSetVar<V>(VarKey<V> key, V fallback) {
-    if (_vars.containsKey(key)) return getVar(key)!;
-    setVar(key, fallback);
-    return fallback;
-  }
 }
 
 class Bounds {

@@ -100,6 +100,19 @@ mixin IsEventHistoryHolder<
   //   ░██  ░██       ░██ ░██         ░██         
   // ░██████░██       ░██ ░██         ░██████████ 
 
+  late final stateEventHistoryKey = ECSStateKey<List<_RecordedEvent<T>>>(
+    'IsEventHistoryHolder', 'eventHistory',
+    get: () => .from(_eventHistory),
+    set: (value) => _eventHistory = value,
+  );
+
+  @override
+  @mustCallSuper
+  void _registerBuiltinStateKeys() {
+    super._registerBuiltinStateKeys();
+    registerStateKey(stateEventHistoryKey);
+  }
+
   List<_RecordedEvent<T>> _eventHistory = [];
 
   Iterable<Event<T>> get eventHistory => _eventHistory.map((e) => e.event);

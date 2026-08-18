@@ -11,6 +11,27 @@ mixin IsCancelable<
   Self<E>,
   ECSBase<T>
 {
+  late final stateIsCanceledKey = ECSStateKey<bool>(
+    'IsCancelable', 'isCanceled',
+    get: () => _isCanceled,
+    set: (value) => _isCanceled = value,
+  );
+
+  @override
+  @mustCallSuper
+  void _registerBuiltinStateKeys() {
+    super._registerBuiltinStateKeys();
+    registerStateKey(stateIsCanceledKey);
+  }
+
+  // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
+  // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
+  // ░██     ░██ ░██     ░██ ░██     ░██ ░██   ░██   ░██         
+  // ░██████████ ░██     ░██ ░██     ░██ ░███████     ░████████  
+  // ░██     ░██ ░██     ░██ ░██     ░██ ░██   ░██           ░██ 
+  // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
+  // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
+
   late final hookOnBeforeCancelKey = ECSHookKey<bool Function(E self)>(
     'IsCancelable', 'onBeforeCancel'
   );
@@ -22,11 +43,6 @@ mixin IsCancelable<
   late final hookOnAfterCancelKey = ECSHookKey<void Function(E self)>(
     'IsCancelable', 'onAfterCancel'
   );
-
-  bool _isCanceled = false;
-
-  /// Whether this object has been canceled.
-  bool get isCanceled => _isCanceled;
 
   Iterable<bool Function(E self)> get _onBeforeCancelFns
     => hooksOf(hookOnBeforeCancelKey);
@@ -98,6 +114,19 @@ mixin IsCancelable<
   ///
   /// Called after all registered [listenOnAfterCancel] listeners.
   void onAfterCancel() {}
+
+  // ░██████░███     ░███ ░█████████  ░██         
+  //   ░██  ░████   ░████ ░██     ░██ ░██         
+  //   ░██  ░██░██ ░██░██ ░██     ░██ ░██         
+  //   ░██  ░██ ░████ ░██ ░█████████  ░██         
+  //   ░██  ░██  ░██  ░██ ░██         ░██         
+  //   ░██  ░██       ░██ ░██         ░██         
+  // ░██████░██       ░██ ░██         ░██████████ 
+
+  bool _isCanceled = false;
+
+  /// Whether this object has been canceled.
+  bool get isCanceled => _isCanceled;
 
   /// Attempts to cancel this object.
   ///

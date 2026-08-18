@@ -2,9 +2,30 @@ part of '../../raylib_dartified_unhinged.dart';
 
 typedef IsAnyEventQueueHolder<T extends App<T>> = IsEventQueueHolder<T, ECSBase<T>>;
 
-mixin IsEventQueueHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmittable<T, E> {
+mixin IsEventQueueHolder<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  IsEventEmittable<T, E>
+{
+  late final stateEventQueueKey = ECSStateKey<List<Event<T>>>(
+    'IsEventQueueHolder', 'eventQueue',
+    get: () => .from(_eventQueue),
+    set: (value) => _eventQueue = value,
+  );
+
+  @override
+  @mustCallSuper
+  void _registerBuiltinStateKeys() {
+    super._registerBuiltinStateKeys();
+    registerStateKey(stateEventQueueKey);
+  }
+
   /// Pending events sorted by priority, drained at the start of each update.
   List<Event<T>> _eventQueue = [];
+
+  @visibleForTesting
+  List<Event<T>> get eventQueueForTesting => _eventQueue;
 
   @override
   void _enqueueEvent(Event<T> event) {

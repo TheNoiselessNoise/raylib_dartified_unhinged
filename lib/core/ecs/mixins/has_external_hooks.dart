@@ -1,5 +1,26 @@
 part of '../../raylib_dartified_unhinged.dart';
 
+/// Single key to external hook storage.
+final class ECSHookKey<F extends Function> {
+  // for group-clearing, since there's no enum to group by
+  final String family;
+
+  final String name;
+
+  const ECSHookKey(this.family, this.name);
+
+  String get fullId => '$family.$name';
+
+  @override
+  bool operator ==(Object other) => other is ECSHookKey<F> && other.fullId == fullId;
+
+  @override
+  int get hashCode => Object.hash(F, fullId);
+
+  @override
+  String toString() => fullId;
+}
+
 /// Hooks receive the affected instance as an argument (e.g. `self`).
 /// Prefer that over closing over an outer reference, hook closures
 /// are shared by reference when cloned, so a captured outer instance
