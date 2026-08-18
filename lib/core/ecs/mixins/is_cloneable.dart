@@ -65,11 +65,15 @@ mixin IsCloneable<
   }
 
   /// Produces a clone of this object.
+  /// 
+  /// Uses [cloner] to check what hooks/state to clone.
+  /// If no [cloner] is provided, cloning behaves like it has
+  /// [DefaultPolicy] policy.
   X clone<X extends E>([C? cloner]) {
     final newInstance = _doWhenCreateInstance(self) ?? createInstance();
 
     if (newInstance is! IsCloneable<T, E, C>) {
-      throw StateError('Invalid newInstance returned, expected ${IsCloneable<T, E, C>}!');
+      throw StateError('Invalid (${newInstance.runtimeType}) newInstance returned, expected ${IsCloneable<T, E, C>}!');
     }
     
     _assignClone(newInstance);
@@ -82,7 +86,7 @@ mixin IsCloneable<
     final readyToClone = _doWhenClone(self, cloner) ?? createClone(newInstance, cloner);
 
     if (readyToClone is! IsCloneable<T, E, C>) {
-      throw StateError('Invalid readyToClone returned, expected ${IsCloneable<T, E, C>}!');
+      throw StateError('Invalid (${readyToClone.runtimeType}) readyToClone returned, expected ${IsCloneable<T, E, C>}!');
     }
 
     _doCheckIsCloneFresh(readyToClone);

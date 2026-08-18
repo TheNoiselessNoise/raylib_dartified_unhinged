@@ -28,7 +28,7 @@ enum CloneKind {
 enum CloneStateType {
   /// The object's identity fields (e.g. [ECSBase.id], [ECSBase.name]).
   ///
-  /// Excluded by [AllowAllPolicy], clones always receive their own identity.
+  /// Excluded by [DefaultPolicy], clones always receive their own identity.
   identity,
 
   /// The object's active/disabled state ([IsActivatable]).
@@ -65,7 +65,7 @@ enum CloneStateType {
 /// cloning. The [allow] method is the single decision point, receiving a
 /// [CloneKind] and optional [owner]/[payload] for context.
 ///
-/// See [AllowAllPolicy] for a permissive default, and [Cloner] for the typed
+/// See [DefaultPolicy] for a permissive default, and [Cloner] for the typed
 /// helper methods that delegate to this policy.
 abstract class ClonePolicy<T extends App<T>> {
   bool allow(
@@ -93,11 +93,11 @@ abstract class Cloner<T extends App<T>> {
   }) => policy.allow(kind, owner: owner, payload: payload);
 
   /// Whether [appSystem] should be included in the clone of [owner].
-  bool allowAppSystem(App<T> owner, AppSystem<T> appSystem)
+  bool allowAppSystem(T owner, AppSystem<T> appSystem)
     => allow(.appSystem, owner: owner, payload: appSystem);
 
   /// Whether [scene] should be included in the clone of [owner].
-  bool allowScene(App<T> owner, Scene<T> scene)
+  bool allowScene(T owner, Scene<T> scene)
     => allow(.scene, owner: owner, payload: scene);
 
   /// Whether [sceneSystem] should be included in the clone of [owner].
@@ -126,8 +126,8 @@ abstract class Cloner<T extends App<T>> {
 /// Identity fields ([ECSBase.id], [ECSBase.namedId], [ECSBase.name]) are always
 /// excluded so that clones receive their own auto-assigned identity rather than
 /// sharing the origin's.
-class AllowAllPolicy<T extends App<T>> implements ClonePolicy<T> {
-  const AllowAllPolicy();
+class DefaultPolicy<T extends App<T>> implements ClonePolicy<T> {
+  const DefaultPolicy();
 
   @override
   bool allow(CloneKind kind, {ECSBase<T>? owner, Object? payload})
@@ -138,18 +138,18 @@ class AllowAllPolicy<T extends App<T>> implements ClonePolicy<T> {
 class EntityCloner<T extends App<T>> extends Cloner<T> {
   const EntityCloner(super.policy);
 
-  /// Creates an [EntityCloner] using [AllowAllPolicy], or a custom [policy].
-  factory EntityCloner.AllowAll([ClonePolicy<T>? policy])
-    => .new(policy ?? AllowAllPolicy<T>());
+  /// Creates an [EntityCloner] using [DefaultPolicy], or a custom [policy].
+  factory EntityCloner.Default([ClonePolicy<T>? policy])
+    => .new(policy ?? DefaultPolicy<T>());
 }
 
 /// A [Cloner] scoped to [SceneSystem] cloning operations.
 class SceneSystemCloner<T extends App<T>> extends Cloner<T> {
   const SceneSystemCloner(super.policy);
 
-  /// Creates a [SceneSystemCloner] using [AllowAllPolicy], or a custom [policy].
-  factory SceneSystemCloner.AllowAll([ClonePolicy<T>? policy])
-    => .new(policy ?? AllowAllPolicy<T>());
+  /// Creates a [SceneSystemCloner] using [DefaultPolicy], or a custom [policy].
+  factory SceneSystemCloner.Default([ClonePolicy<T>? policy])
+    => .new(policy ?? DefaultPolicy<T>());
 }
 
 /// A [Cloner] scoped to [Scene] cloning operations.
@@ -169,11 +169,11 @@ class SceneCloner<T extends App<T>> extends Cloner<T> {
     required this.systemCloner,
   }) : super(scenePolicy);
 
-  /// Creates a [SceneCloner] using [AllowAllPolicy] at all levels, or a custom [policy].
-  factory SceneCloner.AllowAll([ClonePolicy<T>? policy]) => .new(
-    scenePolicy: policy ?? AllowAllPolicy<T>(),
-    entityCloner: .AllowAll(policy),
-    systemCloner: .AllowAll(policy),
+  /// Creates a [SceneCloner] using [DefaultPolicy] at all levels, or a custom [policy].
+  factory SceneCloner.Default([ClonePolicy<T>? policy]) => .new(
+    scenePolicy: policy ?? DefaultPolicy<T>(),
+    entityCloner: .Default(policy),
+    systemCloner: .Default(policy),
   );
 }
 
@@ -183,9 +183,9 @@ class AppSystemCloner<T extends App<T>> extends Cloner<T> {
     required ClonePolicy<T> systemPolicy,
   }) : super(systemPolicy);
 
-  /// Creates an [AppSystemCloner] using [AllowAllPolicy], or a custom [policy].
-  factory AppSystemCloner.AllowAll([ClonePolicy<T>? policy]) => .new(
-    systemPolicy: policy ?? AllowAllPolicy<T>(),
+  /// Creates an [AppSystemCloner] using [DefaultPolicy], or a custom [policy].
+  factory AppSystemCloner.Default([ClonePolicy<T>? policy]) => .new(
+    systemPolicy: policy ?? DefaultPolicy<T>(),
   );
 }
 
@@ -206,10 +206,10 @@ class AppCloner<T extends App<T>> extends Cloner<T> {
     required this.systemCloner,
   }) : super(appPolicy);
 
-  /// Creates an [AppCloner] using [AllowAllPolicy] at all levels, or a custom [policy].
-  factory AppCloner.AllowAll([ClonePolicy<T>? policy]) => .new(
-    appPolicy: policy ?? AllowAllPolicy<T>(),
-    sceneCloner: .AllowAll(policy),
-    systemCloner: .AllowAll(policy),
+  /// Creates an [AppCloner] using [DefaultPolicy] at all levels, or a custom [policy].
+  factory AppCloner.Default([ClonePolicy<T>? policy]) => .new(
+    appPolicy: policy ?? DefaultPolicy<T>(),
+    sceneCloner: .Default(policy),
+    systemCloner: .Default(policy),
   );
 }
