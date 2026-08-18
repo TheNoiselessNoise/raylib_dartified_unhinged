@@ -169,6 +169,10 @@ enum CloneHookType {
   onBeforeEvent,
   /// [IsEventEmittable]
   onEvent,
+  /// [IsEventEmittable]
+  onBeforeEventEmit,
+  /// [IsEventEmittable]
+  onBeforeEventDispatch,
 
   // IsEventHistoryHolder
 

@@ -72,8 +72,7 @@ enum EventScope {
 /// over the scope passed at the call site.
 abstract class Event<T extends App<T>> extends ECSBase<T> with
   Self<Event<T>>,
-  HasAppAccess<T>,
-  IsCancelable<T, Event<T>> // TODO: experimental, maybe remove
+  IsCancelable<T, Event<T>>
 {
   @override
   final T app;
@@ -107,6 +106,7 @@ abstract class Event<T extends App<T>> extends ECSBase<T> with
     _wasDispatched = false;
     _originRecorded = false;
     _rootRecorded = false;
+    _propagationStarted = false;
   }
 
   /// Links this event to [link] so that stopping propagation on one
@@ -130,13 +130,18 @@ abstract class Event<T extends App<T>> extends ECSBase<T> with
   bool _wasDispatched = false;
   bool _originRecorded = false;
   bool _rootRecorded = false;
+  bool _propagationStarted = false;
 
+  /// Cancels this event, preventing it from ever being enqueued or
+  /// propagated. Only meaningful when called from
+  /// [IsEventEmittable.onBeforeEventEmit] / [IsEventEmittable.onBeforeEventDispatch].
+  /// By the time [IsEventEmittable.onEvent] runs, the event is already underway and
+  /// [stopPropagation] is the correct tool instead.
   @override
   bool cancel() {
+    if (_propagationStarted) return false;
     if (isStopped) return false;
-    final result = super.cancel();
-    if (result) stopPropagation();
-    return result;
+    return super.cancel();
   }
 }
 
@@ -531,12 +536,6 @@ class EventDebugMessage<T extends App<T>> extends Event<T> {
   final ECSDebugMessage message;
 
   EventDebugMessage(super.app, this.message);
-}
-
-class ECSDeveloperTestingEvent<T extends App<T>> extends Event<T> {
-  final String? source;
-
-  ECSDeveloperTestingEvent(super.app, [this.source]);
 }
 
 // COLLISION

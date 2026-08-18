@@ -10,15 +10,9 @@ environment:
 dependencies:
   meta: ^1.17.0
   path: ^1.9.1
-  # raylib_dartified_base: '>=5.5.0 <6.0.0'
-  # raylib_dartified_web: '>=5.5.0 <6.0.0'
-  # raylib_dartified: '>=5.5.0 <6.0.0'
-  raylib_dartified_base:
-    path: ../raylib_dartified_base
-  raylib_dartified_web:
-    path: ../raylib_dartified_web
-  raylib_dartified:
-    path: ../raylib_dartified
+  raylib_dartified_base: '>=5.5.0 <6.0.0'
+  raylib_dartified_web: '>=5.5.0 <6.0.0'
+  raylib_dartified: '>=5.5.0 <6.0.0'
   uuid: ^4.6.0
 
 dev_dependencies:

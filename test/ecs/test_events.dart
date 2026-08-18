@@ -1,44 +1,25 @@
 import 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart';
 import 'package:test/test.dart';
+import '../mocks.dart';
 
-typedef _E<T extends App<T>> = ECSDeveloperTestingEvent<T>;
+typedef _E<T extends App<T>> = TestingEvent<T>;
 
-final Set<EmitterType> testCollector = {};
-final Map<EmitterType, int> testCounts = {};
+final Set<TestingEmitterType> testCollector = {};
+final Map<TestingEmitterType, int> testCounts = {};
 
-void addTestResult<T extends App<T>>(Event<T> event, EmitterType emitter) {
+void addTestResult<T extends App<T>>(Event<T> event, TestingEmitterType emitter) {
   if (event is! _E<T>) return;
   testCollector.add(emitter);
   testCounts[emitter] = testCounts.putIfAbsent(emitter, () => 0) + 1;
 }
 
-mixin IsTestingApp<T extends IsTestingApp<T>> on App<T> {
-  TestAppSystem<T> get appSystem;
-  TestScene<T> get testScene;
-
-  Map<EmitterType, IsAnyEventHistoryHolder<T>> get eventHistoryHolders => {
-    .app: app,
-    .appSystem: app.appSystem,
-    .scene: app.testScene,
-    .sceneSystem: app.testScene.sceneSystem,
-    .entity1: app.testScene.entity1,
-    .comp1: app.testScene.entity1.comp1,
-    .entity2: app.testScene.entity2,
-    .comp2: app.testScene.entity2.comp2,
-    .comp3: app.testScene.entity2.comp2.comp3,
-  };
-
-  @override
-  void onEvent(Event<T> event) => addTestResult(event, .app);
-}
-
 class TestEventPropagationResult {
   ExpectedValues expected = .new({}, 0, 0);
-  Set<(EmitterType, int)> got = {};
+  Set<(TestingEmitterType, int)> got = {};
 
-  Set<EmitterType> missing = {};
-  Set<EmitterType> extra = {};
-  Set<(EmitterType, int)> tooMany = {};
+  Set<TestingEmitterType> missing = {};
+  Set<TestingEmitterType> extra = {};
+  Set<(TestingEmitterType, int)> tooMany = {};
 
   bool get isValid => missing.isEmpty && extra.isEmpty && tooMany.isEmpty;
 
@@ -69,7 +50,7 @@ class TestEventPropagationResult {
   ].join('');
 }
 
-void fireEvent<T extends IsTestingApp<T>>(T app, EmitterType emitter, EventMethod method, EventScope scope, {
+void fireEvent<T extends TestingApp<T>>(T app, TestingEmitterType emitter, EventMethod method, EventScope scope, {
   bool reset = false,
 }) {
   if (reset) {
@@ -90,8 +71,8 @@ void fireEvent<T extends IsTestingApp<T>>(T app, EmitterType emitter, EventMetho
   };
 
   switch (method) {
-    case .emit:     emittable.emit(ECSDeveloperTestingEvent(app), scope: scope);
-    case .dispatch: emittable.dispatch(ECSDeveloperTestingEvent(app), scope: scope);
+    case .emit:     emittable.emit(_E(app), scope: scope);
+    case .dispatch: emittable.dispatch(_E(app), scope: scope);
   }
 
   if (method == .emit) {
@@ -99,8 +80,8 @@ void fireEvent<T extends IsTestingApp<T>>(T app, EmitterType emitter, EventMetho
   }
 }
 
-TestEventPropagationResult testEventPropagation<T extends IsTestingApp<T>>(T app, {
-  required EmitterType emitter,
+TestEventPropagationResult testEventPropagation<T extends TestingApp<T>>(T app, {
+  required TestingEmitterType emitter,
   required EventMethod method,
   required EventScope scope,
 }) {
@@ -128,27 +109,15 @@ enum EventMethod {
   dispatch,
 }
 
-enum EmitterType {
-  app,
-  appSystem,
-  scene,
-  sceneSystem,
-  entity1,
-  comp1,
-  entity2,
-  comp2,
-  comp3,
-}
-
 class ExpectedValues {
   final int appEventCount;
   final int holderEventCount;
-  final Set<EmitterType> allEvents;
+  final Set<TestingEmitterType> allEvents;
 
   const ExpectedValues(this.allEvents, [this.appEventCount = 1, this.holderEventCount = 1]);
 }
 
-const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
+const Map<(TestingEmitterType, EventScope), ExpectedValues> expectedReceivers = {
 
   (.app, .root):             .new({.app, .appSystem}),
   (.app, .rootAndLocal):     .new({.app, .appSystem}),
@@ -234,103 +203,74 @@ const Map<(EmitterType, EventScope), ExpectedValues> expectedReceivers = {
 
 typedef G = TestApp;
 
-class TestApp extends App<G> with IsTestingApp<G> {
-  @override late TestAppSystem<G> appSystem;
-  @override late TestScene<G> testScene;
-
-  TestApp(super.backend) {
-    addSystem(appSystem = .new(app));
-    addScene(testScene = .new(app));
-  }
+class TestApp extends TestingApp<G> {
+  TestApp(super.backend, {
+    super.onEventCallbackPackage,
+  });
 }
 
-class TestAppSystem<T extends App<T>> extends AppSystem<T> {
-  TestAppSystem(super.app);
+TestApp createTestApp({
+  bool clearEventQueue = false,
+}) {
+  final TestApp app = .new(HeadlessBackend(),
+    onEventCallbackPackage: .new(
+      appOnEvent: (e) => addTestResult(e, .app),
+      appSystemOnEvent: (e) => addTestResult(e, .appSystem),
+      sceneOnEvent: (e) => addTestResult(e, .scene),
+      sceneSystemOnEvent: (e) => addTestResult(e, .sceneSystem),
+      entity1OnEvent: (e) => addTestResult(e, .entity1),
+      comp1OnEvent: (e) => addTestResult(e, .comp1),
+      entity2OnEvent: (e) => addTestResult(e, .entity2),
+      comp2OnEvent: (e) => addTestResult(e, .comp2),
+      comp3OnEvent: (e) => addTestResult(e, .comp3),
+    ),
+  )..init();
 
-  @override
-  void onEvent(Event<T> event) => addTestResult(event, .appSystem);
-}
-
-class TestSceneSystem<T extends App<T>> extends SceneSystem<T> {
-  TestSceneSystem(super.app);
-
-  @override
-  void onEvent(Event<T> event) => addTestResult(event, .sceneSystem);
-}
-
-class TestScene<T extends App<T>> extends FWidgetScene<T> {
-  late TestSceneSystem<T> sceneSystem;
-  late TestEntity1<T> entity1;
-  late TestEntity2<T> entity2;
-
-  TestScene(super.app);
-
-  @override
-  void onStart() {
-    addSystem(sceneSystem = .new(app));
-    addEntity(entity1 = .new(app));
-    addEntity(entity2 = .new(app));
-  }
-
-  @override
-  void onEvent(Event<T> event) => addTestResult(event, .scene);
-}
-
-class TestComponent1<T extends App<T>> extends Comp<T> {
-  TestComponent1(super.app);
-
-  @override
-  void onEvent(Event<T> event) => addTestResult(event, .comp1);
-}
-
-class TestEntity1<T extends App<T>> extends Entity<T> {
-  late TestComponent1<T> comp1;
-
-  TestEntity1(super.app) {
-    addComp(comp1 = .new(app));
-  }
-
-  @override
-  void onEvent(Event<T> event) => addTestResult(event, .entity1);
-}
-
-class TestComponent2<T extends App<T>> extends Comp<T> {
-  late TestComponent3<T> comp3;
-
-  TestComponent2(super.app);
-
-  @override
-  void onEvent(Event<T> event) => addTestResult(event, .comp2);
-}
-
-class TestEntity2<T extends App<T>> extends Entity<T> {
-  late TestComponent2<T> comp2;
-
-  TestEntity2(super.app) {
-    addComp(comp2 = .new(app));
-    comp2.addComp(comp2.comp3 = .new(app));
-  }
-
-  @override
-  void onEvent(Event<T> event) => addTestResult(event, .entity2);
-}
-
-class TestComponent3<T extends App<T>> extends Comp<T> {
-  TestComponent3(super.app);
-
-  @override
-  void onEvent(Event<T> event) => addTestResult(event, .comp3);
+  if (clearEventQueue) app.clearEventQueue();
+  return app;
 }
 
 void main() {
+  group('Cancellation', () {
+    late TestApp app;
+
+    setUp(() {
+      app = createTestApp();
+      testCounts.clear();
+    });
+
+    test('Simple', () {
+      app.dispatch(_E(app), scope: .self);
+      expect(testCounts[TestingEmitterType.app], equals(1));
+      testCounts.clear();
+
+      app.listenOnBeforeEventDispatch((_, e) => e.cancel());
+
+      app.dispatch(_E(app), scope: .self);
+      expect(testCounts[TestingEmitterType.app], isNull);
+    });
+
+    test('cancel() inside onEvent hook should NOT work as stopPropagation()', () {
+      app.listenOnEvent((_, e) => e.cancel());
+      app.dispatch(_E(app), scope: .self);
+      expect(testCounts[TestingEmitterType.app], equals(1));
+
+      testCounts.clear();
+
+      app.listenOnEvent((_, e) => e.stopPropagation());
+      app.dispatch(_E(app), scope: .self);
+      expect(testCounts[TestingEmitterType.app], isNull);
+    });
+  });
+
   group('Propagation', () {
-    final app = TestApp(HeadlessBackend())..init();
+    final app = createTestApp();
 
     for (final method in EventMethod.values) {
       group('method=${method.name}', () {
         for (final scope in EventScope.values) {
           group('scope=${scope.name}', () {
-            for (final emitter in EmitterType.values) {
+            for (final emitter in TestingEmitterType.values) {
               test('emitter=${emitter.name}', () {
                 final result = testEventPropagation(app,
                   method: method,
@@ -349,11 +289,11 @@ void main() {
 
   group('regression: queue ordering', () {
     test('equal-priority events drain in insertion order', () {
-      final app = TestApp(HeadlessBackend())..init();
+      final app = createTestApp();
       
       final holders = app.eventHistoryHolders;
 
-      List<ECSDeveloperTestingEvent<G>> events = List.generate(holders.length, (_) => .new(app));
+      List<_E<G>> events = List.generate(holders.length, (_) => .new(app));
       List<int> ids = events.map((e) => e.id).toList();
 
       for (final (i, emittable) in holders.values.indexed) {
@@ -362,7 +302,7 @@ void main() {
 
       app.processQueuedEventsForTest();
 
-      final historyEvents = app.eventHistory.whereType<ECSDeveloperTestingEvent>().toList();
+      final historyEvents = app.eventHistory.whereType<_E>().toList();
       List<int> historyIds = historyEvents.map((e) => e.id).toList();
 
       expect(historyEvents.length, equals(holders.length));
@@ -371,7 +311,7 @@ void main() {
       for (final (i, emittable) in holders.values.indexed) {
         if (emittable is TestApp) continue;
 
-        final historyEvents = emittable.eventHistory.whereType<ECSDeveloperTestingEvent>().toList();
+        final historyEvents = emittable.eventHistory.whereType<_E>().toList();
         List<int> historyIds = historyEvents.map((e) => e.id).toList();
 
         expect(historyEvents.length, equals(1));
@@ -383,7 +323,7 @@ void main() {
   group('replaying', () {
     late G app;
 
-    setUp(() => app = .new(HeadlessBackend())..init()..clearEventQueue());
+    setUp(() => app = createTestApp(clearEventQueue: true));
 
     test('reproduces live self-scope delivery order per holder', () {
       List<String> ids = [];
@@ -398,7 +338,7 @@ void main() {
         ids.clear();
 
         // some arbitrary number of events
-        final List<ECSDeveloperTestingEvent<G>> events = .generate(10, (_) => .new(app));        
+        final List<_E<G>> events = .generate(10, (_) => .new(app));        
         final expected = events.map((e) => '${holder.namedId}_${e.namedId}');
 
         for (final event in events) {
@@ -411,7 +351,7 @@ void main() {
         expect(ids.toList(), equals(expected));
         ids.clear();
 
-        holder.replayRecordedEvents(filter: (e) => e is ECSDeveloperTestingEvent);
+        holder.replayRecordedEvents(filter: (e) => e is _E);
         app.processQueuedEventsForTest();
 
         // recorded
@@ -429,7 +369,7 @@ void main() {
       final List<String> ids = [];
       app.listenOnEvent((x, event) => ids.add('${x.namedId}_${event.namedId}'));
 
-      final List<ECSDeveloperTestingEvent<G>> events = .generate(n, (_) => .new(app));
+      final List<_E<G>> events = .generate(n, (_) => .new(app));
       events.forEach((e) => app.emit(e, scope: .self));
       app.processQueuedEventsForTest();
 
@@ -439,7 +379,7 @@ void main() {
       ];
 
       for (var i = 0; i < replays; i++) {
-        app.replayRecordedEvents(filter: (e) => e is ECSDeveloperTestingEvent);
+        app.replayRecordedEvents(filter: (e) => e is _E);
         app.processQueuedEventsForTest();
       }
 
@@ -448,7 +388,7 @@ void main() {
   });
 
   group('recorded check', () {
-    late G app = .new(HeadlessBackend())..init()..clearEventQueue();
+    late G app = createTestApp(clearEventQueue: true);
 
     void reset() {
       for (final entry in app.eventHistoryHolders.values) {
@@ -471,8 +411,8 @@ void main() {
             final key = (emitter, scope);
             final expected = expectedReceivers[key]!;
             final int eventCount = expected.allEvents.length;
-            final appEvents = app.getRecordedEvents(filter: (e) => e is ECSDeveloperTestingEvent);
-            final holderEvents = holder.getRecordedEvents(filter: (e) => e is ECSDeveloperTestingEvent);
+            final appEvents = app.getRecordedEvents(filter: (e) => e is _E);
+            final holderEvents = holder.getRecordedEvents(filter: (e) => e is _E);
 
             expect(testCollector.length, equals(eventCount), reason: '\nCOLLECTOR:\nExpected: ${expected.allEvents.map((e) => e.name)}\n  Actual: ${testCollector.map((e) => e.name)}');
             expect(appEvents.length, equals(expected.appEventCount), reason: 'WHAT: appEvents');
@@ -485,14 +425,14 @@ void main() {
 
   group('event history replay', () {
     test('replaying app history before comp history compounds the replay count', () {
-      late G app = .new(HeadlessBackend())..init()..clearEventQueue();
+      late G app = createTestApp(clearEventQueue: true);
 
       final comp3 = app.testScene.entity2.comp2.comp3;
 
       // Single dispatch cycle: comp3 is origin, app is root.
       // This records exactly once at origin and once at root.
       // 1 event in each history.
-      comp3.dispatch(ECSDeveloperTestingEvent(app), scope: .sceneOnly);
+      comp3.dispatch(_E(app), scope: .sceneOnly);
 
       expect(app.getRecordedEvents().length, equals(1));
       expect(comp3.getRecordedEvents().length, equals(1));
