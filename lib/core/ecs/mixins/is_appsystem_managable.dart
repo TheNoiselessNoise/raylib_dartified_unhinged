@@ -7,7 +7,14 @@ part of '../../raylib_dartified_unhinged.dart';
 /// - **before** => cancelable; any listener or override returning `false` aborts the operation
 /// - **on** => the operation is about to complete; called by the host after all before-checks pass
 /// - **after** => the operation has completed; side-effects and cleanup go here
-mixin IsAppSystemManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBase<T>, IsEventEmittable<T, E> {
+mixin IsAppSystemManagable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  Self<E>,
+  ECSBase<T>,
+  IsEventEmittable<T, E>
+{
 
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
@@ -17,24 +24,54 @@ mixin IsAppSystemManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, E
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  List<bool Function(E self, AppSystem<T> system)> _onBeforeAppSystemAddFns = [];
+  late final hookOnBeforeAppSystemAddKey = ECSHookKey<bool Function(E self, AppSystem<T> system)>(
+    'IsAppSystemManagable', 'onBeforeAppSystemAdd'
+  );
 
-  List<void Function(E self, AppSystem<T> system)> _onAppSystemAddFns = [];
+  late final hookOnAppSystemAddKey = ECSHookKey<void Function(E self, AppSystem<T> system)>(
+    'IsAppSystemManagable', 'onAppSystemAdd'
+  );
 
-  List<void Function(E self, AppSystem<T> system)> _onAfterAppSystemAddFns = [];
+  late final hookOnAfterAppSystemAddKey = ECSHookKey<void Function(E self, AppSystem<T> system)>(
+    'IsAppSystemManagable', 'onAfterAppSystemAdd'
+  );
 
-  List<bool Function(E self, AppSystem<T> system)> _onBeforeAppSystemRemoveFns = [];
+  late final hookOnBeforeAppSystemRemoveKey = ECSHookKey<bool Function(E self, AppSystem<T> system)>(
+    'IsAppSystemManagable', 'onBeforeAppSystemRemove'
+  );
 
-  List<void Function(E self, AppSystem<T> system)> _onAppSystemRemoveFns = [];
+  late final hookOnAppSystemRemoveKey = ECSHookKey<void Function(E self, AppSystem<T> system)>(
+    'IsAppSystemManagable', 'onAppSystemRemove'
+  );
 
-  List<void Function(E self, AppSystem<T> system)> _onAfterAppSystemRemoveFns = [];
+  late final hookOnAfterAppSystemRemoveKey = ECSHookKey<void Function(E self, AppSystem<T> system)>(
+    'IsAppSystemManagable', 'onAfterAppSystemRemove'
+  );
+
+  Iterable<bool Function(E self, AppSystem<T> system)> get _onBeforeAppSystemAddFns
+    => hooksOf(hookOnBeforeAppSystemAddKey);
+
+  Iterable<void Function(E self, AppSystem<T> system)> get _onAppSystemAddFns
+    => hooksOf(hookOnAppSystemAddKey);
+
+  Iterable<void Function(E self, AppSystem<T> system)> get _onAfterAppSystemAddFns
+    => hooksOf(hookOnAfterAppSystemAddKey);
+
+  Iterable<bool Function(E self, AppSystem<T> system)> get _onBeforeAppSystemRemoveFns
+    => hooksOf(hookOnBeforeAppSystemRemoveKey);
+
+  Iterable<void Function(E self, AppSystem<T> system)> get _onAppSystemRemoveFns
+    => hooksOf(hookOnAppSystemRemoveKey);
+
+  Iterable<void Function(E self, AppSystem<T> system)> get _onAfterAppSystemRemoveFns
+    => hooksOf(hookOnAfterAppSystemRemoveKey);
 
   /// Registers [fn] as a before-add listener.
   ///
   /// [fn] returning `false` cancels the system add.
   @nonVirtual
   E listenOnBeforeAppSystemAdd(bool Function(E self, AppSystem<T> system) fn) {
-    _onBeforeAppSystemAddFns.add(fn);
+    addHook(hookOnBeforeAppSystemAddKey, fn);
     return self;
   }
 
@@ -43,7 +80,7 @@ mixin IsAppSystemManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, E
   /// Called when the add operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnAppSystemAdd(void Function(E self, AppSystem<T> system) fn) {
-    _onAppSystemAddFns.add(fn);
+    addHook(hookOnAppSystemAddKey, fn);
     return self;
   }
 
@@ -52,7 +89,7 @@ mixin IsAppSystemManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, E
   /// Called only if the system add was not canceled.
   @nonVirtual
   E listenOnAfterAppSystemAdd(void Function(E self, AppSystem<T> system) fn) {
-    _onAfterAppSystemAddFns.add(fn);
+    addHook(hookOnAfterAppSystemAddKey, fn);
     return self;
   }
 
@@ -61,7 +98,7 @@ mixin IsAppSystemManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, E
   /// [fn] returning `false` cancels the system remove.
   @nonVirtual
   E listenOnBeforeAppSystemRemove(bool Function(E self, AppSystem<T> system) fn) {
-    _onBeforeAppSystemRemoveFns.add(fn);
+    addHook(hookOnBeforeAppSystemRemoveKey, fn);
     return self;
   }
 
@@ -70,7 +107,7 @@ mixin IsAppSystemManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, E
   /// Called when the remove operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnAppSystemRemove(void Function(E self, AppSystem<T> system) fn) {
-    _onAppSystemRemoveFns.add(fn);
+    addHook(hookOnAppSystemRemoveKey, fn);
     return self;
   }
 
@@ -79,7 +116,7 @@ mixin IsAppSystemManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, E
   /// Called only if the system remove was not canceled.
   @nonVirtual
   E listenOnAfterAppSystemRemove(void Function(E self, AppSystem<T> system) fn) {
-    _onAfterAppSystemRemoveFns.add(fn);
+    addHook(hookOnAfterAppSystemRemoveKey, fn);
     return self;
   }
 

@@ -11,7 +11,13 @@ typedef IsAnyEventEmittable<T extends App<T>> = IsEventEmittable<T, ECSBase<T>>;
 /// Incoming events are propagated via [_doOnEvent], which notifies all registered
 /// listeners before invoking the [onEvent] override. Any listener or the event
 /// itself may stop propagation early via [Event.stopPropagation].
-mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBase<T> {
+mixin IsEventEmittable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  Self<E>,
+  ECSBase<T>
+{
 
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
@@ -21,20 +27,40 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  List<bool Function(E self, Event<T> event)> _onBeforeEventFns = [];
+  late final hookOnBeforeEventKey = ECSHookKey<bool Function(E self, Event<T> event)>(
+    'IsEventEmittable', 'onBeforeEvent'
+  );
 
-  List<void Function(E self, Event<T> event)> _onEventFns = [];
+  late final hookOnEventKey = ECSHookKey<void Function(E self, Event<T> event)>(
+    'IsEventEmittable', 'onEvent'
+  );
 
-  List<void Function(E self, Event<T> event)> _onBeforeEventEmitFns = [];
+  late final hookOnBeforeEventEmitKey = ECSHookKey<void Function(E self, Event<T> event)>(
+    'IsEventEmittable', 'onBeforeEventEmit'
+  );
 
-  List<void Function(E self, Event<T> event)> _onBeforeEventDispatchFns = [];
+  late final hookOnBeforeEventDispatchKey = ECSHookKey<void Function(E self, Event<T> event)>(
+    'IsEventEmittable', 'onBeforeEventDispatch'
+  );
+
+  Iterable<bool Function(E self, Event<T> event)> get _onBeforeEventFns
+    => hooksOf(hookOnBeforeEventKey);
+
+  Iterable<void Function(E self, Event<T> event)> get _onEventFns
+    => hooksOf(hookOnEventKey);
+
+  Iterable<void Function(E self, Event<T> event)> get _onBeforeEventEmitFns
+    => hooksOf(hookOnBeforeEventEmitKey);
+
+  Iterable<void Function(E self, Event<T> event)> get _onBeforeEventDispatchFns
+    => hooksOf(hookOnBeforeEventDispatchKey);
 
   /// Registers [fn] as a before-event listener.
   ///
   /// [fn] returning `false` cancels the event handling.
   @nonVirtual
   E listenOnBeforeEvent(bool Function(E self, Event<T> event) fn) {
-    _onBeforeEventFns.add(fn);
+    addHook(hookOnBeforeEventKey, fn);
     return self;
   }
 
@@ -45,7 +71,7 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
   /// from being reached.
   @nonVirtual
   E listenOnEvent(void Function(E self, Event<T> event) fn) {
-    _onEventFns.add(fn);
+    addHook(hookOnEventKey, fn);
     return self;
   }
 
@@ -55,7 +81,7 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
   /// via [Event.cancel], preventing subsequent listeners from being reached.
   @nonVirtual
   E listenOnBeforeEventEmit(void Function(E self, Event<T> event) fn) {
-    _onBeforeEventEmitFns.add(fn);
+    addHook(hookOnBeforeEventEmitKey, fn);
     return self;
   }
 
@@ -65,7 +91,7 @@ mixin IsEventEmittable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
   /// via [Event.cancel], preventing subsequent listeners from being reached.
   @nonVirtual
   E listenOnBeforeEventDispatch(void Function(E self, Event<T> event) fn) {
-    _onBeforeEventDispatchFns.add(fn);
+    addHook(hookOnBeforeEventDispatchKey, fn);
     return self;
   }
 

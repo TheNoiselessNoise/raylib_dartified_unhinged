@@ -6,23 +6,43 @@ part of '../../raylib_dartified_unhinged.dart';
 /// - **before** => cancelable; any listener or override returning `false` aborts removal
 /// - **on** => the operation is about to complete; listeners are notified before the act completes
 /// - **after** => the operation has completed; side-effects and cleanup go here
-mixin IsRemovable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
+mixin IsRemovable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  Self<E>,
+  ECSBase<T>
+{
+  late final hookOnBeforeRemoveKey = ECSHookKey<bool Function(E self)>(
+    'IsRemovable', 'onBeforeRemove'
+  );
+
+  late final hookOnRemoveKey = ECSHookKey<void Function(E self)>(
+    'IsRemovable', 'onRemove'
+  );
+
+  late final hookOnAfterRemoveKey = ECSHookKey<void Function(E self)>(
+    'IsRemovable', 'onAfterRemove'
+  );
 
   /// Whether this object has been removed.
   bool isRemoved = false;
 
-  List<bool Function(E self)> _onBeforeRemoveFns = [];
+  Iterable<bool Function(E self)> get _onBeforeRemoveFns
+    => hooksOf(hookOnBeforeRemoveKey);
 
-  List<void Function(E self)> _onRemoveFns = [];
+  Iterable<void Function(E self)> get _onRemoveFns
+    => hooksOf(hookOnRemoveKey);
 
-  List<void Function(E self)> _onAfterRemoveFns = [];
+  Iterable<void Function(E self)> get _onAfterRemoveFns
+    => hooksOf(hookOnAfterRemoveKey);
 
   /// Registers [fn] as a before-remove listener.
   ///
   /// [fn] returning `false` cancels the removal.
   @nonVirtual
   E listenOnBeforeRemove(bool Function(E self) fn) {
-    _onBeforeRemoveFns.add(fn);
+    addHook(hookOnBeforeRemoveKey, fn);
     return self;
   }
 
@@ -31,7 +51,7 @@ mixin IsRemovable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   /// Called when the remove operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnRemove(void Function(E self) fn) {
-    _onRemoveFns.add(fn);
+    addHook(hookOnRemoveKey, fn);
     return self;
   }
 
@@ -40,7 +60,7 @@ mixin IsRemovable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   /// Called only if removal was not canceled.
   @nonVirtual
   E listenOnAfterRemove(void Function(E self) fn) {
-    _onAfterRemoveFns.add(fn);
+    addHook(hookOnAfterRemoveKey, fn);
     return self;
   }
 

@@ -54,7 +54,6 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   IsDrawable<T, Entity<T>>,
   IsEventEmittable<T, Entity<T>>,
   IsEventHistoryHolder<T, Entity<T>>,
-  IsInputHandleable<Entity<T>>,
   IsRemovable<T, Entity<T>>,
   IsUpdatable<T, Entity<T>>,
   
@@ -224,16 +223,6 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   @override
   void _doOnComponentParentSet(Comp<T> component) {
     component.entity = self;
-  }
-
-  /// Forwards input handling to all components, then calls [onInput].
-  /// Skipped entirely when the entity is disabled.
-  @override
-  @nonVirtual
-  void _doHandleInput() {
-    if (isDisabled) return;
-    _components.forEach((e) => e._doHandleInput());
-    super._doHandleInput();
   }
 
   /// Advances all components by [dt], fires update listeners, then calls

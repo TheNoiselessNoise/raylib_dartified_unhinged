@@ -4,8 +4,13 @@ part of '../../raylib_dartified_unhinged.dart';
 ///
 /// Tasks are queued and executed in a controlled pipeline each frame.
 /// Listeners can intercept and cancel tasks before they reach [onTask] or execute.
-mixin IsTaskProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasAppAccess<T>, IsEventEmittable<T, E> {
-  
+mixin IsTaskProcessable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  Self<E>,
+  IsEventEmittable<T, E>
+{ 
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██ ░██     ░██ ░██     ░██ ░██   ░██   ░██         
@@ -14,12 +19,17 @@ mixin IsTaskProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasA
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  List<void Function(Task<T> task)> _onTaskFns = [];
+  late final hookOnTaskKey = ECSHookKey<void Function(E self, Task<T> task)>(
+    'IsTaskProcessable', 'onTask'
+  );
+
+  Iterable<void Function(E self, Task<T> task)> get _onTaskFns
+    => hooksOf(hookOnTaskKey);
 
   /// Registers [fn] to be called for each task before it is executed.
   @nonVirtual
-  E listenOnTask(bool Function(Task<T> task) fn) {
-    _onTaskFns.add(fn);
+  E listenOnTask(void Function(E self, Task<T> task) fn) {
+    addHook(hookOnTaskKey, fn);
     return self;
   }
 
@@ -38,7 +48,7 @@ mixin IsTaskProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasA
     if (_doCanceledTask(task)) return true;
     for (final f in _onTaskFns) {
       if (_doCanceledTask(task)) return true;
-      f(task);
+      f(self, task);
     }
     if (_doCanceledTask(task)) return true;
     if (isFirstRun) onTask(task);

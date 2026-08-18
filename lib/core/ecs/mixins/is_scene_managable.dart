@@ -6,26 +6,71 @@ part of '../../raylib_dartified_unhinged.dart';
 /// - **before** => cancelable; any listener or override returning `false` aborts the operation
 /// - **on** => the operation is about to complete; called by the host after all before-checks pass
 /// - **after** => the operation has completed; side-effects and cleanup go here
-mixin IsSceneManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBase<T>, IsEventEmittable<T, E>, IsSceneTransitionable<T, E> {
+mixin IsSceneManagable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  Self<E>,
+  ECSBase<T>,
+  IsEventEmittable<T, E>,
+  IsSceneTransitionable<T, E>
+{
+  // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
+  // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
+  // ░██     ░██ ░██     ░██ ░██     ░██ ░██   ░██   ░██         
+  // ░██████████ ░██     ░██ ░██     ░██ ░███████     ░████████  
+  // ░██     ░██ ░██     ░██ ░██     ░██ ░██   ░██           ░██ 
+  // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
+  // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  List<bool Function(E self, Scene<T> scene)> _onBeforeSceneAddFns = [];
+  late final hookOnBeforeSceneAddKey = ECSHookKey<bool Function(E self, Scene<T> scene)>(
+    'IsSceneManagable', 'onBeforeSceneAdd'
+  );
+
+  late final hookOnSceneAddKey = ECSHookKey<void Function(E self, Scene<T> scene)>(
+    'IsSceneManagable', 'onSceneAdd'
+  );
+
+  late final hookOnAfterSceneAddKey = ECSHookKey<void Function(E self, Scene<T> scene)>(
+    'IsSceneManagable', 'onAfterSceneAdd'
+  );
+
+  late final hookOnBeforeSceneRemoveKey = ECSHookKey<bool Function(E self, Scene<T> scene)>(
+    'IsSceneManagable', 'onBeforeSceneRemove'
+  );
+
+  late final hookOnSceneRemoveKey = ECSHookKey<void Function(E self, Scene<T> scene)>(
+    'IsSceneManagable', 'onSceneRemove'
+  );
+
+  late final hookOnAfterSceneRemoveKey = ECSHookKey<void Function(E self, Scene<T> scene)>(
+    'IsSceneManagable', 'onAfterSceneRemove'
+  );
+
+  Iterable<bool Function(E self, Scene<T> scene)> get _onBeforeSceneAddFns
+    => hooksOf(hookOnBeforeSceneAddKey);
   
-  List<void Function(E self, Scene<T> scene)> _onSceneAddFns = [];
+  Iterable<void Function(E self, Scene<T> scene)> get _onSceneAddFns
+    => hooksOf(hookOnSceneAddKey);
 
-  List<void Function(E self, Scene<T> scene)> _onAfterSceneAddFns = [];
+  Iterable<void Function(E self, Scene<T> scene)> get _onAfterSceneAddFns
+    => hooksOf(hookOnAfterSceneAddKey);
 
-  List<bool Function(E self, Scene<T> scene)> _onBeforeSceneRemoveFns = [];
+  Iterable<bool Function(E self, Scene<T> scene)> get _onBeforeSceneRemoveFns
+    => hooksOf(hookOnBeforeSceneRemoveKey);
 
-  List<void Function(E self, Scene<T> scene)> _onSceneRemoveFns = [];
+  Iterable<void Function(E self, Scene<T> scene)> get _onSceneRemoveFns
+    => hooksOf(hookOnSceneRemoveKey);
 
-  List<void Function(E self, Scene<T> scene)> _onAfterSceneRemoveFns = [];
+  Iterable<void Function(E self, Scene<T> scene)> get _onAfterSceneRemoveFns
+    => hooksOf(hookOnAfterSceneRemoveKey);
 
   /// Registers [fn] as a before-add listener.
   ///
   /// [fn] returning `false` cancels the scene add.
   @nonVirtual
   E listenOnBeforeSceneAdd(bool Function(E self, Scene<T> scene) fn) {
-    _onBeforeSceneAddFns.add(fn);
+    addHook(hookOnBeforeSceneAddKey, fn);
     return self;
   }
 
@@ -34,7 +79,7 @@ mixin IsSceneManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
   /// Called when the add operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnSceneAdd(void Function(E self, Scene<T> scene) fn) {
-    _onSceneAddFns.add(fn);
+    addHook(hookOnSceneAddKey, fn);
     return self;
   }
 
@@ -43,7 +88,7 @@ mixin IsSceneManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
   /// Called only if the scene add was not canceled.
   @nonVirtual
   E listenOnAfterSceneAdd(void Function(E self, Scene<T> scene) fn) {
-    _onAfterSceneAddFns.add(fn);
+    addHook(hookOnAfterSceneAddKey, fn);
     return self;
   }
 
@@ -52,7 +97,7 @@ mixin IsSceneManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
   /// [fn] returning `false` cancels the scene remove.
   @nonVirtual
   E listenOnBeforeSceneRemove(bool Function(E self, Scene<T> scene) fn) {
-    _onBeforeSceneRemoveFns.add(fn);
+    addHook(hookOnBeforeSceneRemoveKey, fn);
     return self;
   }
 
@@ -61,7 +106,7 @@ mixin IsSceneManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
   /// Called when the remove operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnSceneRemove(void Function(E self, Scene<T> scene) fn) {
-    _onSceneRemoveFns.add(fn);
+    addHook(hookOnSceneRemoveKey, fn);
     return self;
   }
 
@@ -70,7 +115,7 @@ mixin IsSceneManagable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBa
   /// Called only if the scene remove was not canceled.
   @nonVirtual
   E listenOnAfterSceneRemove(void Function(E self, Scene<T> scene) fn) {
-    _onAfterSceneRemoveFns.add(fn);
+    addHook(hookOnAfterSceneRemoveKey, fn);
     return self;
   }
 

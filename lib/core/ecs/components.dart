@@ -17,7 +17,6 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   IsDrawable<T, Comp<T>>,
   IsEventEmittable<T, Comp<T>>,
   IsEventHistoryHolder<T, Comp<T>>,
-  IsInputHandleable<Comp<T>>,
   IsRemovable<T, Comp<T>>,
   IsUpdatable<T, Comp<T>>,
 
@@ -78,14 +77,6 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   //   ░██  ░██  ░██  ░██ ░██         ░██         
   //   ░██  ░██       ░██ ░██         ░██         
   // ░██████░██       ░██ ░██         ░██████████ 
-
-  @override
-  @nonVirtual
-  void _doHandleInput() {
-    if (isDisabled) return;
-    _components.forEach((e) => e._doHandleInput());
-    super._doHandleInput();
-  }
 
   @override
   @nonVirtual

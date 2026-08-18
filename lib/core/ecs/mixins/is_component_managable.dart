@@ -2,7 +2,10 @@ part of '../../raylib_dartified_unhinged.dart';
 
 typedef IsAnyComponentManagable<T extends App<T>> = IsComponentManagable<T, ECSBase<T>>;
 
-mixin IsComponentManagable<T extends App<T>, E extends ECSBase<T>> on
+mixin IsComponentManagable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
   HasEntityAccess<T>,
   IsEventEmittable<T, E>,
   IsDisposable<T, E>
@@ -17,75 +20,120 @@ mixin IsComponentManagable<T extends App<T>, E extends ECSBase<T>> on
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  List<bool Function(E self, Comp<T> component)> _onBeforeCompAddFns = [];
+  late final hookOnBeforeCompAddKey = ECSHookKey<bool Function(E self, Comp<T> component)>(
+    'IsComponentManagable', 'onBeforeCompAdd'
+  );
 
-  List<void Function(E self, Comp<T> component)> _onCompAddFns = [];
+  late final hookOnCompAddKey = ECSHookKey<void Function(E self, Comp<T> component)>(
+    'IsComponentManagable', 'onCompAdd'
+  );
 
-  List<void Function(E self, Comp<T> component)> _onAfterCompAddFns = [];
+  late final hookOnAfterCompAddKey = ECSHookKey<void Function(E self, Comp<T> component)>(
+    'IsComponentManagable', 'onAfterCompAdd'
+  );
 
-  List<bool Function(E self, Comp<T> component)> _onBeforeCompRemoveFns = [];
+  late final hookOnBeforeCompRemoveKey = ECSHookKey<bool Function(E self, Comp<T> component)>(
+    'IsComponentManagable', 'onBeforeCompRemove'
+  );
 
-  List<void Function(E self, Comp<T> component)> _onCompRemoveFns = [];
+  late final hookOnCompRemoveKey = ECSHookKey<void Function(E self, Comp<T> component)>(
+    'IsComponentManagable', 'onCompRemove'
+  );
 
-  List<void Function(E self, Comp<T> component)> _onAfterCompRemoveFns = [];
+  late final hookOnAfterCompRemoveKey = ECSHookKey<void Function(E self, Comp<T> component)>(
+    'IsComponentManagable', 'onAfterCompRemove'
+  );
 
-  List<bool Function(E self, Comp<T> component)> _onBeforeCompCloneFns = [];
+  late final hookOnBeforeCompCloneKey = ECSHookKey<bool Function(E self, Comp<T> component)>(
+    'IsComponentManagable', 'onBeforeCompClone'
+  );
 
-  List<void Function(E self, Comp<T> component)> _onCompCloneFns = [];
+  late final hookOnCompCloneKey = ECSHookKey<void Function(E self, Comp<T> component)>(
+    'IsComponentManagable', 'onCompClone'
+  );
 
-  List<void Function(E self, Comp<T> component)> _onAfterCompCloneFns = [];
+  late final hookOnAfterCompCloneKey = ECSHookKey<void Function(E self, Comp<T> component)>(
+    'IsComponentManagable', 'onAfterCompClone'
+  );
+
+  Iterable<bool Function(E self, Comp<T> component)> get _onBeforeCompAddFns
+    => hooksOf(hookOnBeforeCompAddKey);
+
+  Iterable<void Function(E self, Comp<T> component)> get _onCompAddFns
+    => hooksOf(hookOnCompAddKey);
+
+  Iterable<void Function(E self, Comp<T> component)> get _onAfterCompAddFns
+    => hooksOf(hookOnAfterCompAddKey);
+
+  Iterable<bool Function(E self, Comp<T> component)> get _onBeforeCompRemoveFns
+    => hooksOf(hookOnBeforeCompRemoveKey);
+
+  Iterable<void Function(E self, Comp<T> component)> get _onCompRemoveFns
+    => hooksOf(hookOnCompRemoveKey);
+
+  Iterable<void Function(E self, Comp<T> component)> get _onAfterCompRemoveFns
+    => hooksOf(hookOnAfterCompRemoveKey);
+
+  Iterable<bool Function(E self, Comp<T> component)> get _onBeforeCompCloneFns
+    => hooksOf(hookOnBeforeCompCloneKey);
+
+  Iterable<void Function(E self, Comp<T> component)> get _onCompCloneFns
+    => hooksOf(hookOnCompCloneKey);
+
+  Iterable<void Function(E self, Comp<T> component)> get _onAfterCompCloneFns
+    => hooksOf(hookOnAfterCompCloneKey);
 
   @nonVirtual
   E listenOnBeforeCompAdd(bool Function(E self, Comp<T> component) fn) {
-    _onBeforeCompAddFns.add(fn);
+    addHook(hookOnBeforeCompAddKey, fn);
     return self;
   }
 
   @nonVirtual
   E listenOnCompAdd(void Function(E self, Comp<T> component) fn) {
-    _onCompAddFns.add(fn);
+    addHook(hookOnCompAddKey, fn);
     return self;
   }
 
   @nonVirtual
   E listenOnAfterCompAdd(void Function(E self, Comp<T> component) fn) {
-    _onAfterCompAddFns.add(fn);
+    addHook(hookOnAfterCompAddKey, fn);
     return self;
   }
 
   @nonVirtual
   E listenOnBeforeCompRemove(bool Function(E self, Comp<T> component) fn) {
-    _onBeforeCompRemoveFns.add(fn);
+    addHook(hookOnBeforeCompRemoveKey, fn);
     return self;
   }
 
   @nonVirtual
   E listenOnCompRemove(void Function(E self, Comp<T> component) fn) {
-    _onCompRemoveFns.add(fn);
+    addHook(hookOnCompRemoveKey, fn);
     return self;
   }
 
   @nonVirtual
   E listenOnAfterCompRemove(void Function(E self, Comp<T> component) fn) {
-    _onAfterCompRemoveFns.add(fn);
+    addHook(hookOnAfterCompRemoveKey, fn);
     return self;
   }
 
   @nonVirtual
   E listenOnBeforeCompClone(bool Function(E self, Comp<T> component) fn) {
-    _onBeforeCompCloneFns.add(fn);
+    addHook(hookOnBeforeCompCloneKey, fn);
     return self;
   }
 
   @nonVirtual
   E listenOnCompClone(void Function(E self, Comp<T> component) fn) {
-    _onCompCloneFns.add(fn);
+    addHook(hookOnCompCloneKey, fn);
     return self;
   }
 
   @nonVirtual
   E listenOnAfterCompClone(void Function(E self, Comp<T> component) fn) {
-    _onAfterCompCloneFns.add(fn);
+    addHook(hookOnAfterCompCloneKey, fn);
     return self;
   }
 

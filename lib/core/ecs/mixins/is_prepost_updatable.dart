@@ -3,22 +3,38 @@ part of '../../raylib_dartified_unhinged.dart';
 /// Adds pre-update and post-update lifecycle hooks to an ECS object.
 ///
 /// The **on** phase only, update boundaries are not cancelable.
-mixin IsPrePostUpdatable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBase<T> {
-  List<void Function(E self, double dt)> _onPreUpdateFns = [];
+mixin IsPrePostUpdatable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  Self<E>,
+  ECSBase<T>
+{
+  late final hookOnPreUpdateKey = ECSHookKey<void Function(E self, double dt)>(
+    'IsPrePostUpdatable', 'onPreUpdate'
+  );
 
-  List<void Function(E self, double dt)> _onPostUpdateFns = [];
+  late final hookOnPostUpdateKey = ECSHookKey<void Function(E self, double dt)>(
+    'IsPrePostUpdatable', 'onPostUpdate'
+  );
+
+  Iterable<void Function(E self, double dt)> get _onPreUpdateFns
+    => hooksOf(hookOnPreUpdateKey);
+
+  Iterable<void Function(E self, double dt)> get _onPostUpdateFns
+    => hooksOf(hookOnPostUpdateKey);
 
   /// Registers [fn] to be called before the update phase each frame.
   @nonVirtual
   E listenOnPreUpdate(void Function(E self, double dt) fn) {
-    _onPreUpdateFns.add(fn);
+    addHook(hookOnPreUpdateKey, fn);
     return self;
   }
 
   /// Registers [fn] to be called after the update phase each frame.
   @nonVirtual
   E listenOnPostUpdate(void Function(E self, double dt) fn) {
-    _onPostUpdateFns.add(fn);
+    addHook(hookOnPostUpdateKey, fn);
     return self;
   }
 

@@ -4,19 +4,29 @@ part of '../../raylib_dartified_unhinged.dart';
 ///
 /// The **on** phase only, starting is not cancelable and fires at most once
 /// regardless of how many times [_doStart] is called.
-mixin IsStartable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
+mixin IsStartable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  Self<E>,
+  ECSBase<T>
+{
+  late final hookOnStartKey = ECSHookKey<void Function(E self)>(
+    'IsStartable', 'onStart'
+  );
 
   /// Whether this object has already started.
   bool hasStarted = false;
 
-  List<void Function(E self)> _onStartFns = [];
+  Iterable<void Function(E self)> get _onStartFns
+    => hooksOf(hookOnStartKey);
 
   /// Registers [fn] to be called when this object starts.
   ///
   /// [fn] will fire at most once, on the first [_doStart] call.
   @nonVirtual
   E listenOnStart(void Function(E self) fn) {
-    _onStartFns.add(fn);
+    addHook(hookOnStartKey, fn);
     return self;
   }
 

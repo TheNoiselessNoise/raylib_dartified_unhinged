@@ -78,7 +78,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   IsEntityManagable<T, Scene<T>, Entity<T>>,
   IsEventEmittable<T, Scene<T>>,
   IsEventHistoryHolder<T, Scene<T>>,
-  IsInputHandleable<Scene<T>>,
+  IsInputHandleable<T, Scene<T>>,
   IsLeavable<T, Scene<T>>,
   IsPrePostDrawable<T, Scene<T>>,
   IsPrePostUpdatable<T, Scene<T>>,
@@ -263,21 +263,33 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  @override
-  @nonVirtual
-  void _doHandleInput() {
-    _systems.forEach((e) => e._doHandleInput());
-    _entities.forEach((e) => e._doHandleInput());
-    super._doHandleInput();
-  }
+  late final hookOnDrawBackgroundKey = ECSHookKey<void Function(Scene<T> self, double dt)>(
+    'Scene', 'onDrawBackground'
+  );
 
-  List<void Function(Scene<T> self, double dt)> _onDrawBackgroundFns = [];
+  late final hookOnDrawForegroundKey = ECSHookKey<void Function(Scene<T> self, double dt)>(
+    'Scene', 'onDrawForeground'
+  );
+
+  Iterable<void Function(Scene<T> self, double dt)> get _onDrawBackgroundFns
+    => hooksOf(hookOnDrawBackgroundKey);
+
+  Iterable<void Function(Scene<T> self, double dt)> get _onDrawForegroundFns
+    => hooksOf(hookOnDrawForegroundKey);
 
   /// Registers [fn] to be called each frame during the background draw pass,
   /// before [onDrawBackground]. Returns `self` for chaining.
   @nonVirtual
   Scene<T> listenOnDrawBackground(void Function(Scene<T> self, double dt) fn) {
-    _onDrawBackgroundFns.add(fn);
+    addHook(hookOnDrawBackgroundKey, fn);
+    return self;
+  }
+
+  /// Registers [fn] to be called each frame during the foreground draw pass,
+  /// before [onDrawForeground]. Returns `self` for chaining.
+  @nonVirtual
+  Scene<T> listenOnDrawForeground(void Function(Scene<T> self, double dt) fn) {
+    addHook(hookOnDrawForegroundKey, fn);
     return self;
   }
 
@@ -285,16 +297,6 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   void _doDrawBackground(double dt) {
     _onDrawBackgroundFns.forEach((f) => f(self, dt));
     onDrawBackground();
-  }
-  
-  List<void Function(Scene<T> self, double dt)> _onDrawForegroundFns = [];
-  
-  /// Registers [fn] to be called each frame during the foreground draw pass,
-  /// before [onDrawForeground]. Returns `self` for chaining.
-  @nonVirtual
-  Scene<T> listenOnDrawForeground(void Function(Scene<T> self, double dt) fn) {
-    _onDrawForegroundFns.add(fn);
-    return self;
   }
 
   @nonVirtual
@@ -330,6 +332,13 @@ class Scene<T extends App<T>> extends ECSBase<T> with
     _runUpdateSystems(.postEntities, dt);
 
     _doPostUpdate(dt);
+  }
+  
+  @override
+  @nonVirtual
+  void _doHandleInput() {
+    _systems.forEach((e) => e._doHandleInput());
+    super._doHandleInput();
   }
 
   /// Called by the app each frame to process the event queue and advance the

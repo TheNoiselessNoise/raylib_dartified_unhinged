@@ -11,7 +11,13 @@ typedef IsAnyEntityManagable<T extends App<T>> = IsEntityManagable<T, ECSBase<T>
 ///
 /// Note: this mixin bypasses the standard [Self] pattern due to [Entity] baking
 /// in `Self<Entity<T>>` unconditionally. See [self] for details.
-mixin IsEntityManagable<T extends App<T>, E extends ECSBase<T>, I extends Entity<T>> on ECSBase<T> {
+mixin IsEntityManagable<
+  T extends App<T>,
+  E extends ECSBase<T>,
+  I extends Entity<T>
+> on
+  ECSBase<T>
+{
   // [Entity<T>] bakes in [Self<Entity<T>>] unconditionally, so its `self`
   // getter is always typed as [Entity<T>], not [E]. We can't override it with
   // a more specific type due to contravariance, so we bypass it entirely with
@@ -38,24 +44,54 @@ mixin IsEntityManagable<T extends App<T>, E extends ECSBase<T>, I extends Entity
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  List<bool Function(E self, I entity)> _onBeforeEntityAddFns = [];
+  late final hookOnBeforeEntityAddKey = ECSHookKey<bool Function(E self, I entity)>(
+    'IsEntityManagable', 'onBeforeEntityAdd'
+  );
 
-  List<void Function(E self, I entity)> _onEntityAddFns = [];
+  late final hookOnEntityAddKey = ECSHookKey<void Function(E self, I entity)>(
+    'IsEntityManagable', 'onEntityAdd'
+  );
 
-  List<void Function(E self, I entity)> _onAfterEntityAddFns = [];
+  late final hookOnAfterEntityAddKey = ECSHookKey<void Function(E self, I entity)>(
+    'IsEntityManagable', 'onAfterEntityAdd'
+  );
 
-  List<bool Function(E self, I entity)> _onBeforeEntityRemoveFns = [];
+  late final hookOnBeforeEntityRemoveKey = ECSHookKey<bool Function(E self, I entity)>(
+    'IsEntityManagable', 'onBeforeEntityRemove'
+  );
 
-  List<void Function(E self, I entity)> _onEntityRemoveFns = [];
+  late final hookOnEntityRemoveKey = ECSHookKey<void Function(E self, I entity)>(
+    'IsEntityManagable', 'onEntityRemove'
+  );
 
-  List<void Function(E self, I entity)> _onAfterEntityRemoveFns = [];
+  late final hookOnAfterEntityRemoveKey = ECSHookKey<void Function(E self, I entity)>(
+    'IsEntityManagable', 'onAfterEntityRemove'
+  );
+
+  Iterable<bool Function(E self, I entity)> get _onBeforeEntityAddFns
+    => hooksOf(hookOnBeforeEntityAddKey);
+
+  Iterable<void Function(E self, I entity)> get _onEntityAddFns
+    => hooksOf(hookOnEntityAddKey);
+
+  Iterable<void Function(E self, I entity)> get _onAfterEntityAddFns
+    => hooksOf(hookOnAfterEntityAddKey);
+
+  Iterable<bool Function(E self, I entity)> get _onBeforeEntityRemoveFns
+    => hooksOf(hookOnBeforeEntityRemoveKey);
+
+  Iterable<void Function(E self, I entity)> get _onEntityRemoveFns
+    => hooksOf(hookOnEntityRemoveKey);
+
+  Iterable<void Function(E self, I entity)> get _onAfterEntityRemoveFns
+    => hooksOf(hookOnAfterEntityRemoveKey);
 
   /// Registers [fn] as a before-add listener.
   ///
   /// [fn] returning `false` cancels the entity add.
   @nonVirtual
   E listenOnBeforeEntityAdd(bool Function(E self, I entity) fn) {
-    _onBeforeEntityAddFns.add(fn);
+    addHook(hookOnBeforeEntityAddKey, fn);
     return self;
   }
 
@@ -64,7 +100,7 @@ mixin IsEntityManagable<T extends App<T>, E extends ECSBase<T>, I extends Entity
   /// Called when the add operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnEntityAdd(void Function(E self, I entity) fn) {
-    _onEntityAddFns.add(fn);
+    addHook(hookOnEntityAddKey, fn);
     return self;
   }
 
@@ -73,7 +109,7 @@ mixin IsEntityManagable<T extends App<T>, E extends ECSBase<T>, I extends Entity
   /// Called only if the entity add was not canceled.
   @nonVirtual
   E listenOnAfterEntityAdd(void Function(E self, I entity) fn) {
-    _onAfterEntityAddFns.add(fn);
+    addHook(hookOnAfterEntityAddKey, fn);
     return self;
   }
 
@@ -82,7 +118,7 @@ mixin IsEntityManagable<T extends App<T>, E extends ECSBase<T>, I extends Entity
   /// [fn] returning `false` cancels the entity remove.
   @nonVirtual
   E listenOnBeforeEntityRemove(bool Function(E self, I entity) fn) {
-    _onBeforeEntityRemoveFns.add(fn);
+    addHook(hookOnBeforeEntityRemoveKey, fn);
     return self;
   }
 
@@ -91,7 +127,7 @@ mixin IsEntityManagable<T extends App<T>, E extends ECSBase<T>, I extends Entity
   /// Called when the remove operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnEntityRemove(void Function(E self, I entity) fn) {
-    _onEntityRemoveFns.add(fn);
+    addHook(hookOnEntityRemoveKey, fn);
     return self;
   }
 
@@ -100,7 +136,7 @@ mixin IsEntityManagable<T extends App<T>, E extends ECSBase<T>, I extends Entity
   /// Called only if the entity remove was not canceled.
   @nonVirtual
   E listenOnAfterEntityRemove(void Function(E self, I entity) fn) {
-    _onAfterEntityRemoveFns.add(fn);
+    addHook(hookOnAfterEntityRemoveKey, fn);
     return self;
   }
 

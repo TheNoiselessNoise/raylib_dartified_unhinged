@@ -5,20 +5,40 @@ part of '../../raylib_dartified_unhinged.dart';
 /// - **before** => cancelable; any listener or override returning `false` aborts the operation
 /// - **on** => the operation is about to complete; called by the host after all before-checks pass
 /// - **after** => the operation has completed; side-effects and cleanup go here
-mixin IsLeavable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
+mixin IsLeavable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  Self<E>,
+  ECSBase<T>
+{
+  late final hookOnBeforeLeaveKey = ECSHookKey<bool Function(E self)>(
+    'IsLeavable', 'onBeforeLeave'
+  );
 
-  List<bool Function(E self)> _onBeforeLeaveFns = [];
+  late final hookOnLeaveKey = ECSHookKey<void Function(E self)>(
+    'IsLeavable', 'onLeave'
+  );
 
-  List<void Function(E self)> _onLeaveFns = [];
+  late final hookOnAfterLeaveKey = ECSHookKey<void Function(E self)>(
+    'IsLeavable', 'onAfterLeave'
+  );
 
-  List<void Function(E self)> _onAfterLeaveFns = [];
+  Iterable<bool Function(E self)> get _onBeforeLeaveFns
+    => hooksOf(hookOnBeforeLeaveKey);
+
+  Iterable<void Function(E self)> get _onLeaveFns
+    => hooksOf(hookOnLeaveKey);
+
+  Iterable<void Function(E self)> get _onAfterLeaveFns
+    => hooksOf(hookOnAfterLeaveKey);
 
   /// Registers [fn] as a before-leave listener.
   ///
   /// [fn] returning `false` cancels the enter.
   @nonVirtual
   E listenOnBeforeLeave(bool Function(E self) fn) {
-    _onBeforeLeaveFns.add(fn);
+    addHook(hookOnBeforeLeaveKey, fn);
     return self;
   }
 
@@ -27,7 +47,7 @@ mixin IsLeavable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   /// Called when the leave operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnLeave(void Function(E self) fn) {
-    _onLeaveFns.add(fn);
+    addHook(hookOnLeaveKey, fn);
     return self;
   }
 
@@ -36,7 +56,7 @@ mixin IsLeavable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   /// Called only if the leave was not canceled.
   @nonVirtual
   E listenOnAfterLeave(void Function(E self) fn) {
-    _onAfterLeaveFns.add(fn);
+    addHook(hookOnAfterLeaveKey, fn);
     return self;
   }
 

@@ -22,7 +22,10 @@ typedef IsAnyEventHistoryHolder<T extends App<T>> = IsEventHistoryHolder<T, ECSB
 
 /// Records dispatched events for time-windowed queries and replay.
 /// Mixed in alongside IsEventQueueHolder on root App.
-mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmittable<T, E> {
+mixin IsEventHistoryHolder<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on IsEventEmittable<T, E> {
 
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
@@ -32,16 +35,26 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  List<bool Function(E self, Event<T> event)> _onBeforeEventRecordedFns = [];
+  late final hookOnBeforeEventRecordedKey = ECSHookKey<bool Function(E self, Event<T> event)>(
+    'IsEventHistoryHolder', 'onBeforeEventRecorded'
+  );
+  
+  late final hookOnEventRecordedKey = ECSHookKey<void Function(E self, Event<T> event)>(
+    'IsEventHistoryHolder', 'onEventRecorded'
+  );
 
-  List<void Function(E self, Event<T> event)> _onEventRecordedFns = [];
+  Iterable<bool Function(E self, Event<T> event)> get _onBeforeEventRecordedFns
+    => hooksOf(hookOnBeforeEventRecordedKey);
+
+  Iterable<void Function(E self, Event<T> event)> get _onEventRecordedFns
+    => hooksOf(hookOnEventRecordedKey);
 
   /// Registers [fn] as a before-event-record listener.
   ///
   /// [fn] returning `false` cancels the event recording.
   @nonVirtual
   E listenOnBeforeEventRecorded(bool Function(E self, Event<T> event) fn) {
-    _onBeforeEventRecordedFns.add(fn);
+    addHook(hookOnBeforeEventRecordedKey, fn);
     return self;
   }
 
@@ -50,7 +63,7 @@ mixin IsEventHistoryHolder<T extends App<T>, E extends ECSBase<T>> on IsEventEmi
   /// Listeners are called in registration order.
   @nonVirtual
   E listenOnEventRecorded(void Function(E self, Event<T> event) fn) {
-    _onEventRecordedFns.add(fn);
+    addHook(hookOnEventRecordedKey, fn);
     return self;
   }
 

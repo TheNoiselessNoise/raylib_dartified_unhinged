@@ -26,7 +26,7 @@ class AppSystem<T extends App<T>> extends ECSBase<T> with
   IsDisposable<T, AppSystem<T>>,
   IsEventEmittable<T, AppSystem<T>>,
   IsEventHistoryHolder<T, AppSystem<T>>,
-  IsInputHandleable<AppSystem<T>>,
+  IsInputHandleable<T, AppSystem<T>>,
   IsRemovable<T, AppSystem<T>>,
   IsStateHolder<T, AppSystem<T>, AnyAppSystemSnapshot<T>>,
   IsPersistable<T, AppSystem<T>, AnyAppSystemSnapshot<T>>,

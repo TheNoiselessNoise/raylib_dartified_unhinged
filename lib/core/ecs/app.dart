@@ -133,11 +133,10 @@ class App<T extends App<T>> extends ECSBase<T> with
   IsCloneable<T, T, AppCloner<T>>,
   IsDebuggable<T, T>,
   IsDisposable<T, T>,
-  IsInputHandleable<T>,
+  IsInputHandleable<T, T>,
 
   IsSceneTransitionable<T, T>, // needs to be before `IsSceneManagable`
   IsSceneManagable<T, T>,
-  IsShouldExitable<T, T>,
   IsStateHolder<T, T, AppSnapshot<T>>,
   IsPersistable<T, T, AppSnapshot<T>>
   
@@ -219,28 +218,80 @@ class App<T extends App<T>> extends ECSBase<T> with
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  List<void Function(T self, double dt, int frame)> _onFrameFns = [];
+  late final hookOnShouldExitKey = ECSHookKey<bool Function(T self)>(
+    'App', 'onShouldExit'
+  );
+
+  late final hookOnExitKey = ECSHookKey<void Function(T self)>(
+    'App', 'onExit'
+  );
+
+  late final hookOnFrameKey = ECSHookKey<void Function(T self, double dt, int frame)>(
+    'App', 'onFrame'
+  );
+
+  late final hookOnFPSChangeKey = ECSHookKey<void Function(T self, int oldFps, int newFps)>(
+    'App', 'onFPSChange'
+  );
+
+  late final hookOnInitKey = ECSHookKey<void Function(T self)>(
+    'App', 'onInit'
+  );
+
+  Iterable<bool Function(T self)> get _onShouldExitFns
+    => hooksOf(hookOnShouldExitKey);
+
+  Iterable<void Function(T self)> get _onExitFns
+    => hooksOf(hookOnExitKey);
+
+  Iterable<void Function(T self, double dt, int frame)> get _onFrameFns
+    => hooksOf(hookOnFrameKey);
   
-  List<void Function(T self, int oldFps, int newFps)> _onFPSChangeFns = [];
+  Iterable<void Function(T self, int oldFps, int newFps)> get _onFPSChangeFns
+    => hooksOf(hookOnFPSChangeKey);
   
-  List<void Function(T self)> _onInitFns = [];
+  Iterable<void Function(T self)> get _onInitFns
+    => hooksOf(hookOnInitKey);
+
+  @nonVirtual
+  T listenOnShouldExit(bool Function(T self) fn) {
+    addHook(hookOnShouldExitKey, fn);
+    return self;
+  }
+
+  @nonVirtual
+  T listenOnExit(void Function(T self) fn) {
+    addHook(hookOnExitKey, fn);
+    return self;
+  }
 
   @nonVirtual
   T listenOnFrame(void Function(T self, double dt, int frame) fn) {
-    _onFrameFns.add(fn);
+    addHook(hookOnFrameKey, fn);
     return self;
   }
 
   @nonVirtual
   T listenOnFPSChange(void Function(T self, int oldFps, int newFps) fn) {
-    _onFPSChangeFns.add(fn);
+    addHook(hookOnFPSChangeKey, fn);
     return self;
   }  
 
   @nonVirtual
   T listenOnInit(void Function(T self) fn) {
-    _onInitFns.add(fn);
+    addHook(hookOnInitKey, fn);
     return self;
+  }
+
+  bool _doShouldExit() {
+    if (_onShouldExitFns.any((f) => f(self))) return true;
+    return onShouldExit();
+  }
+
+  @nonVirtual
+  void _doExit() {
+    _onExitFns.forEach((f) => f(self));
+    onExit();
   }
 
   @nonVirtual
@@ -264,6 +315,10 @@ class App<T extends App<T>> extends ECSBase<T> with
     onInit();
     _doOnEvent(EventAppInitialized(app));
   }
+
+  bool onShouldExit() => false;
+
+  void onExit() {}
 
   void onFrame(double dt, int frame) {}
 

@@ -3,7 +3,14 @@ part of '../../raylib_dartified_unhinged.dart';
 /// Adds a callback processing capabilities to an ECS object.
 ///
 /// Callbacks are queued and executed in a controlled pipeline each frame.
-mixin IsCallbackProcessable<T extends App<T>, E extends ECSBase<T>> on Self<E>, HasAppAccess<T>, IsEventEmittable<T, E> {
+mixin IsCallbackProcessable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  Self<E>,
+  HasAppAccess<T>,
+  IsEventEmittable<T, E>
+{
   List<void Function()> _callbackQueue = [];
 
   /// Schedules a [callback].

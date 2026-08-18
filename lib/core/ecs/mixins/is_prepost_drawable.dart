@@ -3,23 +3,38 @@ part of '../../raylib_dartified_unhinged.dart';
 /// Adds pre-draw and post-draw lifecycle hooks to an ECS object.
 ///
 /// The **on** phase only, draw boundaries are not cancelable.
-mixin IsPrePostDrawable<T extends App<T>, E extends ECSBase<T>> on Self<E>, ECSBase<T> {
+mixin IsPrePostDrawable<
+  T extends App<T>, 
+  E extends ECSBase<T>
+> on
+  Self<E>,
+  ECSBase<T>
+{
+  late final hookOnPreDrawKey = ECSHookKey<void Function(E self, double dt)>(
+    'IsPrePostDrawable', 'onPreDraw'
+  );
 
-  List<void Function(E self, double dt)> _onPreDrawFns = [];
+  late final hookOnPostDrawKey = ECSHookKey<void Function(E self, double dt)>(
+    'IsPrePostDrawable', 'onPostDraw'
+  );
 
-  List<void Function(E self, double dt)> _onPostDrawFns = [];
+  Iterable<void Function(E self, double dt)> get _onPreDrawFns
+    => hooksOf(hookOnPreDrawKey);
+
+  Iterable<void Function(E self, double dt)> get _onPostDrawFns
+    => hooksOf(hookOnPostDrawKey);
 
   /// Registers [fn] to be called before the draw phase each frame.
   @nonVirtual
   E listenOnPreDraw(void Function(E self, double dt) fn) {
-    _onPreDrawFns.add(fn);
+    addHook(hookOnPreDrawKey, fn);
     return self;
   }
 
   /// Registers [fn] to be called after the draw phase each frame.
   @nonVirtual
   E listenOnPostDraw(void Function(E self, double dt) fn) {
-    _onPostDrawFns.add(fn);
+    addHook(hookOnPostDrawKey, fn);
     return self;
   }
 

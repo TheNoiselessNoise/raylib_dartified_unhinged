@@ -2,6 +2,7 @@
 // Texture from https://github.com/Minesweeper-World/MS-Texture
 import 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart';
 import 'package:raylib_dartified_unhinged/backends/raylib/backend.dart';
+import 'package:raylib_dartified_unhinged/backends/raylib/abbr.dart';
 
 // WARNING: this example grew piecemeal alongside the framework itself rather
 // than being written against a finished API, so don't read it as "the"
@@ -161,7 +162,7 @@ class Cell extends Entity<G> {
   void onUpdate(double dz) {
     if (msState.gameOver) return;
 
-    hovered = rl.CoreD.CheckCollisionPointRec(backend.mouse.position, rect);
+    hovered = CheckCollisionPointRec(backend.mouse.position, rect);
 
     if (hovered) {
       if (hidden && backend.mouse.btnRight.pressed) {
@@ -205,7 +206,7 @@ class Cell extends Entity<G> {
       atlasSize.x,
       atlasSize.y
     );
-    app.rl.CoreD.DrawTexturePro(backend.assets.atlas, src, rect, .vec2(0, 0), 0, .WHITE);
+    DrawTexturePro(backend.assets.atlas, src, rect, .vec2(0, 0), 0, .WHITE);
   }
 }
 
@@ -421,7 +422,7 @@ class MinesweeperScene extends DrawScene<G> {
       x += text.length * digitWidth + (text.length * padding);
       final dotY = y + digitHeight - dotSize;
 
-      rl.CoreD.DrawRectangle(
+      DrawRectangle(
         x, dotY,
         dotSize, dotSize,
         .color(255, 0, 0, 255)
@@ -462,7 +463,7 @@ class MinesweeperScene extends DrawScene<G> {
     final gridOffset = msState.gridOffset;
     final gridPixelSize = msState.gridPixelSize;
 
-    rl.CoreD.DrawRectangle(
+    DrawRectangle(
       gridOffset.x, gridOffset.y,
       gridPixelSize.x, gridPixelSize.y,
       .color(0, 0, 0, 140),
@@ -471,20 +472,20 @@ class MinesweeperScene extends DrawScene<G> {
     final message = msState.won ? 'YOU WIN!' : 'BOOM!';
     final hint = 'press R to restart';
 
-    final msgSize = rl.CoreD.MeasureText(message, 40);
-    final hintSize = rl.CoreD.MeasureText(hint, 20);
+    final msgSize = MeasureText(message, 40);
+    final hintSize = MeasureText(hint, 20);
 
     final centerX = gridOffset.x + gridPixelSize.x ~/ 2;
     final centerY = gridOffset.y + gridPixelSize.y ~/ 2;
 
-    rl.CoreD.DrawText(
+    DrawText(
       message,
       centerX - msgSize ~/ 2, centerY - 30,
       40,
       msState.won ? .color(80, 220, 100, 255) : .color(220, 60, 60, 255),
     );
 
-    rl.CoreD.DrawText(
+    DrawText(
       hint,
       centerX - hintSize ~/ 2, centerY + 20,
       20,
@@ -494,7 +495,7 @@ class MinesweeperScene extends DrawScene<G> {
 
   @override
   void onUpdate(double dt) {
-    if (msState.gameOver && rl.CoreD.IsKeyPressed(.KEY_R)) {
+    if (msState.gameOver && IsKeyPressed(.KEY_R)) {
       initLevel();
     }
   }
@@ -606,21 +607,17 @@ extension on AssetManager {
   TextureD get atlas => texture('xp.png').asset;
 }
 
-extension on HasAppAccess<G> {
-  Raylib get rl => (backend as RaylibBackend).rl;
-}
-
 class Minesweeper extends App<G> {
-  Minesweeper(super.rl);
+  Minesweeper(super.backend);
 
   @override
-  bool shouldExit() => rl.CoreD.WindowShouldClose();
+  bool shouldExit() => WindowShouldClose();
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(screenWidth, screenHeight, "Minesweeper");
-    rl.CoreD.SetWindowMonitor(0);
-    rl.CoreD.SetTargetFPS(60);
+    InitWindow(screenWidth, screenHeight, "Minesweeper");
+    SetWindowMonitor(0);
+    SetTargetFPS(60);
     addScene(MainMenuScene(app));
     addScene(SettingsScene(app));
     addScene(MinesweeperScene(app));

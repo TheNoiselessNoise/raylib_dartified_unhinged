@@ -6,32 +6,82 @@ part of '../../raylib_dartified_unhinged.dart';
 /// - **before** => cancelable; any listener or override returning `false` aborts the operation
 /// - **on** => the operation is about to complete; called by the host (e.g. [App]) after all before-checks pass
 /// - **after** => the operation has completed; side-effects and cleanup go here
-mixin IsSceneTransitionable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
+mixin IsSceneTransitionable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  Self<E>,
+  ECSBase<T>
+{
+  late final hookOnBeforeSceneEnterKey = ECSHookKey<bool Function(E self, Scene<T> scene)>(
+    'IsSceneTransitionable', 'onBeforeSceneEnter'
+  );
 
-  List<bool Function(E self, Scene<T> scene)> _onBeforeSceneEnterFns = [];
+  late final hookOnSceneEnterKey = ECSHookKey<void Function(E self, Scene<T> scene)>(
+    'IsSceneTransitionable', 'onSceneEnter'
+  );
 
-  List<void Function(E self, Scene<T> scene)> _onSceneEnterFns = [];
+  late final hookOnAfterSceneEnterKey = ECSHookKey<void Function(E self, Scene<T> scene)>(
+    'IsSceneTransitionable', 'onAfterSceneEnter'
+  );
 
-  List<void Function(E self, Scene<T> scene)> _onAfterSceneEnterFns = [];
+  late final hookOnBeforeSceneLeaveKey = ECSHookKey<bool Function(E self, Scene<T> scene)>(
+    'IsSceneTransitionable', 'onBeforeSceneLeave'
+  );
 
-  List<bool Function(E self, Scene<T> scene)> _onBeforeSceneLeaveFns = [];
+  late final hookOnSceneLeaveKey = ECSHookKey<void Function(E self, Scene<T> scene)>(
+    'IsSceneTransitionable', 'onSceneLeave'
+  );
 
-  List<void Function(E self, Scene<T> scene)> _onSceneLeaveFns = [];
+  late final hookOnAfterSceneLeaveKey = ECSHookKey<void Function(E self, Scene<T> scene)>(
+    'IsSceneTransitionable', 'onAfterSceneLeave'
+  );
 
-  List<void Function(E self, Scene<T> scene)> _onAfterSceneLeaveFns = [];
+  late final hookOnBeforeSceneTransitionKey = ECSHookKey<bool Function(E self, Scene<T> from, Scene<T> to)>(
+    'IsSceneTransitionable', 'onBeforeSceneTransition'
+  );
 
-  List<bool Function(E self, Scene<T> from, Scene<T> to)> _onBeforeSceneTransitionFns = [];
+  late final hookOnSceneTransitionKey = ECSHookKey<void Function(E self, Scene<T> from, Scene<T> to)>(
+    'IsSceneTransitionable', 'onSceneTransition'
+  );
 
-  List<void Function(E self, Scene<T> from, Scene<T> to)> _onSceneTransitionFns = [];
+  late final hookOnAfterSceneTransitionKey = ECSHookKey<void Function(E self, Scene<T> from, Scene<T> to)>(
+    'IsSceneTransitionable', 'onAfterSceneTransition'
+  );
 
-  List<void Function(E self, Scene<T> from, Scene<T> to)> _onAfterSceneTransitionFns = [];
+  Iterable<bool Function(E self, Scene<T> scene)> get _onBeforeSceneEnterFns
+    => hooksOf(hookOnBeforeSceneEnterKey);
+
+  Iterable<void Function(E self, Scene<T> scene)> get _onSceneEnterFns
+    => hooksOf(hookOnSceneEnterKey);
+
+  Iterable<void Function(E self, Scene<T> scene)> get _onAfterSceneEnterFns
+    => hooksOf(hookOnAfterSceneEnterKey);
+
+  Iterable<bool Function(E self, Scene<T> scene)> get _onBeforeSceneLeaveFns
+    => hooksOf(hookOnBeforeSceneLeaveKey);
+
+  Iterable<void Function(E self, Scene<T> scene)> get _onSceneLeaveFns
+    => hooksOf(hookOnSceneLeaveKey);
+
+  Iterable<void Function(E self, Scene<T> scene)> get _onAfterSceneLeaveFns
+    => hooksOf(hookOnAfterSceneLeaveKey);
+
+  Iterable<bool Function(E self, Scene<T> from, Scene<T> to)> get _onBeforeSceneTransitionFns
+    => hooksOf(hookOnBeforeSceneTransitionKey);
+
+  Iterable<void Function(E self, Scene<T> from, Scene<T> to)> get _onSceneTransitionFns
+    => hooksOf(hookOnSceneTransitionKey);
+
+  Iterable<void Function(E self, Scene<T> from, Scene<T> to)> get _onAfterSceneTransitionFns
+    => hooksOf(hookOnAfterSceneTransitionKey);
 
   /// Registers [fn] as a before-enter listener.
   ///
   /// [fn] returning `false` cancels the scene enter.
   @nonVirtual
   E listenOnBeforeSceneEnter(bool Function(E self, Scene<T> scene) fn) {
-    _onBeforeSceneEnterFns.add(fn);
+    addHook(hookOnBeforeSceneEnterKey, fn);
     return self;
   }
 
@@ -40,7 +90,7 @@ mixin IsSceneTransitionable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   /// Called when the enter operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnSceneEnter(void Function(E self, Scene<T> scene) fn) {
-    _onSceneEnterFns.add(fn);
+    addHook(hookOnSceneEnterKey, fn);
     return self;
   }
 
@@ -49,7 +99,7 @@ mixin IsSceneTransitionable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   /// Called only if the scene enter was not canceled.
   @nonVirtual
   E listenOnAfterSceneEnter(void Function(E self, Scene<T> scene) fn) {
-    _onAfterSceneEnterFns.add(fn);
+    addHook(hookOnAfterSceneEnterKey, fn);
     return self;
   }
 
@@ -58,7 +108,7 @@ mixin IsSceneTransitionable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   /// [fn] returning `false` cancels the scene leave.
   @nonVirtual
   E listenOnBeforeSceneLeave(bool Function(E self, Scene<T> scene) fn) {
-    _onBeforeSceneLeaveFns.add(fn);
+    addHook(hookOnBeforeSceneLeaveKey, fn);
     return self;
   }
 
@@ -67,7 +117,7 @@ mixin IsSceneTransitionable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   /// Called when the leave operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnSceneLeave(void Function(E self, Scene<T> scene) fn) {
-    _onSceneLeaveFns.add(fn);
+    addHook(hookOnSceneLeaveKey, fn);
     return self;
   }
 
@@ -76,7 +126,7 @@ mixin IsSceneTransitionable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   /// Called only if the scene leave was not canceled.
   @nonVirtual
   E listenOnAfterSceneLeave(void Function(E self, Scene<T> scene) fn) {
-    _onAfterSceneLeaveFns.add(fn);
+    addHook(hookOnAfterSceneLeaveKey, fn);
     return self;
   }
 
@@ -85,7 +135,7 @@ mixin IsSceneTransitionable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   /// [fn] returning `false` cancels the full scene transition.
   @nonVirtual
   E listenOnBeforeSceneTransition(bool Function(E self, Scene<T> from, Scene<T> to) fn) {
-    _onBeforeSceneTransitionFns.add(fn);
+    addHook(hookOnBeforeSceneTransitionKey, fn);
     return self;
   }
 
@@ -94,7 +144,7 @@ mixin IsSceneTransitionable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   /// Called when the transition operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnSceneTransition(void Function(E self, Scene<T> from, Scene<T> to) fn) {
-    _onSceneTransitionFns.add(fn);
+    addHook(hookOnSceneTransitionKey, fn);
     return self;
   }
 
@@ -103,7 +153,7 @@ mixin IsSceneTransitionable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   /// Called only if the scene transition was not canceled.
   @nonVirtual
   E listenOnAfterSceneTransition(void Function(E self, Scene<T> from, Scene<T> to) fn) {
-    _onAfterSceneTransitionFns.add(fn);
+    addHook(hookOnAfterSceneTransitionKey, fn);
     return self;
   }
 

@@ -4,25 +4,45 @@ part of '../../raylib_dartified_unhinged.dart';
 ///
 /// Cancelation is a one-way transition: once canceled, the object stays canceled.
 /// The [cancel] method drives the full lifecycle: guards, listeners, and state change.
-mixin IsCancelable<T extends App<T>, E extends ECSBase<T>> on ECSBase<T>, Self<E> {
+mixin IsCancelable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  Self<E>,
+  ECSBase<T>
+{
+  late final hookOnBeforeCancelKey = ECSHookKey<bool Function(E self)>(
+    'IsCancelable', 'onBeforeCancel'
+  );
+
+  late final hookOnCancelKey = ECSHookKey<void Function(E self)>(
+    'IsCancelable', 'onCancel'
+  );
+
+  late final hookOnAfterCancelKey = ECSHookKey<void Function(E self)>(
+    'IsCancelable', 'onAfterCancel'
+  );
 
   bool _isCanceled = false;
 
   /// Whether this object has been canceled.
   bool get isCanceled => _isCanceled;
 
-  List<bool Function(E self)> _onBeforeCancelFns = [];
+  Iterable<bool Function(E self)> get _onBeforeCancelFns
+    => hooksOf(hookOnBeforeCancelKey);
 
-  List<void Function(E self)> _onCancelFns = [];
+  Iterable<void Function(E self)> get _onCancelFns
+    => hooksOf(hookOnCancelKey);
 
-  List<void Function(E self)> _onAfterCancelFns = [];
+  Iterable<void Function(E self)> get _onAfterCancelFns
+    => hooksOf(hookOnAfterCancelKey);
 
   /// Registers [fn] as a before-cancel listener.
   ///
   /// [fn] returning `false` cancels the cancel.
   @nonVirtual
   E listenOnBeforeCancel(bool Function(E self) fn) {
-    _onBeforeCancelFns.add(fn);
+    addHook(hookOnBeforeCancelKey, fn);
     return self;
   }
 
@@ -31,7 +51,7 @@ mixin IsCancelable<T extends App<T>, E extends ECSBase<T>> on ECSBase<T>, Self<E
   /// Called when the cancel operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnCancel(void Function(E self) fn) {
-    _onCancelFns.add(fn);
+    addHook(hookOnCancelKey, fn);
     return self;
   }
 
@@ -40,7 +60,7 @@ mixin IsCancelable<T extends App<T>, E extends ECSBase<T>> on ECSBase<T>, Self<E
   /// Called only if the cancel was not canceled.
   @nonVirtual
   E listenOnAfterCancel(void Function(E self) fn) {
-    _onAfterCancelFns.add(fn);
+    addHook(hookOnAfterCancelKey, fn);
     return self;
   }
 

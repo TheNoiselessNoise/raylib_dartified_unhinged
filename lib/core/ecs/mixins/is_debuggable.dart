@@ -49,8 +49,12 @@ class ECSDebugMessage {
 
 typedef IsAnyDebuggable<T extends App<T>> = IsDebuggable<T, ECSBase<T>>;
 
-mixin IsDebuggable<T extends App<T>, E extends ECSBase<T>> on IsEventEmittable<T, E> {
-
+mixin IsDebuggable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  IsEventEmittable<T, E>
+{
   IsAnyDebuggable<T>? get debugParent {
     if (parent case IsAnyDebuggable<T> debuggableParent) {
       return debuggableParent;
@@ -111,11 +115,16 @@ mixin IsDebuggable<T extends App<T>, E extends ECSBase<T>> on IsEventEmittable<T
     return self;
   }
 
-  final List<void Function(ECSDebugMessage msg)> _onDebugMessageFns = [];
+  late final hookOnDebugMessageKey = ECSHookKey<void Function(ECSDebugMessage msg)>(
+    'IsDebuggable', 'onDebugMessage'
+  );
+
+  Iterable<void Function(ECSDebugMessage msg)> get _onDebugMessageFns
+    => hooksOf(hookOnDebugMessageKey);
 
   @nonVirtual
   E listenOnDebugMessage(void Function(ECSDebugMessage msg) fn) {
-    _onDebugMessageFns.add(fn);
+    addHook(hookOnDebugMessageKey, fn);
     return self;
   }
 

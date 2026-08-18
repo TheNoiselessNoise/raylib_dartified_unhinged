@@ -1,191 +1,4 @@
-part of '../raylib_dartified_unhinged.dart';
-
-enum SnapshotMissingPolicy {
-  /// Ignore snapshot entries that have no matching live origin.
-  skip,
-
-  /// Recreate the entry from its snapshot and re-add it to the parent.
-  recreate,
-}
-
-enum SnapshotExtraPolicy {
-  /// Leave live entries that aren't referenced by the snapshot untouched.
-  keep,
-
-  /// Remove live entries that aren't referenced by the snapshot.
-  remove,
-}
-
-typedef AnyStateSnapshot<T extends App<T>> = StateSnapshot<T, ECSBase<T>>;
-
-abstract class StateSnapshot<T extends App<T>, E extends ECSBase<T>> {
-  late String sourceId;
-
-  StateSnapshot(this.sourceId);
-
-  SnapshotMissingPolicy onMissing = .skip;
-
-  SnapshotExtraPolicy onExtra = .keep;
-
-  final List<bool Function(String sourceId)> _shouldRecreateMissingFns = [];
-
-  final List<bool Function(ECSBase<T> target)> _shouldDeleteExtraFns = [];
-
-  /// Registers [fn] as a should-recreate-missing listener.
-  ///
-  /// [fn] returning `false` cancels the recreation of missing.
-  @nonVirtual
-  StateSnapshot<T, E> listenShouldRecreateMissing(bool Function(String sourceId) fn) {
-    _shouldRecreateMissingFns.add(fn);
-    return this;
-  }
-
-  /// Registers [fn] as a should-delete-extra listener.
-  ///
-  /// [fn] returning `false` cancels the deletion of extra.
-  @nonVirtual
-  StateSnapshot<T, E> listenShouldDeleteExtra(bool Function(ECSBase<T> target) fn) {
-    _shouldDeleteExtraFns.add(fn);
-    return this;
-  }
-
-  /// Runs all should-recreate-missing listeners and [shouldRecreateMissing].
-  ///
-  /// Returns `false` if any listener or the override cancels the recreation of missing.
-  bool _doShouldRecreateMissing(String sourceId) {
-    if (!_shouldRecreateMissingFns.every((f) => f(sourceId))) return false;
-    return shouldRecreateMissing(sourceId);
-  }
-
-  /// Runs all should-delete-extra listeners and [shouldDeleteExtra].
-  ///
-  /// Returns `false` if any listener or the override cancels the deletion of extra.
-  bool _doShouldDeleteExtra(ECSBase<T> target) {
-    if (!_shouldDeleteExtraFns.every((f) => f(target))) return false;
-    return shouldDeleteExtra(target);
-  }
-
-  /// Override to cancel the recreation of missing from within the class.
-  ///
-  /// Return `false` to abort. Called after all registered [listenShouldRecreateMissing] listeners.
-  bool shouldRecreateMissing(String sourceId) => true;
-
-  /// Override to cancel the deletion of extra from within the class.
-  ///
-  /// Return `false` to abort. Called after all registered [listenShouldDeleteExtra] listeners.
-  bool shouldDeleteExtra(ECSBase<T> target) => true;
-
-  /// Bare instance.
-  E createInstance(T app);
-}
-
-mixin IsStateHolderBase<T extends App<T>> on ECSBase<T> {
-  AnyStateSnapshot<T> createSnapshot();
-
-  AnyStateSnapshot<T> captureSnapshot();
-  
-  void restoreSnapshot(covariant AnyStateSnapshot<T> snapshot);
-
-  AnyStateSnapshot<T> bookmarkState(String name);
-  
-  void restoreBookmarkedState(String name, {
-    SnapshotMissingPolicy onMissing = .skip,
-    SnapshotExtraPolicy onExtra = .keep,
-  });
-}
-
-typedef IsAnyStateHolder<T extends App<T>> = IsStateHolderBase<T>;
-
-mixin IsStateHolder<
-  T extends App<T>,
-  E extends IsStateHolder<T, E, S>,
-  S extends StateSnapshot<T, E>
-> on ECSBase<T> implements IsStateHolderBase<T> {
-  
-  // ░██████░███     ░███ ░█████████  ░██         
-  //   ░██  ░████   ░████ ░██     ░██ ░██         
-  //   ░██  ░██░██ ░██░██ ░██     ░██ ░██         
-  //   ░██  ░██ ░████ ░██ ░█████████  ░██         
-  //   ░██  ░██  ░██  ░██ ░██         ░██         
-  //   ░██  ░██       ░██ ░██         ░██         
-  // ░██████░██       ░██ ░██         ░██████████ 
-  
-  final Map<String, S> _bookmarks = {};
-
-  @override
-  S createSnapshot();
-
-  @override
-  S captureSnapshot();
-
-  X captureSnapshotAs<X extends S>() => captureSnapshot() as X;
-  
-  @override
-  void restoreSnapshot(S snapshot);
-
-  void _restoreSnapshotList<
-    A extends IsAnyStateHolder<T>,
-    X extends StateSnapshot<T, IsAnyStateHolder<T>>
-  >({
-    required AnyStateSnapshot<T> originSnapshot,
-    required List<A> sourceList,
-    required List<X> sourceSnapshots,
-    required void Function(A) onRecreate,
-    required void Function(A, X) onRestore,
-    required void Function(A) onRemove,
-  }) {
-    final byId = {for (final c in sourceList) c.namedId: c};
-    final restoredIds = <String>{};
-
-    for (final snapshot in sourceSnapshots) {
-      final origin = byId[snapshot.sourceId];
-
-      if (origin == null) {
-        switch (originSnapshot.onMissing) {
-          case .skip:
-            continue;
-          case .recreate:
-            if (!originSnapshot._doShouldRecreateMissing(snapshot.sourceId)) continue;
-            final created = snapshot.createInstance(app);
-            created.restoreSnapshot(snapshot);
-            onRecreate(created as A);
-            restoredIds.add(created.namedId);
-        }
-        continue;
-      }
-
-      restoredIds.add(origin.namedId);
-      onRestore(origin, snapshot);
-    }
-
-    if (originSnapshot.onExtra == .remove) {
-      final toRemoveStructures = sourceList
-        .where((c) => !restoredIds.contains(c.namedId))
-        .toList();
-
-      for (final toRemove in toRemoveStructures) {
-        if (!originSnapshot._doShouldDeleteExtra(toRemove)) continue;
-        onRemove(toRemove);
-      }
-    }
-  }
-
-  @override
-  S bookmarkState(String name) => _bookmarks[name] = captureSnapshot();
-  
-  @override
-  void restoreBookmarkedState(String name, {
-    SnapshotMissingPolicy onMissing = .skip,
-    SnapshotExtraPolicy onExtra = .keep,
-  }) {
-    final snap = _bookmarks[name];
-    if (snap != null) {
-      snap.onMissing = onMissing;
-      snap.onExtra = onExtra;
-      restoreSnapshot(snap);
-    }
-  }
-}
+part of '../../raylib_dartified_unhinged.dart';
 
 class _TimestampedSnapshot<
   T extends App<T>,
@@ -198,10 +11,6 @@ class _TimestampedSnapshot<
 }
 
 mixin IsPersistableBase<T extends App<T>, E extends ECSBase<T>> on ECSBase<T> {
-  abstract List<bool Function(E self)> _onBeforeStorePersistableFns;
-  
-  abstract List<MapData Function(E self, MapData data)> _onStorePersistableFns;
-
   MapData? storePersistable();
 
   AnyStateSnapshot<T>? persistAutoSave({
@@ -232,7 +41,12 @@ mixin IsPersistable<
   T extends App<T>,
   E extends IsPersistable<T, E, S>,
   S extends StateSnapshot<T, E>
-> on Self<E>, IsStateHolder<T, E, S> implements IsPersistableBase<T, E> {
+> on
+  Self<E>,
+  IsStateHolder<T, E, S>
+implements
+  IsPersistableBase<T, E>
+{
 
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
@@ -248,18 +62,26 @@ mixin IsPersistable<
   /// Override to react during the restoration of persistable data.
   void onRestorePersistableData(MapTraversable data, {String? id}) {}
 
-  @override
-  List<bool Function(E self)> _onBeforeStorePersistableFns = [];
+  late final hookOnBeforeStorePersistableKey = ECSHookKey<bool Function(E self)>(
+    'IsPersistable', 'onBeforeStorePersistable'
+  );
+
+  late final hookOnStorePersistableKey = ECSHookKey<MapData Function(E self, MapData data)>(
+    'IsPersistable', 'onStorePersistable'
+  );
+
+  Iterable<bool Function(E self)> get _onBeforeStorePersistableFns
+    => hooksOf(hookOnBeforeStorePersistableKey);
   
-  @override
-  List<MapData Function(E self, MapData data)> _onStorePersistableFns = [];
+  Iterable<MapData Function(E self, MapData data)> get _onStorePersistableFns
+    => hooksOf(hookOnStorePersistableKey);
 
   /// Registers [fn] as a before-persistence listener.
   ///
   /// [fn] returning `false` cancels the persistence.
   @nonVirtual
   E listenOnBeforeStorePersistable(bool Function(E self) fn) {
-    _onBeforeStorePersistableFns.add(fn);
+    addHook(hookOnBeforeStorePersistableKey, fn);
     return self;
   }
 
@@ -268,7 +90,7 @@ mixin IsPersistable<
   /// Called when the persistence is about to happen and was not canceled.
   @nonVirtual
   E listenOnStorePersistable(MapData Function(E self, MapData data) fn) {
-    _onStorePersistableFns.add(fn);
+    addHook(hookOnStorePersistableKey, fn);
     return self;
   }
 

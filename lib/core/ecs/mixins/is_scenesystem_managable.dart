@@ -7,9 +7,14 @@ part of '../../raylib_dartified_unhinged.dart';
 /// - **before** => cancelable; any listener or override returning `false` aborts the operation
 /// - **on** => the operation is about to complete; called by the host after all before-checks pass
 /// - **after** => the operation has completed; side-effects and cleanup go here
-mixin IsSceneSystemManagable<T extends App<T>, E extends ECSBase<T>>
-  on Self<E>, ECSBase<T>, IsEventEmittable<T, E> {
-
+mixin IsSceneSystemManagable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  Self<E>,
+  ECSBase<T>,
+  IsEventEmittable<T, E>
+{
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██ ░██     ░██ ░██     ░██ ░██   ░██   ░██         
@@ -17,25 +22,55 @@ mixin IsSceneSystemManagable<T extends App<T>, E extends ECSBase<T>>
   // ░██     ░██ ░██     ░██ ░██     ░██ ░██   ░██           ░██ 
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
-  
-  List<bool Function(E self, SceneSystem<T> system)> _onBeforeSceneSystemAddFns = [];
-  
-  List<void Function(E self, SceneSystem<T> system)> _onSceneSystemAddFns = [];
 
-  List<void Function(E self, SceneSystem<T> system)> _onAfterSceneSystemAddFns = [];
-  
-  List<bool Function(E self, SceneSystem<T> system)> _onBeforeSceneSystemRemoveFns = [];
-  
-  List<void Function(E self, SceneSystem<T> system)> _onSceneSystemRemoveFns = [];
+  late final hookOnBeforeSceneSystemAddKey = ECSHookKey<bool Function(E self, SceneSystem<T> system)>(
+    'IsSceneSystemManagable', 'onBeforeSceneSystemAdd'
+  );
 
-  List<void Function(E self, SceneSystem<T> system)> _onAfterSceneSystemRemoveFns = [];
+  late final hookOnSceneSystemAddKey = ECSHookKey<void Function(E self, SceneSystem<T> system)>(
+    'IsSceneSystemManagable', 'onSceneSystemAdd'
+  );
+
+  late final hookOnAfterSceneSystemAddKey = ECSHookKey<void Function(E self, SceneSystem<T> system)>(
+    'IsSceneSystemManagable', 'onAfterSceneSystemAdd'
+  );
+
+  late final hookOnBeforeSceneSystemRemoveKey = ECSHookKey<bool Function(E self, SceneSystem<T> system)>(
+    'IsSceneSystemManagable', 'onBeforeSceneSystemRemove'
+  );
+
+  late final hookOnSceneSystemRemoveKey = ECSHookKey<void Function(E self, SceneSystem<T> system)>(
+    'IsSceneSystemManagable', 'onSceneSystemRemove'
+  );
+
+  late final hookOnAfterSceneSystemRemoveKey = ECSHookKey<void Function(E self, SceneSystem<T> system)>(
+    'IsSceneSystemManagable', 'onAfterSceneSystemRemove'
+  );
+
+  Iterable<bool Function(E self, SceneSystem<T> system)> get _onBeforeSceneSystemAddFns
+    => hooksOf(hookOnBeforeSceneSystemAddKey);
+  
+  Iterable<void Function(E self, SceneSystem<T> system)> get _onSceneSystemAddFns
+    => hooksOf(hookOnSceneSystemAddKey);
+
+  Iterable<void Function(E self, SceneSystem<T> system)> get _onAfterSceneSystemAddFns
+    => hooksOf(hookOnAfterSceneSystemAddKey);
+  
+  Iterable<bool Function(E self, SceneSystem<T> system)> get _onBeforeSceneSystemRemoveFns
+    => hooksOf(hookOnBeforeSceneSystemRemoveKey);
+  
+  Iterable<void Function(E self, SceneSystem<T> system)> get _onSceneSystemRemoveFns
+    => hooksOf(hookOnSceneSystemRemoveKey);
+
+  Iterable<void Function(E self, SceneSystem<T> system)> get _onAfterSceneSystemRemoveFns
+    => hooksOf(hookOnAfterSceneSystemRemoveKey);
 
   /// Registers [fn] as a before-add listener.
   ///
   /// [fn] returning `false` cancels the system add.
   @nonVirtual
   E listenOnBeforeSceneSystemAdd(bool Function(E self, SceneSystem<T> system) fn) {
-    _onBeforeSceneSystemAddFns.add(fn);
+    addHook(hookOnBeforeSceneSystemAddKey, fn);
     return self;
   }
 
@@ -44,7 +79,7 @@ mixin IsSceneSystemManagable<T extends App<T>, E extends ECSBase<T>>
   /// Called when the add operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnSceneSystemAdd(void Function(E self, SceneSystem<T> system) fn) {
-    _onSceneSystemAddFns.add(fn);
+    addHook(hookOnSceneSystemAddKey, fn);
     return self;
   }
 
@@ -53,7 +88,7 @@ mixin IsSceneSystemManagable<T extends App<T>, E extends ECSBase<T>>
   /// Called only if the system add was not canceled.
   @nonVirtual
   E listenOnAfterSceneSystemAdd(void Function(E self, SceneSystem<T> system) fn) {
-    _onAfterSceneSystemAddFns.add(fn);
+    addHook(hookOnAfterSceneSystemAddKey, fn);
     return self;
   }
 
@@ -62,7 +97,7 @@ mixin IsSceneSystemManagable<T extends App<T>, E extends ECSBase<T>>
   /// [fn] returning `false` cancels the system remove.
   @nonVirtual
   E listenOnBeforeSceneSystemRemove(bool Function(E self, SceneSystem<T> system) fn) {
-    _onBeforeSceneSystemRemoveFns.add(fn);
+    addHook(hookOnBeforeSceneSystemRemoveKey, fn);
     return self;
   }
 
@@ -71,7 +106,7 @@ mixin IsSceneSystemManagable<T extends App<T>, E extends ECSBase<T>>
   /// Called when the remove operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnSceneSystemRemove(void Function(E self, SceneSystem<T> system) fn) {
-    _onSceneSystemRemoveFns.add(fn);
+    addHook(hookOnSceneSystemRemoveKey, fn);
     return self;
   }
 
@@ -80,7 +115,7 @@ mixin IsSceneSystemManagable<T extends App<T>, E extends ECSBase<T>>
   /// Called only if the system remove was not canceled.
   @nonVirtual
   E listenOnAfterSceneSystemRemove(void Function(E self, SceneSystem<T> system) fn) {
-    _onAfterSceneSystemRemoveFns.add(fn);
+    addHook(hookOnAfterSceneSystemRemoveKey, fn);
     return self;
   }
 

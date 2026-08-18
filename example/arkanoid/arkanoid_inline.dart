@@ -1,6 +1,7 @@
 // dart run arkanoid_test.dart
 import 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart';
 import 'package:raylib_dartified_unhinged/backends/raylib/backend.dart';
+import 'package:raylib_dartified_unhinged/backends/raylib/abbr.dart';
 
 /* =========================
   EVENTS
@@ -39,7 +40,7 @@ class CIsDestroyed extends Comp<G> { CIsDestroyed(super.app); }
 //       Take it as a namespace for your universe.
 typedef G = Arkanoid;
 class Arkanoid extends App<G> {
-  Arkanoid(super.rl);
+  Arkanoid(super.backend);
 }
 
 class ArkanoidInline extends UnhingedRaylibGame<G> {
@@ -64,12 +65,12 @@ class ArkanoidInline extends UnhingedRaylibGame<G> {
     });
 
     app.listenOnInit((app) {
-      rl.CoreD.InitWindow(800, 450, 'arkanoid_structure_first');
-      rl.CoreD.SetWindowMonitor(0);
-      rl.CoreD.SetTargetFPS(60);
+      InitWindow(800, 450, 'arkanoid_structure_first');
+      SetWindowMonitor(0);
+      SetTargetFPS(60);
     });
 
-    app.listenShouldExit((app) => rl.CoreD.WindowShouldClose());
+    app.listenOnShouldExit((app) => WindowShouldClose());
 
     /* =========================
       SCENE
@@ -77,8 +78,8 @@ class ArkanoidInline extends UnhingedRaylibGame<G> {
 
     app.addScene(DrawScene(app)
       .listenOnDrawBackground((scene, alpha) {
-        rl.CoreD.DrawText('DUMB ARKANOID', 20, 20, 20, .WHITE);
-        rl.CoreD.DrawFPS(50, app.screenHeight - 80);
+        DrawText('DUMB ARKANOID', 20, 20, 20, .WHITE);
+        DrawFPS(50, app.screenHeight - 80);
       })
       .listenOnStart((scene) {
         scene.addSystem(CollisionResolverSystem(app));
@@ -150,8 +151,8 @@ class ArkanoidInline extends UnhingedRaylibGame<G> {
           .listenOnDraw((self, alpha) {
             final speed = self.getVar(varSpeed)!;
             final points = self.getVar(varPoints)!;
-            rl.CoreD.DrawText('Speed: ${speed.f2}', 50, app.screenHeight - 160, 20, .WHITE);
-            rl.CoreD.DrawText('Points: $points', 50, app.screenHeight - 140, 20, .WHITE);
+            DrawText('Speed: ${speed.f2}', 50, app.screenHeight - 160, 20, .WHITE);
+            DrawText('Points: $points', 50, app.screenHeight - 140, 20, .WHITE);
           })
           .listenOnEvent((self, e) {
             if (e is BallLost) {
@@ -176,7 +177,7 @@ class ArkanoidInline extends UnhingedRaylibGame<G> {
             ),
           ))
           .addComp(CVelocity(app,
-            velocity: .vec2(rl.CoreD.GetRandomValue(-100, 100), -300),
+            velocity: .vec2(GetRandomValue(-100, 100), -300),
             linearDamping: 0,
           ))
           .addComp(CPhysicsBody(app, mass: 1.0, restitution: 1.0))

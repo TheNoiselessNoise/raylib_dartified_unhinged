@@ -5,20 +5,40 @@ part of '../../raylib_dartified_unhinged.dart';
 /// - **before** => cancelable; any listener or override returning `false` aborts the operation
 /// - **on** => the operation is about to complete; called by the host after all before-checks pass
 /// - **after** => the operation has completed; side-effects and cleanup go here
-mixin IsEnterable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
+mixin IsEnterable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  Self<E>,
+  ECSBase<T>
+{
+  late final hookOnBeforeEnterKey = ECSHookKey<bool Function(E self)>(
+    'IsEnterable', 'onBeforeEnter'
+  );
 
-  List<bool Function(E self)> _onBeforeEnterFns = [];
+  late final hookOnEnterKey = ECSHookKey<void Function(E self)>(
+    'IsEnterable', 'onEnter'
+  );
 
-  List<void Function(E self)> _onEnterFns = [];
+  late final hookOnAfterEnterKey = ECSHookKey<void Function(E self)>(
+    'IsEnterable', 'onAfterEnter'
+  );
 
-  List<void Function(E self)> _onAfterEnterFns = [];
+  Iterable<bool Function(E self)> get _onBeforeEnterFns
+    => hooksOf(hookOnBeforeEnterKey);
+
+  Iterable<void Function(E self)> get _onEnterFns
+    => hooksOf(hookOnEnterKey);
+
+  Iterable<void Function(E self)> get _onAfterEnterFns
+    => hooksOf(hookOnAfterEnterKey);
 
   /// Registers [fn] as a before-enter listener.
   ///
   /// [fn] returning `false` cancels the enter.
   @nonVirtual
   E listenOnBeforeEnter(bool Function(E self) fn) {
-    _onBeforeEnterFns.add(fn);
+    addHook(hookOnBeforeEnterKey, fn);
     return self;
   }
 
@@ -27,7 +47,7 @@ mixin IsEnterable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   /// Called when the enter operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnEnter(void Function(E self) fn) {
-    _onEnterFns.add(fn);
+    addHook(hookOnEnterKey, fn);
     return self;
   }
 
@@ -36,7 +56,7 @@ mixin IsEnterable<T extends App<T>, E extends ECSBase<T>> on Self<E> {
   /// Called only if the enter was not canceled.
   @nonVirtual
   E listenOnAfterEnter(void Function(E self) fn) {
-    _onAfterEnterFns.add(fn);
+    addHook(hookOnAfterEnterKey, fn);
     return self;
   }
 

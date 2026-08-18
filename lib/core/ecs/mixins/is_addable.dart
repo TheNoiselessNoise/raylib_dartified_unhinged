@@ -7,25 +7,45 @@ part of '../../raylib_dartified_unhinged.dart';
 /// - **before** => cancelable; any listener or override returning `false` aborts the operation
 /// - **on** => the operation is about to complete; called by the host after all before-checks pass
 /// - **after** => the operation has completed; side-effects and cleanup go here
-mixin IsAddable<T extends App<T>, E extends ECSBase<T>> on ECSBase<T>, Self<E> {
+mixin IsAddable<
+  T extends App<T>,
+  E extends ECSBase<T>
+> on
+  Self<E>,
+  ECSBase<T>
+{
+  late final hookOnBeforeAddKey = ECSHookKey<bool Function(E self, ECSBase<T> parent)>(
+    'IsAddable', 'onBeforeAdd'
+  );
+
+  late final hookOnAddKey = ECSHookKey<void Function(E self, ECSBase<T> parent)>(
+    'IsAddable', 'onAdd'
+  );
+
+  late final hookOnAfterAddKey = ECSHookKey<void Function(E self, ECSBase<T> parent)>(
+    'IsAddable', 'onAfterAdd'
+  );
 
   /// Whether this object has been added to a host.
   bool _isAdded = false;
   
   bool get isAdded => _isAdded;
 
-  List<bool Function(E self, ECSBase<T> parent)> _onBeforeAddFns = [];
+  Iterable<bool Function(E self, ECSBase<T> parent)> get _onBeforeAddFns
+    => hooksOf(hookOnBeforeAddKey);
 
-  List<void Function(E self, ECSBase<T> parent)> _onAddFns = [];
+  Iterable<void Function(E self, ECSBase<T> parent)> get _onAddFns
+    => hooksOf(hookOnAddKey);
 
-  List<void Function(E self, ECSBase<T> parent)> _onAfterAddFns = [];
+  Iterable<void Function(E self, ECSBase<T> parent)> get _onAfterAddFns
+    => hooksOf(hookOnAfterAddKey);
 
   /// Registers [fn] as a before-add listener.
   ///
   /// [fn] returning `false` cancels the add.
   @nonVirtual
   E listenOnBeforeAdd(bool Function(E self, ECSBase<T> parent) fn) {
-    _onBeforeAddFns.add(fn);
+    addHook(hookOnBeforeAddKey, fn);
     return self;
   }
 
@@ -34,7 +54,7 @@ mixin IsAddable<T extends App<T>, E extends ECSBase<T>> on ECSBase<T>, Self<E> {
   /// Called when the add operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnAdd(void Function(E self, ECSBase<T> parent) fn) {
-    _onAddFns.add(fn);
+    addHook(hookOnAddKey, fn);
     return self;
   }
 
@@ -43,7 +63,7 @@ mixin IsAddable<T extends App<T>, E extends ECSBase<T>> on ECSBase<T>, Self<E> {
   /// Called only if the add was not canceled.
   @nonVirtual
   E listenOnAfterAdd(void Function(E self, ECSBase<T> parent) fn) {
-    _onAfterAddFns.add(fn);
+    addHook(hookOnAfterAddKey, fn);
     return self;
   }
 

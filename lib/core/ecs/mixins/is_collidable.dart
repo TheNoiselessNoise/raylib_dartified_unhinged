@@ -7,20 +7,41 @@ part of '../../raylib_dartified_unhinged.dart';
 /// - **before** => cancelable; any listener or override returning `false` aborts the operation
 /// - **on** => the operation is about to complete; called by the host after all before-checks pass
 /// - **after** => the operation has completed; side-effects and cleanup go here
-mixin IsCollidable<T extends App<T>, E extends ECSBase<T>, C extends ECSBase<T>> on ECSBase<T>, Self<E> {
+mixin IsCollidable<
+  T extends App<T>,
+  E extends ECSBase<T>,
+  C extends ECSBase<T>
+> on
+  Self<E>,
+  ECSBase<T>
+{
+  late final hookOnBeforeCollisionKey = ECSHookKey<bool Function(E self, C other)>(
+    'IsCollidable', 'onBeforeCollision'
+  );
 
-  List<bool Function(E self, C other)> _onBeforeCollisionFns = [];
+  late final hookOnCollisionKey = ECSHookKey<void Function(E self, C other)>(
+    'IsCollidable', 'onCollision'
+  );
 
-  List<void Function(E self, C other)> _onCollisionFns = [];
+  late final hookOnAfterCollisionKey = ECSHookKey<void Function(E self, C other)>(
+    'IsCollidable', 'onAfterCollision'
+  );
 
-  List<void Function(E self, C other)> _onAfterCollisionFns = [];
+  Iterable<bool Function(E self, C other)> get _onBeforeCollisionFns
+    => hooksOf(hookOnBeforeCollisionKey);
+
+  Iterable<void Function(E self, C other)> get _onCollisionFns
+    => hooksOf(hookOnCollisionKey);
+
+  Iterable<void Function(E self, C other)> get _onAfterCollisionFns
+    => hooksOf(hookOnAfterCollisionKey);
 
   /// Registers [fn] as a before-collision listener.
   ///
   /// [fn] returning `false` cancels the collision.
   @nonVirtual
   E listenOnBeforeCollision(bool Function(E self, C other) fn) {
-    _onBeforeCollisionFns.add(fn);
+    addHook(hookOnBeforeCollisionKey, fn);
     return self;
   }
 
@@ -29,7 +50,7 @@ mixin IsCollidable<T extends App<T>, E extends ECSBase<T>, C extends ECSBase<T>>
   /// Called when the collision operation is about to happen and was not canceled.
   @nonVirtual
   E listenOnCollision(void Function(E self, C other) fn) {
-    _onCollisionFns.add(fn);
+    addHook(hookOnCollisionKey, fn);
     return self;
   }
 
@@ -38,7 +59,7 @@ mixin IsCollidable<T extends App<T>, E extends ECSBase<T>, C extends ECSBase<T>>
   /// Called only if the collision was not canceled.
   @nonVirtual
   E listenOnAfterCollision(void Function(E self, C other) fn) {
-    _onAfterCollisionFns.add(fn);
+    addHook(hookOnAfterCollisionKey, fn);
     return self;
   }
 

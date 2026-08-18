@@ -9,13 +9,35 @@ class _GlobalIdCounter {
     => _counters[type] = _counters.putIfAbsent(type, () => 0) + 1;
 }
 
+/// Single key to external hook storage.
+final class ECSHookKey<F extends Function> {
+  // for group-clearing, since there's no enum to group by
+  final String family;
+
+  final String name;
+
+  const ECSHookKey(this.family, this.name);
+
+  String get fullId => '$family.$name';
+
+  @override
+  bool operator ==(Object other) => other is ECSHookKey<F> && other.fullId == fullId;
+
+  @override
+  int get hashCode => Object.hash(F, fullId);
+
+  @override
+  String toString() => fullId;
+}
+
 /// Base class for all ECS objects.
 ///
 /// Provides a per-type auto-incrementing [id] and a default [name] derived from it
 /// and an optional [parent] reference for tree traversal.
 abstract class ECSBase<T extends App<T>> with
   HasAppAccess<T>,
-  HasSceneAccess<T>
+  HasSceneAccess<T>,
+  HasExternalHooks<T>
 {
   /// See [id].
   late final int _id;

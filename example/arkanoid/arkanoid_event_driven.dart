@@ -1,6 +1,7 @@
 // dart run arkanoid_test.dart
 import 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart';
 import 'package:raylib_dartified_unhinged/backends/raylib/backend.dart';
+import 'package:raylib_dartified_unhinged/backends/raylib/abbr.dart';
 
 typedef G = Arkanoid;
 
@@ -154,7 +155,7 @@ class ArkanoidRulesSystem extends SceneSystem<G> {
 
   @override
   void onPreDraw(double dt) {
-    rl.CoreD.DrawText('Score: $score', 20, screenHeight - 40, 20, .WHITE);
+    DrawText('Score: $score', 20, screenHeight - 40, 20, .WHITE);
   }
 }
 
@@ -199,7 +200,7 @@ class ArkanoidScene extends DrawScene<G> {
 
   @override
   void onDrawBackground() {
-    rl.CoreD.DrawText(
+    DrawText(
       'EVENT-DRIVEN ARKANOID',
       20, 20, 20, .RAYWHITE,
     );
@@ -210,23 +211,19 @@ class ArkanoidScene extends DrawScene<G> {
   GAME
 ========================= */
 
-extension on HasAppAccess<G> {
-  Raylib get rl => (backend as RaylibBackend).rl;
-}
-
 class Arkanoid extends App<G> {
   final String K_q = 'q';
 
-  Arkanoid(super.rl);
+  Arkanoid(super.backend);
 
   @override
-  bool shouldExit() => rl.CoreD.WindowShouldClose();
+  bool shouldExit() => WindowShouldClose();
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(800, 450, 'arkanoid_structure_first');
-    rl.CoreD.SetWindowMonitor(0);
-    rl.CoreD.SetTargetFPS(60);
+    InitWindow(800, 450, 'arkanoid_structure_first');
+    SetWindowMonitor(0);
+    SetTargetFPS(60);
 
     addScene(ArkanoidScene(this));
 

@@ -1,6 +1,7 @@
 // Run it: dart run arkanoid_structure_first.dart
 import 'package:raylib_dartified_unhinged/raylib_dartified_unhinged.dart';
 import 'package:raylib_dartified_unhinged/backends/raylib/backend.dart';
+import 'package:raylib_dartified_unhinged/backends/raylib/abbr.dart';
 
 /*
   A fully-featured Arkanoid clone built in the UNHINGED Framework.
@@ -113,7 +114,7 @@ class PaddleEntity extends Entity<G> {
   });
 
   @override
-  void onDraw(double dt) => rl.CoreD.DrawRectangleRec(bounds!.rectangle, color);
+  void onDraw(double dt) => DrawRectangleRec(bounds!.rectangle, color);
 }
 
 /* =========================
@@ -134,12 +135,12 @@ class BallEntity extends Entity<G> {
     this.isCopy = false,
   }) {
     this.position = position ?? sceneBounds.size.divideBy(2);
-    initialVelocity = velocity ?? .vec2(rl.CoreD.GetRandomValue(-100, 100), -300);
+    initialVelocity = velocity ?? .vec2(GetRandomValue(-100, 100), -300);
   }
 
   void reset() {
     transform!.position = sceneBounds.size.divideBy(2);
-    velocity!.velocity = .vec2(rl.CoreD.GetRandomValue(-100, 100), -300);
+    velocity!.velocity = .vec2(GetRandomValue(-100, 100), -300);
   }
 
   @override
@@ -151,30 +152,27 @@ class BallEntity extends Entity<G> {
     addComp(COutOfBounds(app, triggerOnce: false, then: (oob) => emit(BallLostEvent(app, this), scope: .scene)));
   }
 
+  bool manualMode = false;
+  double manualSpeed = 400;
+
   @override
   void onUpdate(double dt) {
     get<CCircleCollider<G>>()!.debugColor = manualMode ? .GOLD : .GREEN;
+
+    if (manualMode) onVelocity((v) {
+      v.velocity = .zero();
+      if (IsKeyDown(.KEY_UP)) v.velocity.y = -manualSpeed;
+      if (IsKeyDown(.KEY_DOWN)) v.velocity.y = manualSpeed;
+      if (IsKeyDown(.KEY_LEFT)) v.velocity.x = -manualSpeed;
+      if (IsKeyDown(.KEY_RIGHT)) v.velocity.x = manualSpeed;
+    });
   }
 
   @override
   void onDraw(double dt) => onTransform((t) {
     final x = t.position.x;
     final y = t.position.y - 5;
-    rl.CoreD.DrawText('$damage', x, y, 10, .WHITE);
-  });
-
-  bool manualMode = false;
-  double manualSpeed = 400;
-
-  @override
-  void onInput() => onVelocity((v) {
-    if (manualMode) {
-      v.velocity = .zero();
-      if (rl.CoreD.IsKeyDown(.KEY_UP)) v.velocity.y = -manualSpeed;
-      if (rl.CoreD.IsKeyDown(.KEY_DOWN)) v.velocity.y = manualSpeed;
-      if (rl.CoreD.IsKeyDown(.KEY_LEFT)) v.velocity.x = -manualSpeed;
-      if (rl.CoreD.IsKeyDown(.KEY_RIGHT)) v.velocity.x = manualSpeed;
-    }
+    DrawText('$damage', x, y, 10, .WHITE);
   });
 }
 
@@ -220,14 +218,14 @@ class BrickEntity extends Entity<G> {
   @override
   void onUpdate(double dt) => on<CRectCollider<G>>((c) {
     final value = rl.Remap(health, maxHealth, 0, 1, 0);
-    c.debugColor = rl.CoreD.Fade(color, value);
+    c.debugColor = Fade(color, value);
   });
 
   @override
   void onDraw(double dt) => onTransform((t) {
     final x = t.position.x;
     final y = t.position.y - 5;
-    rl.CoreD.DrawText(health.f0, x, y, 10, .WHITE);
+    DrawText(health.f0, x, y, 10, .WHITE);
   });
 }
 
@@ -318,7 +316,7 @@ class PickablePowerUp extends Entity<G> {
 
   @override
   void onDraw(double dt) => onTransform((t) {
-    rl.CoreD.DrawText(type.label, t.position.x - 6, t.position.y - 6, 14, type.color);
+    DrawText(type.label, t.position.x - 6, t.position.y - 6, 14, type.color);
   });
 }
 
@@ -468,8 +466,8 @@ class ArkanoidStatsSystem extends AppSystem<G> {
 
   void drawTextLine(String text, int yStart, int fontSize, ColorD textColor) {
     final screen = sceneBounds.size;
-    final w = rl.CoreD.MeasureText(text, fontSize);
-    rl.CoreD.DrawText(text, screen.x / 2 - w / 2, screen.y / 2 - fontSize / 2 + yStart, fontSize, textColor);
+    final w = MeasureText(text, fontSize);
+    DrawText(text, screen.x / 2 - w / 2, screen.y / 2 - fontSize / 2 + yStart, fontSize, textColor);
   }
 
   @override
@@ -480,19 +478,19 @@ class ArkanoidStatsSystem extends AppSystem<G> {
 
     int textY = 0;
     if (cheatMode) {
-      drawTextLine('CHEAT MODE', textY+=0, 50, rl.CoreD.Fade(.GOLD, 0.1));
-      drawTextLine('Use ARROW keys to move the ball', textY+=50, 20, rl.CoreD.Fade(.GOLD, 0.1));
+      drawTextLine('CHEAT MODE', textY+=0, 50, Fade(.GOLD, 0.1));
+      drawTextLine('Use ARROW keys to move the ball', textY+=50, 20, Fade(.GOLD, 0.1));
     }
 
     if (app.gamePaused) {
       drawTextLine('GAME PAUSED', textY+=50, 50, .AZURE);
     }
 
-    rl.CoreD.DrawText('LEVEL: $level', 20, screen.y - 140, 20, _textColor);
-    rl.CoreD.DrawText('BALLS LOST: $ballsLost', 20, screen.y - 120, 20, _textColor);
-    rl.CoreD.DrawText('BALL HITS: $ballHits', 20, screen.y - 100, 20, _textColor);
-    rl.CoreD.DrawText('BRICKS: $bricksDestroyed/$bricksCurrentLevel', 20, screen.y - 80, 20, _textColor);
-    rl.CoreD.DrawText('SCORE: $score', 20, screen.y - 60, 20, _textColor);
+    DrawText('LEVEL: $level', 20, screen.y - 140, 20, _textColor);
+    DrawText('BALLS LOST: $ballsLost', 20, screen.y - 120, 20, _textColor);
+    DrawText('BALL HITS: $ballHits', 20, screen.y - 100, 20, _textColor);
+    DrawText('BRICKS: $bricksDestroyed/$bricksCurrentLevel', 20, screen.y - 80, 20, _textColor);
+    DrawText('SCORE: $score', 20, screen.y - 60, 20, _textColor);
   }
 
   @override
@@ -535,6 +533,13 @@ class ArkanoidGameOverWidget extends FWidget<G> {
     borderOverride = errorText == null ? .GREEN : .RED;
     errorText?.shake();
   });
+
+  @override
+  void onUpdate(double dt) {
+    if (showOnly && IsKeyPressed(.KEY_M)) {
+      goToArkanoidScene();
+    }
+  }
 
   @override
   FWidget<G> build() {
@@ -642,13 +647,6 @@ class ArkanoidGameOverWidget extends FWidget<G> {
     scoreSubmitted = false;
     showOnly = false;
     callback(() => app.setScene(arkanoidScene));
-  }
-
-  @override
-  void onInput() {
-    if (showOnly && rl.CoreD.IsKeyPressed(.KEY_M)) {
-      goToArkanoidScene();
-    }
   }
 }
 
@@ -860,10 +858,10 @@ class ArkanoidScene extends DrawScene<G> {
 
   @override
   void onDrawBackground() {
-    rl.CoreD.DrawFPS(10, 10);
+    DrawFPS(10, 10);
 
-    final w = rl.CoreD.MeasureText(title, fontSize);
-    rl.CoreD.DrawText(title, app.screenWidth - w - 10, 10, fontSize, .RAYWHITE);
+    final w = MeasureText(title, fontSize);
+    DrawText(title, app.screenWidth - w - 10, 10, fontSize, .RAYWHITE);
   }
 }
 
@@ -874,11 +872,6 @@ class ArkanoidScene extends DrawScene<G> {
 /// Shorthand alias for [Arkanoid], used throughout the codebase to reduce verbosity.
 typedef G = Arkanoid;
 
-/// Extension to access Raylib from anywhere.
-extension on HasAppAccess<G> {
-  Raylib get rl => (backend as RaylibBackend).rl;
-}
-
 /// The Arkanoid game application.
 ///
 /// It really does not matter where you handle the window initialization.
@@ -887,15 +880,15 @@ class Arkanoid extends App<G> {
   Arkanoid(super.backend);
 
   @override
-  bool shouldExit() => rl.CoreD.WindowShouldClose();
+  bool shouldExit() => WindowShouldClose();
 
   bool gamePaused = false;
 
   @override
   void onInit() {
-    rl.CoreD.InitWindow(screenWidth, screenHeight, 'arkanoid_structure_first');
-    rl.CoreD.SetWindowMonitor(0);
-    rl.CoreD.SetTargetFPS(60);
+    InitWindow(screenWidth, screenHeight, 'arkanoid_structure_first');
+    SetWindowMonitor(0);
+    SetTargetFPS(60);
 
     addSystem(ArkanoidStatsSystem(app));
     addScene(ArkanoidScene(app));
@@ -904,17 +897,17 @@ class Arkanoid extends App<G> {
 
   @override
   void onInput() {
-    if (rl.CoreD.IsKeyPressed(.KEY_Q)) {
+    if (IsKeyPressed(.KEY_Q)) {
       callback(() => app.exitApp = true);
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_M) && scene != gameOverScene) {
+    if (IsKeyPressed(.KEY_M) && scene != gameOverScene) {
       gameOverScene.gameOverWidget.scoreSubmitted = true;
       gameOverScene.gameOverWidget.showOnly = true;
       callback(() => setScene(gameOverScene));
     }
 
-    if (rl.CoreD.IsKeyPressed(.KEY_ENTER)) {
+    if (IsKeyPressed(.KEY_ENTER)) {
       gamePaused = !gamePaused;
       time.setTimeScale(gamePaused ? 0 : 1);
     }
