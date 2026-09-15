@@ -1,3 +1,7 @@
+## 6.0.0
+
+- 
+
 ## 5.5.3
 
 - fix the `Event` system and it's replaying capability
