@@ -1,6 +1,9 @@
 ## 6.0.0
 
-- 
+- CRenderLayer
+- nuke Cloners and keep only Policy
+- Proper HasVars, unified (clonable) state system
+- unified hook system
 
 ## 5.5.3
 
