@@ -263,11 +263,7 @@ class RaylibBackend extends UnhingedBackend {
   FontD getFontDefault()
     => _core.GetFontDefault();
 
-  @override
-  void dispose() {
-    super.dispose();
-    rl.dispose();
-  }
+  // Note: `rl.dispose` is already handled in `RaylibAppBase`
 }
 
 extension on Vector2D {
