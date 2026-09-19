@@ -59,7 +59,7 @@ class PlayerEntity extends Entity<G> {
   }
 
   @override
-  void onUpdate(double dt) => on<CVelocity<G>>((velocity) {
+  void onPostUpdate(double dt) => on<CVelocity<G>>((velocity) {
     if (input.isKeyDown(K_left)) velocity.velocity.x -= dt * speed;
     if (input.isKeyDown(K_right)) velocity.velocity.x += dt * speed;
     if (input.isKeyDown(K_up)) velocity.velocity.y -= dt * speed;

@@ -76,7 +76,7 @@ class FSingleChildScrollView<T extends App<T>> extends FWidget<T> {
   }
 
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     if (defaultScrollSupport) {
       final y = backend.mouse.wheel.scale(defaultScrollSupportSpeed).y * -1;
       if (y == 0) return;

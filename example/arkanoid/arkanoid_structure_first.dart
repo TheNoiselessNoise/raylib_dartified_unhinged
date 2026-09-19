@@ -97,7 +97,7 @@ class PaddleEntity extends Entity<G> {
   }
 
   @override
-  void onUpdate(double dt) => onVelocity((v) {
+  void onPostUpdate(double dt) => onVelocity((v) {
     // `bounds` use any existing sized component in this case `CRectCollider`
     get<CRectCollider<G>>()?.size = size;
 
@@ -156,7 +156,7 @@ class BallEntity extends Entity<G> {
   double manualSpeed = 400;
 
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     get<CCircleCollider<G>>()!.debugColor = manualMode ? .GOLD : .GREEN;
 
     if (manualMode) onVelocity((v) {
@@ -216,7 +216,7 @@ class BrickEntity extends Entity<G> {
   }
 
   @override
-  void onUpdate(double dt) => on<CRectCollider<G>>((c) {
+  void onPostUpdate(double dt) => on<CRectCollider<G>>((c) {
     final value = rl.Remap(health, maxHealth, 0, 1, 0);
     c.debugColor = Fade(color, value);
   });
@@ -535,7 +535,7 @@ class ArkanoidGameOverWidget extends FWidget<G> {
   });
 
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     if (showOnly && IsKeyPressed(.KEY_M)) {
       goToArkanoidScene();
     }

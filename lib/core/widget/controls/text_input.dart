@@ -317,7 +317,7 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
 
   @override
   @mustCallSuper
-  void onUpdate(double dt) => on2<CTransform<T>, CRectCollider<T>>((t, c) {
+  void onPostUpdate(double dt) => on2<CTransform<T>, CRectCollider<T>>((t, c) {
     t.position = worldPosition;
     c.size = size.copy();
 

@@ -107,7 +107,7 @@ class CCircleCollider<T extends App<T>> extends CCollider<T> {
   }) : baseRadius = radius;
 
   @override
-  void onUpdate(double dt) => entity.onTransform((t) {
+  void onPostUpdate(double dt) => entity.onTransform((t) {
     center = t.position.copy();
 
     final sx = t.scale.x;
@@ -248,7 +248,7 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
   }
 
   @override
-  void onUpdate(double dt) => entity.onTransform((t) {
+  void onPostUpdate(double dt) => entity.onTransform((t) {
     final s = _getLocalSize();
     final w = s.x * t.scale.x;
     final h = s.y * t.scale.y;

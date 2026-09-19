@@ -26,7 +26,7 @@ class CVelocity<T extends App<T>> extends Comp<T> {
   }) : velocity = velocity ?? .zero();
 
   @override
-  void onUpdate(double dt) => entity.onTransform((t) {
+  void onPostUpdate(double dt) => entity.onTransform((t) {
     // Integrate
     t.position = t.position.add(velocity.scale(dt));
     t.rotation += angularVelocity * dt;

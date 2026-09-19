@@ -24,7 +24,7 @@ class CTransform<T extends App<T>> extends Comp<T> {
 
   @override
   @mustCallSuper
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     if (isDisabled) return;
     prevPosition = position.copy();
   }

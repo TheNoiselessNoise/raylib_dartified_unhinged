@@ -12,7 +12,7 @@ class CLifetime<T extends App<T>> extends Comp<T> {
   });
 
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     if (_enqueued) return;
     timeLeft -= dt;
     if (timeLeft <= 0) {

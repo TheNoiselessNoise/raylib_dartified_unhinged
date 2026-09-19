@@ -37,7 +37,7 @@ class CImage<T extends App<T>> extends Comp<T> {
   }
 
   @override
-  void onUpdate(double dt) => entity.onTransform((t) {
+  void onPostUpdate(double dt) => entity.onTransform((t) {
     // Source rect
     if (sourceRect != null) {
       source = sourceRect!.copy();

@@ -55,7 +55,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   IsEventEmittable<T, Entity<T>>,
   IsEventHistoryHolder<T, Entity<T>>,
   IsRemovable<T, Entity<T>>,
-  IsUpdatable<T, Entity<T>>,
+  IsPrePostUpdatable<T, Entity<T>>, // pre components and post components
   
   // special
   IsComponentManagable<T, Entity<T>>,
@@ -262,14 +262,17 @@ class Entity<T extends App<T>> extends ECSBase<T> with
     super._doOnCompRemove(component);
   }
 
-  /// Advances all components by [dt], fires update listeners, then calls
-  /// [onUpdate]. Skipped entirely when the entity is disabled.
-  @override
-  @mustCallSuper
-  void _doUpdate(double dt) {
+  /// Fires pre update listeners, advances all components by [dt], fires post update listeners.
+  /// Skipped entirely when the entity is disabled.
+  void _doEntityUpdate(double dt) {
     if (isDisabled) return;
-    _components.forEach((c) => c._doUpdate(dt));
-    super._doUpdate(dt);
+    _doPreUpdate(dt);
+    for (final c in _components) {
+      if (isDisabled) return;
+      c._doComponentUpdate(dt);
+    }
+    if (isDisabled) return;
+    _doPostUpdate(dt);
   }
 
   /// Draws all components for [dt], fires draw listeners, then calls
@@ -510,11 +513,17 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   /// Advances the group itself, then advances each member entity.
   /// Member updates are skipped when the group is disabled.
   @override
-  @mustCallSuper
-  void _doUpdate(double dt) {
-    super._doUpdate(dt);
+  void _doEntityUpdate(double dt) {
+    if (isDisabled) return;
+    _doPreUpdate(dt);
+    for (final c in _components) {
+      if (isDisabled) return;
+      c._doComponentUpdate(dt);
+    }
     if (isDisabled) return;
     _updateEntities(dt);
+    if (isDisabled) return;
+    _doPostUpdate(dt);
   }
 
   /// Draws the group itself, then draws each member entity.

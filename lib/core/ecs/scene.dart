@@ -81,7 +81,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   IsInputHandleable<T, Scene<T>>,
   IsLeavable<T, Scene<T>>,
   IsPrePostDrawable<T, Scene<T>>,
-  IsPrePostUpdatable<T, Scene<T>>,
+  IsPrePostUpdatable<T, Scene<T>>, // pre scene systems and post scene systems
   IsRemovable<T, Scene<T>>,
   IsSceneSystemManagable<T, Scene<T>>,
   IsStartable<T, Scene<T>>,

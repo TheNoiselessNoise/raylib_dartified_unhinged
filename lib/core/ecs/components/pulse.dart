@@ -25,7 +25,7 @@ class CPulse<T extends App<T>> extends Comp<T> with
   }) : pulseTime = time ?? 0;
 
   @override
-  void onUpdate(double dt) => entity.onTransform((t) {
+  void onPostUpdate(double dt) => entity.onTransform((t) {
     if (isDisabled) return;
     
     pulseTime += dt;

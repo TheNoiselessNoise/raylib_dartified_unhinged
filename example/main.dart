@@ -63,7 +63,7 @@ class BallEntityFollowingMouse extends Entity<G> {
   }
 
   @override
-  void onUpdate(double dt) => onTransform((t) {
+  void onPostUpdate(double dt) => onTransform((t) {
     t.position = GetMousePosition();
   });
 }

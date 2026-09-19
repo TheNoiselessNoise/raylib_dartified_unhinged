@@ -54,7 +54,7 @@ class CParticleEmitter<T extends App<T>, E extends Entity<T>> extends Comp<T> {
   }
 
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     if (isDisabled) return;
     _acc += dt * rate;
     while (_acc >= 1) {

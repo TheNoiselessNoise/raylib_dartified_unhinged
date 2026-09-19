@@ -51,7 +51,7 @@ class CHealthBar extends Comp<G> {
   final List<_DamagePopup> _popups = [];
 
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     final health = entity.get<CHealth>();
     if (health == null) return;
 
@@ -121,7 +121,7 @@ class CDeathAnim extends Comp<G> {
   }
 
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     _elapsed += dt;
     if (_elapsed >= _duration) entity.removeThis();
   }
@@ -150,7 +150,7 @@ class CExplosionAnim extends Comp<G> {
   double _elapsed = 0;
 
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     _elapsed += dt;
     if (_elapsed >= _duration) entity.removeThis();
   }
@@ -181,7 +181,7 @@ class Bullet extends Entity<G> {
   }
 
   @override
-  void onUpdate(double dt) => onTransform((t) {
+  void onPostUpdate(double dt) => onTransform((t) {
     _start ??= t.position.copy();
 
     final dest = scene.QueryEntity.FirstAs<Entity2>();
@@ -220,7 +220,7 @@ class CMoveUpDown extends Comp<G> {
   CMoveUpDown(super.app);
 
   @override
-  void onUpdate(double dt) => entity.onBounds((b) {
+  void onPostUpdate(double dt) => entity.onBounds((b) {
     final t = entity.transform!;
 
     final ny = t.position.y + speed;

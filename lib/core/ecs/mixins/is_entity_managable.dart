@@ -359,7 +359,7 @@ mixin IsEntityManagable<
 
   /// Calls `_doUpdate` on every entity in the scene.
   void _updateEntities(double dt)
-    => _entities.forEach((e) => e._doUpdate(dt));
+    => _entities.forEach((e) => e._doEntityUpdate(dt));
 
   /// Calls `_doDraw` on entities whose scene-level draw is enabled and whose
   /// render layer matches the renderer's currently active layer.

@@ -15,7 +15,7 @@ class CBoundsConstraint<T extends App<T>> extends Comp<T> {
   }
 
   @override
-  void onUpdate(double dt) => entity.on2<CTransform<T>, CVelocity<T>>((t, v) {
+  void onPostUpdate(double dt) => entity.on2<CTransform<T>, CVelocity<T>>((t, v) {
     final bounds = entity.bounds!;
 
     var dx = v.velocity.x;

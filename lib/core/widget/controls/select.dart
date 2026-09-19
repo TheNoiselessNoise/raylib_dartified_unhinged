@@ -139,7 +139,7 @@ class FSelect<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSe
 
   @override
   @mustCallSuper
-  void onUpdate(double dt) => on2<CTransform<T>, CRectCollider<T>>((t, c) {
+  void onPostUpdate(double dt) => on2<CTransform<T>, CRectCollider<T>>((t, c) {
     t.position = worldPosition;
     // collider covers only the trigger; dropdown is handled manually
     c.size = _interactiveSize.copy();

@@ -33,7 +33,7 @@ class SimpleEntityGroup extends EntityGroup<G, SimpleEntity> {
   }
 
   @override
-  void onUpdate(double dt) => onVelocity((v) {
+  void onPostUpdate(double dt) => onVelocity((v) {
     if (IsKeyDown(.KEY_A)) v.velocity.x -= dt * speed;
     if (IsKeyDown(.KEY_D)) v.velocity.x += dt * speed;
     if (IsKeyDown(.KEY_W)) v.velocity.y -= dt * speed;

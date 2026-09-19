@@ -99,7 +99,7 @@ class ArkanoidInline extends UnhingedRaylibGame<G> {
               }
             }
           })
-          .listenOnUpdate((self, dt) {
+          .listenOnPostUpdate((self, dt) {
             // check if there are any bricks that have not been destroyed yet
             // if so, return
             if (scene.QueryEntity
@@ -138,7 +138,7 @@ class ArkanoidInline extends UnhingedRaylibGame<G> {
             varSpeed.set(self, 600.0);
             varPoints.set(self, 0);
           })
-          .listenOnUpdate((self, dt) => self.onVelocity((v) {
+          .listenOnPostUpdate((self, dt) => self.onVelocity((v) {
             v.velocity.x = 0;
             final speed = varSpeed.get(self);
             if (scene.input.isKeyDown(K_left)) v.velocity.x = -speed;
@@ -186,7 +186,7 @@ class ArkanoidInline extends UnhingedRaylibGame<G> {
               c.entity.onVelocity((v) => v.velocity.y = -v.velocity.y.abs());
             }
           ))
-          .listenOnUpdate((self, dt) => self.onTransform((t) {
+          .listenOnPostUpdate((self, dt) => self.onTransform((t) {
             if (scene.input.isKeyDown(K_r)) {
               self.onTransform((t) => t.position.set(app.screenWidth / 2, app.screenHeight - 150));
               self.onVelocity((v) => v.velocity.y = -v.velocity.y.abs());
@@ -221,7 +221,7 @@ class ArkanoidInline extends UnhingedRaylibGame<G> {
                 debugColor: .ORANGE,
               ))
               .addComp(CPhysicsBody(app, mass: 0, restitution: 1))
-              .listenOnUpdate((self, dt) {
+              .listenOnPostUpdate((self, dt) {
                 self.on<CRectCollider<G>>((c) {
                   final frameCount = app.time.frameCount;
                   if (frameCount == 1 || frameCount % 100 == 0) {

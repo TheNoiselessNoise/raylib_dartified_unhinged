@@ -18,7 +18,7 @@ class CSprite<T extends App<T>> extends Comp<T> {
   }) : size = size ?? .vec2(_defaultSize[0], _defaultSize[1]);
 
   @override
-  void onUpdate(double dt) => entity.onTransform((t) {
+  void onPostUpdate(double dt) => entity.onTransform((t) {
     final w = size.x * t.scale.x;
     final h = size.y * t.scale.y;
 

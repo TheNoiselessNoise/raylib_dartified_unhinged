@@ -34,7 +34,7 @@ class COutOfBounds<T extends App<T>> extends Comp<T> {
   void reset() => _thenCalled = false;
 
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     final screen = sceneBounds.size;
     final bounds = entity.bounds;
     if (bounds == null) return;

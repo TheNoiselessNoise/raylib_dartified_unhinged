@@ -206,7 +206,7 @@ class CAnimator<T extends App<T>> extends Comp<T> {
   }
 
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     if (!isPlaying) return;
     
     final anim = currentAnim;

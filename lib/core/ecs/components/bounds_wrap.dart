@@ -15,7 +15,7 @@ class CBoundsWrap<T extends App<T>> extends Comp<T> {
   }
 
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     final screen = sceneBounds.size;
     final bounds = entity.bounds;
 

@@ -126,7 +126,7 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
   /// transitions, fires onExit when leaving, then calls onUpdate for
   /// whichever state is current after any transition.
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     if (!_started || _current == null) return;
 
     final currentDef = _states[_current]!;

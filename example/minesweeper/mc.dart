@@ -159,7 +159,7 @@ class Cell extends Entity<G> {
   };
 
   @override
-  void onUpdate(double dz) {
+  void onPostUpdate(double dz) {
     if (msState.gameOver) return;
 
     hovered = CheckCollisionPointRec(backend.mouse.position, rect);

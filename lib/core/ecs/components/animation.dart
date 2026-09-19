@@ -91,7 +91,7 @@ class CAnimation<T extends App<T>, X> extends Comp<T> {
   }
 
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     if (_tweens.isEmpty) return;
 
     for (final tw in _tweens) {

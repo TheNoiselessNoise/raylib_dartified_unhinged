@@ -18,7 +18,7 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   IsEventEmittable<T, Comp<T>>,
   IsEventHistoryHolder<T, Comp<T>>,
   IsRemovable<T, Comp<T>>,
-  IsUpdatable<T, Comp<T>>,
+  IsPrePostUpdatable<T, Comp<T>>, // pre components and post components
 
   // special
   IsComponentManagable<T, Comp<T>>,
@@ -78,12 +78,18 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   //   ░██  ░██       ░██ ░██         ░██         
   // ░██████░██       ░██ ░██         ░██████████ 
 
-  @override
+  /// Fires pre update listeners, advances all components by [dt], fires post update listeners.
+  /// Skipped entirely when the component or the parent entity is disabled.
   @nonVirtual
-  void _doUpdate(double dt) {
-    if (isDisabled) return;
-    _components.forEach((c) => c._doUpdate(dt));
-    super._doUpdate(dt);
+  void _doComponentUpdate(double dt) {
+    if (isDisabled || entity.isDisabled) return;
+    _doPreUpdate(dt);
+    for (final c in _components) {
+      if (isDisabled || entity.isDisabled) return;
+      c._doComponentUpdate(dt);
+    }
+    if (isDisabled || entity.isDisabled) return;
+    _doPostUpdate(dt);
   }
 
   @override

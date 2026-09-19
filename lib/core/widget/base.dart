@@ -261,13 +261,13 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
 
   @override
   @mustCallSuper
-  void _doUpdate(double dt) {
+  void _doEntityUpdate(double dt) {
     if (_dirty) {
       _dirty = false;
       rebuild();
     }
     _controllers.forEach((c) => c.update(dt));
-    super._doUpdate(dt);
+    super._doEntityUpdate(dt);
     
     get<CRectCollider<T>>()!.rect = widgetBounds.rectangle;
     get<CWidgetMouseInteractable<T>>()!.externalUpdate(dt);

@@ -51,7 +51,7 @@ class CLayerTestVisual extends Comp<G> {
   double _time = 0;
 
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     _time += dt;
   }
 

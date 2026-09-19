@@ -94,8 +94,8 @@ class FTreeNode<T extends App<T>> extends FWidget<T> {
 
   @override
   @mustCallSuper
-  void _doUpdate(double dt) {
-    header._doUpdate(dt);
+  void _doPostUpdate(double dt) {
+    header._doPostUpdate(dt);
 
     final headerInteract = header.get<CWidgetMouseInteractable<T>>()!;
 
@@ -110,7 +110,7 @@ class FTreeNode<T extends App<T>> extends FWidget<T> {
       }
     }
 
-    super._doUpdate(dt);
+    super._doPostUpdate(dt);
   }
 
   @override

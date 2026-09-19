@@ -89,7 +89,7 @@ class FCheckbox<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, F
 
   @override
   @mustCallSuper
-  void onUpdate(double dt) => on2<CTransform<T>, CRectCollider<T>>((t, c) {
+  void onPostUpdate(double dt) => on2<CTransform<T>, CRectCollider<T>>((t, c) {
     t.position = worldPosition;
     c.size = _interactiveSize.copy();
 
