@@ -50,7 +50,6 @@ class ECSFactoryRegistry<T extends App<T>> {
     
     // widget
     sceneSystem.register(FMouseSystem.typeId, FMouseSystem<T>.new);
-    sceneSystem.register(FWidgetSystem.typeId, FWidgetSystem<T>.new);
     sceneSystem.register(FWidgetDebugSystem.typeId, FWidgetDebugSystem<T>.new);
     sceneSystem.register(FValidateWidgetsSystem.typeId, FValidateWidgetsSystem<T>.new);
   }

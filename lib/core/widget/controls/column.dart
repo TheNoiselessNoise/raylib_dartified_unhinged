@@ -1,6 +1,6 @@
 part of '../../raylib_dartified_unhinged.dart';
 
-class FColumn<T extends App<T>> extends FWidget<T> {
+class FColumn<T extends App<T>> extends FWidgetLeaf<T> {
   double gap;
   FColumnAlignment alignment;
 
@@ -19,64 +19,51 @@ class FColumn<T extends App<T>> extends FWidget<T> {
       return;
     }
 
-    // pass 1 - measure non-expanded children, sum flex of expanded ones
+    // pass 1 - lay out non-expanded children, sum flex of expanded ones
     double usedHeight = 0;
+    double maxWidth = 0;
     int totalFlex = 0;
     for (final child in children) {
       if (child is FExpanded<T>) {
         totalFlex += child.flex;
-      } else {
-        usedHeight += child.size.y;
+        continue;
       }
+      child._doLayout(.new(
+        maxWidth: constraints.maxWidth,
+        maxHeight: double.infinity,
+      ));
+      usedHeight += child.size.y;
+      if (child.size.x > maxWidth) maxWidth = child.size.x;
     }
 
     final totalGap = gap * (children.length - 1);
-    final remaining = constraints.maxHeight - usedHeight - totalGap;
+    final remaining = constraints.maxHeight.isFinite
+      ? (constraints.maxHeight - usedHeight - totalGap).clamp(0.0, double.infinity)
+      : 0.0;
 
-    // pass 2 - assign expanded sizes, position cursor
-    double cursor = 0;
-    double maxWidth = 0;
+    // pass 2 - lay out expanded children with their share of the space
+    final crossSize = constraints.maxWidth.isFinite ? constraints.maxWidth : maxWidth;
     for (final child in children) {
-      if (child is FExpanded<T> && totalFlex > 0) {
-        final crossSize = constraints.maxWidth.isFinite ? constraints.maxWidth : child.size.x;
-        child.size = .vec2(crossSize, remaining * child.flex / totalFlex);
-      }
-      child.localOffset = .vec2(0, cursor);
-      cursor += child.size.y + gap;
+      if (child is! FExpanded<T>) continue;
+      child._doLayout(.tight(.vec2(crossSize, remaining * child.flex / totalFlex)));
       if (child.size.x > maxWidth) maxWidth = child.size.x;
+    }
+
+    // pass 3 - position (sizes are now real)
+    double cursor = 0;
+    for (final child in children) {
+      final x = switch (alignment) {
+        .start  => 0.0,
+        .center => (maxWidth - child.size.x) / 2,
+        .end    => maxWidth - child.size.x,
+      };
+      child.localOffset = .vec2(x, cursor);
+      cursor += child.size.y + gap;
     }
     cursor -= gap;
 
     size = .vec2(maxWidth, cursor);
-
-    // pass 3 - actually run each child's layout, now with a real constraint
-    for (final child in children) {
-      if (child is FExpanded<T> && totalFlex > 0) {
-        child._doLayout(.tight(child.size));
-      } else {
-        child._doLayout(.new(
-          maxWidth: constraints.maxWidth,
-          maxHeight: double.infinity,
-        ));
-      }
-    }
-
-    if (alignment != .start) {
-      for (final child in children) {
-        child.localOffset = .vec2(
-          switch (alignment) {
-            .center => (maxWidth - child.size.x) / 2,
-            .end    => maxWidth - child.size.x,
-            .start  => 0,
-          },
-          child.localOffset.y,
-        );
-      }
-    }
   }
-
-  @override
-  FWidget<T> build() => this;
   
   @override
   void cloneWidgetInto(FWidget<T> copy) {

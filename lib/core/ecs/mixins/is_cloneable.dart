@@ -64,10 +64,6 @@ mixin IsCloneable<
   }
 
   /// Produces a clone of this object.
-  /// 
-  /// Uses [cloner] to check what hooks/state to clone.
-  /// If no [cloner] is provided, cloning behaves like it has
-  /// [DefaultPolicy] policy.
   X clone<X extends E>([ClonePolicy<T>? policy]) {
     final newInstance = _doWhenCreateInstance(self) ?? createInstance();
 

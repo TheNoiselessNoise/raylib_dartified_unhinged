@@ -42,7 +42,7 @@ part of '../raylib_dartified_unhinged.dart';
 /// ## Drawing
 /// 
 /// For scenes that render directly to the screen, prefer [DrawScene], which
-/// handles [RaylibCoreD.BeginDrawing]/[RaylibCoreD.EndDrawing] automatically.
+/// handles [RaylibCore.BeginDrawing]/[RaylibCore.EndDrawing] automatically.
 /// Use [Scene] directly only when you need manual control over the drawing lifecycle.
 ///
 /// ## Events
@@ -53,8 +53,7 @@ part of '../raylib_dartified_unhinged.dart';
 /// ## Cloning
 ///
 /// [clone] produces a deep copy of the `scene`, `entities`, `systems`, `hooks`, and
-/// the `event queue`, subject to an optional [SceneCloner] that can selectively
-/// exclude or transform individual elements.
+/// the `event queue`.
 ///
 /// ## Key
 ///
@@ -553,8 +552,8 @@ class Scene<T extends App<T>> extends ECSBase<T> with
 
 /// A [Scene] that wraps each frame in a Raylib drawing context.
 ///
-/// Calls [RaylibCoreD.BeginDrawing] and [RaylibCoreD.ClearBackground] at the start of every frame,
-/// and [RaylibCoreD.EndDrawing] at the end. Override [backgroundColor] to control the
+/// Calls [RaylibCore.BeginDrawing] and [RaylibCore.ClearBackground] at the start of every frame,
+/// and [RaylibCore.EndDrawing] at the end. Override [backgroundColor] to control the
 /// clear color (defaults to [ColorD.BLACK]).
 ///
 /// This is the correct base class for any scene that renders directly to the
@@ -570,6 +569,7 @@ class DrawScene<T extends App<T>> extends Scene<T> {
   void _doBeginFrame(double dt) {
     backend.render.beginDrawing();
     backend.render.clearBackground(backgroundColor);
+    // backend.render.drawRectangleRec(.rect(0,0,50,50), .RED);
     super._doBeginFrame(dt);
   }
 

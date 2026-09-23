@@ -1,6 +1,6 @@
 part of '../../raylib_dartified_unhinged.dart';
 
-class FLabel<T extends App<T>> extends FWidget<T> {
+class FLabel<T extends App<T>> extends FWidgetLeaf<T> {
   String text;
   int fontSize;
   ColorD color;
@@ -63,9 +63,6 @@ class FLabel<T extends App<T>> extends FWidget<T> {
       fontSize, spacing, color,
     );
   }
-
-  @override
-  FWidget<T> build() => this;
 
   @override
   void cloneWidgetInto(FWidget<T> copy) {

@@ -150,11 +150,13 @@ class TestWidgetsScene extends FWidgetScene<G> {
     fontSize: 30,
   );
 
-  FWidget<G> buildExampleButton() => FSized.flexible(app,
-    child: FButton(app,
-      child: FPadding.all(app, 16,
-        child: FLabel(app, text: 'APPLY'),
-      ),
+  FWidget<G> buildExampleSelect() => FSelect(app,
+    options: ['One', 'Two', 'Three'],
+  );
+
+  FWidget<G> buildExampleButton() => FButton(app,
+    child: FPadding.all(app, 16,
+      child: FLabel(app, text: 'APPLY'),
     ),
   );
 
@@ -189,6 +191,10 @@ class TestWidgetsScene extends FWidgetScene<G> {
           ...sep('Text Input'),
 
           buildExampleTextInput(),
+
+          ...sep('Select'),
+
+          buildExampleSelect(),
 
           ...sep('Button'),
 

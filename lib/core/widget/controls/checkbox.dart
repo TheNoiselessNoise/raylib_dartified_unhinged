@@ -61,7 +61,7 @@ Map<FCheckboxVariant, _FCheckboxVariantPalette> get _fCheckboxVariantColors => {
   ),
 };
 
-class FCheckbox<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FCheckbox<T>> {
+class FCheckbox<T extends App<T>> extends FWidgetLeaf<T> with IsWidgetClickable<T, FCheckbox<T>> {
   bool checked;
   double boxSize;
   double borderWidth;
@@ -89,13 +89,12 @@ class FCheckbox<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, F
 
   @override
   @mustCallSuper
-  void onPostUpdate(double dt) => on2<CTransform<T>, CRectCollider<T>>((t, c) {
-    t.position = worldPosition;
-    c.size = _interactiveSize.copy();
+  void onPostUpdate(double dt) {
+    final rect = get<CRectCollider<T>>()!.rect;
 
     final hovered = backend.collision.pointRectangle(
       backend.mouse.position,
-      .rect(t.position.x, t.position.y, boxSize, boxSize),
+      .rect(rect.x, rect.y, boxSize, boxSize),
     );
 
     _IsWidgetClickable_updateState(
@@ -108,13 +107,13 @@ class FCheckbox<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, F
       checked = !checked;
       onChangeFn?.call(this, checked);
     }
-  });
+  }
 
   @override
-  void onDraw(double dt) => onTransform((t) {
+  void onDraw(double dt) {
+    final rect = get<CRectCollider<T>>()!.rect;
     final theme = FCheckboxTheme.resolveVariant(checkboxVariant);
     final isHovered = clickState.hovered;
-    final RectangleD rect = .rect(t.position.x, t.position.y, boxSize, boxSize);
 
     // background
     backend.render.drawRectangleRounded(rect, cornerRadius, 4, theme.background);
@@ -135,8 +134,8 @@ class FCheckbox<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, F
     // checkmark (two-segment polyline)
     if (checked) {
       final pad = boxSize * 0.2;
-      final x = t.position.x;
-      final y = t.position.y;
+      final x = rect.x;
+      final y = rect.y;
       // knee of the tick: ~38% across, ~65% down
       final kx = x + boxSize * 0.38;
       final ky = y + boxSize - pad;
@@ -153,10 +152,7 @@ class FCheckbox<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, F
         theme.check,
       );
     }
-  });
-
-  @override
-  FWidget<T> build() => this;
+  }
   
   @override
   void cloneWidgetInto(FWidget<T> copy) {

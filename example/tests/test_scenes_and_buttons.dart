@@ -15,7 +15,7 @@ class IntroScene extends FWidgetScene<G> {
             buttonStyle: .outlined,
             onClickFn: (_) => goToMainMenu(),
             child: FPadding.all(app, 16,
-              child: FLabel(app, text: 'My Game'),
+              child: FLabel(app, text: 'My Game', alignment: .center),
             ),
           ),
         ],

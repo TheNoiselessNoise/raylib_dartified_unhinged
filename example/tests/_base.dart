@@ -5,9 +5,6 @@ import '';
 
 abstract class ExampleRaylibApp<T extends ExampleRaylibApp<T>> extends App<T> {
   ExampleRaylibApp(super.backend);
-
-  @override
-  void onInit() => InitWindow(screenWidth, screenHeight, 'Example App');
 }
 
 class ExampleRaylibBridge<T extends ExampleRaylibApp<T>> extends UnhingedRaylibGame<ExampleRaylibApp<T>> {
@@ -20,7 +17,7 @@ class ExampleRaylibBridge<T extends ExampleRaylibApp<T>> extends UnhingedRaylibG
 void runExample<T extends ExampleRaylibApp<T>>(T Function(UnhingedBackend backend) constructor) {
   final example = ExampleRaylibBridge<T>();
   example.constructor = constructor;
-  runRaylib(example, nativeLibPath: 'raylib-5.5_linux_amd64/lib');
+  runRaylib(example, nativeLibPath: 'raylib-6.0_linux_amd64/lib', silent: true);
 }
 
 class Message {

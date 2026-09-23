@@ -58,15 +58,9 @@ class FConstraints {
     size.y.clamp(minHeight, maxHeight),
   );
 
-  num resolveWidth(num intrinsic) {
-    if (maxWidth.isInfinite) return intrinsic;
-    return intrinsic.clamp(minWidth, maxWidth);
-  }
+  num resolveWidth(num v) => v.clamp(minWidth, maxWidth);
 
-  num resolveHeight(num intrinsic) {
-    if (maxHeight.isInfinite) return intrinsic;
-    return intrinsic.clamp(minHeight, maxHeight);
-  }
+  num resolveHeight(num v) => v.clamp(minHeight, maxHeight);
 
   Vector2D resolve(Vector2D size) => .vec2(
     resolveWidth(size.x),
@@ -128,11 +122,21 @@ class CWidgetMouseInteractable<T extends App<T>> extends FWidgetComp<T> {
     copy.clicked = clicked;
     return copy;
   }
-} 
+}
+
+abstract class FWidgetLeaf<T extends App<T>> extends FWidget<T> {
+  FWidgetLeaf(super.app, {
+    super.key,
+    super.children,
+    super.child,
+  });
+
+  @override
+  @nonVirtual
+  FWidget<T> build() => this;
+}
 
 abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
-  bool _built = false;
-
   late String key;
 
   FWidget(super.app, {
@@ -140,12 +144,11 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
     List<FWidget<T>>? children,
     FWidget<T>? child,
   }) {
-    key = key ?? '${runtimeType}_$id';
-    size = sceneBounds.size;
+    this.key = key ?? '${runtimeType}_$id';
 
     addComp(CTransform<T>(app, position: .zero()));
     addComp(CVelocity<T>(app, velocity: .zero()));
-    addComp(CRectCollider<T>(app, size: size));
+    addComp(CRectCollider<T>(app, size: size, autoSync: false));
     addComp(CWidgetMouseInteractable<T>(app));
 
     children?.forEach(addChild);
@@ -168,19 +171,49 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
     return controller;
   }
 
-  bool _builtSelf = false; // if `build() => this`
-  bool _dirty = false;
-  void markWidgetDirty() => _dirty = true;
+  // ░██████░███     ░███ ░█████████  ░██         
+  //   ░██  ░████   ░████ ░██     ░██ ░██         
+  //   ░██  ░██░██ ░██░██ ░██     ░██ ░██         
+  //   ░██  ░██ ░████ ░██ ░█████████  ░██         
+  //   ░██  ░██  ░██  ░██ ░██         ░██         
+  //   ░██  ░██       ░██ ░██         ░██         
+  // ░██████░██       ░██ ░██         ░██████████ 
+
+  bool _built = false;
+  bool _builtSelf = false; // build() => this
+  bool _dirty = false;     // this widget wants build() re-run
+  bool _needsPass = true;  // only meaningful on the root: rebuild + layout pending
 
   FWidget<T>? parentWidget;
-
   Vector2D localOffset = .zero();
-  Vector2D size = .zero();
+  Vector2D _size = .zero(); // OUTPUT of layout(), never an input
+  Vector2D get size => _size;
+  set size(Vector2D value) {
+    _size = value;
+    markNeedsLayout();
+  }
 
   Set<FWidget<T>> get children => getEntities();
   FWidget<T>? get child => children.firstOrNull;
-
   FMouseSystem<T>? get mouseSystem => scene.getSystem();
+
+  /// Constraints given to a widget with no parent widget.
+  /// Loose: roots shrink-wrap. Use `.tight(sceneBounds.size)` for Flutter-style.
+  FConstraints get rootConstraints => .loose(sceneBounds.size);
+
+  /// Anything that changes a widget's size must call this
+  /// (text, font, children, padding, ...).
+  void markNeedsLayout() => getRootWidget()._needsPass = true;
+
+  void markWidgetDirty() {
+    _dirty = true;
+    markNeedsLayout();
+  }
+
+  void setState(void Function() fn) {
+    markWidgetDirty();
+    fn();
+  }
 
   @override
   Vector2D get worldPosition {
@@ -188,16 +221,15 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
     return p == null ? sceneBounds.position.add(localOffset) : p.worldPosition.add(localOffset);
   }
 
-  bool get _ownsChildrenDrawOrder => false;
-
   Bounds get widgetBounds {
     final p = worldPosition;
     return .bounds(p.y, p.x, p.y + size.y, p.x + size.x);
   }
 
+  bool get _ownsChildrenDrawOrder => false;
+
   void _setDrawManagedByParent() {
     disableSceneLevelDraw();
-    
     for (final child in children) {
       child._setDrawManagedByParent();
     }
@@ -206,29 +238,38 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
   FWidget<T> build();
 
   @override
-  void onAdd(ECSBase<T> parent) {
+  void onAdd(ECSBase<T> parent) { // when added to scene/entity group
     if (_built) return;
     _built = true;
     final built = build();
     _builtSelf = built == this;
     if (!_builtSelf) addChild(built);
-    _layoutSelf();
+    markNeedsLayout(); // no layout here
   }
 
   void rebuild() {
     if (!_built) return;
     final built = build();
     if (built != this) {
-      final old = child; // whatever was added last time, if anything
-      if (old != null && old != built) {
-        _detachChild(old); // remove from _entities, do NOT removeEntity
-      }
-      if (old != built) {
-        addChild(built);
-      }
-      // if old == built, the user returned the same instance again, leave it alone entirely
+      final old = child;
+      if (old != null && old != built) _detachChild(old);
+      if (old != built) addChild(built);
     }
-    _layoutSelf();
+    markNeedsLayout();
+  }
+
+  void addChild(FWidget<T> child) {
+    child._isAdded = false; // NOTE: this enables call to `addEntity` again
+    child.parentWidget = this;
+    addEntity(child);
+    if (_ownsChildrenDrawOrder) child._setDrawManagedByParent();
+    markNeedsLayout();
+  }
+
+  void _detachChild(FWidget<T> child) {
+    markNeedsLayout(); // before parentWidget is cleared, so it reaches the root
+    _entities.remove(child);
+    child.parentWidget = null;
   }
 
   void clearChildren() {
@@ -237,53 +278,88 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
       removeEntity(child);
     }
     _entities.clear();
+    markNeedsLayout();
   }
 
-  void setState(void Function() fn) {
-    markWidgetDirty();
-    fn();
+  // ░█████████    ░██████     ░██████   ░██████████
+  // ░██     ░██  ░██   ░██   ░██   ░██      ░██    
+  // ░██     ░██ ░██     ░██ ░██     ░██     ░██    
+  // ░█████████  ░██     ░██ ░██     ░██     ░██    
+  // ░██   ░██   ░██     ░██ ░██     ░██     ░██    
+  // ░██    ░██   ░██   ░██   ░██   ░██      ░██    
+  // ░██     ░██   ░██████     ░██████       ░██    
+
+  void _flushPass() {
+    print('flushing $runtimeType...');
+    _rebuildDirty();
+    _doLayout(rootConstraints);
+    _syncTree();
+    _needsPass = false; // after rebuild, which re-marks
   }
 
-  void addChild(FWidget<T> child) {
-    child._isAdded = false; // NOTE: enforce this so it can be `addEntity` again
-    child.parentWidget = this;
-    addEntity(child);
-    if (_ownsChildrenDrawOrder) {
-      child._setDrawManagedByParent();
-    }
-  }
-
-  void _detachChild(FWidget<T> child) {
-    _entities.remove(child);
-    child.parentWidget = null;
-    // deliberately no removeEntity, no clearChildren, we don't know if it's still alive elsewhere
-  }
-
-  @override
-  @mustCallSuper
-  void _doEntityUpdate(double dt) {
+  void _rebuildDirty() {
     if (_dirty) {
       _dirty = false;
       rebuild();
     }
+    children.forEach((c) => c._rebuildDirty());
+  }
+
+  void _sync() {
+    final c = get<CRectCollider<T>>();
+    transform?.position = worldPosition;
+    c?.rect = widgetBounds.rectangle;
+    c?.size = size.copy();
+  }
+
+  void _syncTree() {
+    _sync();
+    children.forEach((c) => c._syncTree());
+  }
+
+  // ░██████████░█████████     ░███    ░███     ░███ ░██████████ 
+  // ░██        ░██     ░██   ░██░██   ░████   ░████ ░██         
+  // ░██        ░██     ░██  ░██  ░██  ░██░██ ░██░██ ░██         
+  // ░█████████ ░█████████  ░█████████ ░██ ░████ ░██ ░█████████  
+  // ░██        ░██   ░██   ░██    ░██ ░██  ░██  ░██ ░██         
+  // ░██        ░██    ░██  ░██    ░██ ░██       ░██ ░██         
+  // ░██        ░██     ░██ ░██    ░██ ░██       ░██ ░██████████ 
+
+  @override
+  @mustCallSuper
+  void _doPreUpdate(double dt) {
+    if (parentWidget == null && _needsPass) _flushPass();
     _controllers.forEach((c) => c.update(dt));
-    super._doEntityUpdate(dt);
-    
-    get<CRectCollider<T>>()!.rect = widgetBounds.rectangle;
+    super._doPreUpdate(dt);
+  }
+
+  @override
+  @mustCallSuper
+  void _doPostUpdate(double dt) {
+    if (parentWidget == null) _sync();
+    super._doPostUpdate(dt);
     get<CWidgetMouseInteractable<T>>()!.externalUpdate(dt);
   }
 
   @override
   @mustCallSuper
   void _doDraw(double dt) {
+    if (parentWidget == null && _needsPass) _flushPass(); // draw before first update
     super._doDraw(dt);
-
     for (final child in children) {
       if (!child._sceneLevelDrawEnabled && child._drawEnabled) {
         child._doDraw(dt);
       }
     }
   }
+
+  // ░██       ░██ ░██████░███████     ░██████  ░██████████ ░██████████
+  // ░██       ░██   ░██  ░██   ░██   ░██   ░██ ░██             ░██    
+  // ░██  ░██  ░██   ░██  ░██    ░██ ░██        ░██             ░██    
+  // ░██ ░████ ░██   ░██  ░██    ░██ ░██  █████ ░█████████      ░██    
+  // ░██░██ ░██░██   ░██  ░██    ░██ ░██     ██ ░██             ░██    
+  // ░████   ░████   ░██  ░██   ░██   ░██  ░███ ░██             ░██    
+  // ░███     ░███ ░██████░███████     ░█████░█ ░██████████     ░██    
 
   Iterable<FWidget<T>> getAllControls() {
     final result = <FWidget<T>>[];
@@ -292,6 +368,14 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
       result.addAll(control.getAllControls());
     }
     return result;
+  }
+
+  FWidget<T> getRootWidget() {
+    var r = this;
+    while (r.parentWidget != null) {
+      r = r.parentWidget!;
+    }
+    return r;
   }
 
   Iterable<(FWidget<T>, int)> getParentTree() {
@@ -377,6 +461,14 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
     return other.isControlAncestorOf(this);
   }
 
+  //   ░██████  ░██           ░██████   ░███    ░██ ░██████████ 
+  //  ░██   ░██ ░██          ░██   ░██  ░████   ░██ ░██         
+  // ░██        ░██         ░██     ░██ ░██░██  ░██ ░██         
+  // ░██        ░██         ░██     ░██ ░██ ░██ ░██ ░█████████  
+  // ░██        ░██         ░██     ░██ ░██  ░██░██ ░██         
+  //  ░██   ░██ ░██          ░██   ░██  ░██   ░████ ░██         
+  //   ░██████  ░██████████   ░██████   ░██    ░███ ░██████████ 
+
   void cloneWidgetInto(FWidget<T> copy) {}
 
   @override
@@ -395,25 +487,24 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
   // ░██         ░██    ░██     ░██      ░██   ░██   ░██   ░██      ░██    
   // ░██████████ ░██    ░██     ░██       ░██████     ░██████       ░██    
 
-  void _layoutSelf() => _doLayout(.tight(size));
-
   @mustCallSuper
   void _doLayout(FConstraints constraints) {
     layout(constraints);
-    if (size.x.isNaN || size.y.isNaN || size.x.isInfinite || size.y.isInfinite) {
-      throw StateError('$runtimeType produced a non-finite size: $size');
-    }
-    // print('$this has position: $worldPosition');
-    // print('$this has size: $size');
+    assert(
+      size.x.isFinite && size.y.isFinite,
+      '$runtimeType produced a non-finite size: $size',
+    );
   }
 
+  /// Default: stack children (same constraints, offsets untouched),
+  /// size = largest child. For `build() != this` widgets that is just the child's size.
   void layout(FConstraints constraints) {
-    for (final child in children.toList()) {
-      child._doLayout(constraints);
+    double w = 0, h = 0;
+    for (final c in children.toList()) {
+      c._doLayout(constraints);
+      w = math.max(w, c.size.x);
+      h = math.max(h, c.size.y);
     }
-    if (!_builtSelf) {
-      final child = this.child;
-      if (child != null) size = child.size.copy();
-    }
+    size = constraints.resolve(.vec2(w, h));
   }
 }

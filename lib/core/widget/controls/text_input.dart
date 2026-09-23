@@ -142,7 +142,7 @@ class FTextInputTheme<T extends App<T>> {
   }
 }
 
-class FTextInput<T extends App<T>> extends FWidget<T> with
+class FTextInput<T extends App<T>> extends FWidgetLeaf<T> with
   IsWidgetDisableable<T, FTextInput<T>>
 {
   // value
@@ -317,17 +317,14 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
 
   @override
   @mustCallSuper
-  void onPostUpdate(double dt) => on2<CTransform<T>, CRectCollider<T>>((t, c) {
-    t.position = worldPosition;
-    c.size = size.copy();
-
-    final RectangleD rect = .rect(t.position.x, t.position.y, size.x, size.y);
+  void onPostUpdate(double dt) {
+    final rect = get<CRectCollider<T>>()!.rect;
     _hovered = backend.collision.pointRectangle(backend.mouse.position, rect);
 
     // focus on click
     if (_hovered && backend.mouse.btnLeft.pressed) {
       isFocused = true;
-      final localX = backend.mouse.position.x - t.position.x;
+      final localX = backend.mouse.position.x - rect.x;
       _cursorIndex = _charIndexAtX(localX);
       _selectionAnchor = null;
       _cursorBlinkTimer = 0;
@@ -483,14 +480,14 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
     }
 
     _clampScrollToCursor();
-  });
+  }
 
   // ── draw ──────────────────────────────────────────────────────────────────
 
   @override
-  void onDraw(double dt) => onTransform((t) {
+  void onDraw(double dt) {
+    final rect = get<CRectCollider<T>>()!.rect;
     final colors = FTextInputTheme.resolveStyle<T>(inputStyle).resolveState(this);
-    final RectangleD rect = .rect(t.position.x, t.position.y, size.x, size.y);
     final disp = _displayText;
     const roundness = 0.2;
 
@@ -499,26 +496,26 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
 
     // ── scissor to inner area so text doesn't bleed out ──────────────────
     backend.render.beginScissorMode(
-      t.position.x, t.position.y,
+      rect.x, rect.y,
       size.x, size.y,
     );
 
-    final textY = t.position.y + (size.y - fontSize) / 2;
-    final baseX = t.position.x + _paddingX - _scrollOffsetX;
+    final textY = rect.y + (size.y - fontSize) / 2;
+    final baseX = rect.x + _paddingX - _scrollOffsetX;
 
     if (disp.isEmpty && placeholder.isNotEmpty) {
       // placeholder
       backend.render.drawTextEx(
         app.defaultFont, placeholder,
-        .vec2(t.position.x + _paddingX, textY),
+        .vec2(rect.x + _paddingX, textY),
         fontSize, fontSpacing, colors.placeholder,
       );
     } else {
       // selection highlight
       if (_hasSelection) {
         final (lo, hi) = _selectionRange;
-        final selStartX = t.position.x + _rawXOfCharIndex(lo) - _scrollOffsetX;
-        final selEndX = t.position.x + _rawXOfCharIndex(hi) - _scrollOffsetX;
+        final selStartX = rect.x + _rawXOfCharIndex(lo) - _scrollOffsetX;
+        final selEndX = rect.x + _rawXOfCharIndex(hi) - _scrollOffsetX;
         backend.render.drawRectangleRec(
           .rect(selStartX, textY, selEndX - selStartX, fontSize),
           colors.selection,
@@ -535,7 +532,7 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
 
     // cursor
     if (isFocused && _cursorVisible) {
-      final cursorX = t.position.x + _rawXOfCharIndex(_cursorIndex) - _scrollOffsetX;
+      final cursorX = rect.x + _rawXOfCharIndex(_cursorIndex) - _scrollOffsetX;
       backend.render.drawRectangleRec(
         .rect(cursorX, textY, 2, fontSize),
         colors.cursor,
@@ -546,12 +543,9 @@ class FTextInput<T extends App<T>> extends FWidget<T> with
 
     // border (drawn after scissor so it's always fully visible)
     backend.render.drawRectangleRoundedLinesEx(rect, roundness, 8, 2, borderOverride ?? colors.border);
-  });
+  }
 
   // ── clone ─────────────────────────────────────────────────────────────────
-
-  @override
-  FWidget<T> build() => this;
   
   @override
   void cloneWidgetInto(FWidget<T> copy) {

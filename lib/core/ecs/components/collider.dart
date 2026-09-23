@@ -219,15 +219,18 @@ class CCircleColliderSnapshot<T extends App<T>> extends CColliderSnapshot<T, CCi
 }
 
 class CRectCollider<T extends App<T>> extends CCollider<T> {
+  static const bool _defaultAutoSync = true;
   static const bool _defaultEnableRotation = false;
 
   Vector2D? size;
 
   RectangleD rect = .zero();
+  bool autoSync;
   bool enableRotation;
 
   CRectCollider(super.app, {
     super.populateDefaults,
+    this.autoSync = _defaultAutoSync,
     this.size,
     this.enableRotation = _defaultEnableRotation,
     super.tag,
@@ -249,6 +252,7 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
 
   @override
   void onPostUpdate(double dt) => entity.onTransform((t) {
+    if (!autoSync) return;
     final s = _getLocalSize();
     final w = s.x * t.scale.x;
     final h = s.y * t.scale.y;
@@ -293,6 +297,7 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
     final c = CRectCollider<T>(app,
       size: size?.copy(),
       tag: tag,
+      autoSync: autoSync,
       enableCollision: enableCollision,
       debugDraw: debugDraw,
       debugLinesThick: debugLinesThick,
@@ -310,6 +315,7 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
     snapshot._setColliderStateFrom(this);
     snapshot.size = size?.copy();
     snapshot.rect = rect.copy();
+    snapshot.autoSync = autoSync;
     snapshot.enableRotation = enableRotation;
     return snapshot;
   }
@@ -322,6 +328,7 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
     snapshot._setColliderStateTo(this);
     size = snapshot.size?.copy();
     rect = snapshot.rect.copy();
+    autoSync = snapshot.autoSync;
     enableRotation = snapshot.enableRotation;
   }
 
@@ -337,6 +344,8 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
     ...super.getPersistableData(force: force),
     'size': size?.getPersistableData(),
     'rect': rect.getPersistableData(),
+    'autoSync': autoSync,
+    'enableRotation': enableRotation,
   };
 
   @override
@@ -350,6 +359,7 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
     final rectData = data.getList<double>('rect');
     rect.setPersistableData(rectData);
 
+    autoSync = data.getBool('autoSync', _defaultAutoSync);
     enableRotation = data.getBool('enableRotation', _defaultEnableRotation);
   }
 }
@@ -357,6 +367,7 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
 class CRectColliderSnapshot<T extends App<T>> extends CColliderSnapshot<T, CRectCollider<T>> {
   late Vector2D? size;
   late RectangleD rect;
+  late bool autoSync;
   late bool enableRotation;
   
   CRectColliderSnapshot(super.id);
@@ -366,6 +377,7 @@ class CRectColliderSnapshot<T extends App<T>> extends CColliderSnapshot<T, CRect
     final c = CRectCollider<T>(app,
       size: size?.copy(),
       tag: tag,
+      autoSync: autoSync,
       enableCollision: enableCollision,
       debugDraw: debugDraw,
       debugLinesThick: debugLinesThick,

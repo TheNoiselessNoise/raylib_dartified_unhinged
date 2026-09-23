@@ -1,6 +1,6 @@
 part of '../../raylib_dartified_unhinged.dart';
 
-class FSeparator<T extends App<T>> extends FWidget<T> {
+class FSeparator<T extends App<T>> extends FWidgetLeaf<T> {
   double thickness;
   ColorD color;
   FLabel<T>? label;
@@ -14,7 +14,10 @@ class FSeparator<T extends App<T>> extends FWidget<T> {
     this.label,
     this.labelPosition = .center,
     this.labelGap = 8,
-  }) : color = color ?? .WHITE;
+  }) : color = color ?? .WHITE, super(child: label);
+
+  @override
+  bool get _ownsChildrenDrawOrder => true;
 
   @override
   void layout(FConstraints constraints) {
@@ -26,7 +29,7 @@ class FSeparator<T extends App<T>> extends FWidget<T> {
     if (lbl != null) {
       lbl.angle = 0;
       // let FLabel measure itself the normal way (populates its _textSize).
-      lbl.layout(constraints);
+      lbl._doLayout(constraints);
     }
   }
 
@@ -69,9 +72,6 @@ class FSeparator<T extends App<T>> extends FWidget<T> {
   void _drawLine(double x, double y, double w, double h) {
     backend.render.drawRectangleRec(.rect(x, y, w, h), color);
   }
-
-  @override
-  FWidget<T> build() => this;
 
   @override
   void cloneWidgetInto(FWidget<T> copy) {

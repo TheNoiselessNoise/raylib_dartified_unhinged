@@ -1,6 +1,6 @@
 part of '../../raylib_dartified_unhinged.dart';
 
-class FPadding<T extends App<T>> extends FWidget<T> {
+class FPadding<T extends App<T>> extends FWidgetLeaf<T> {
   double left, top, right, bottom;
 
   FPadding(super.app, {
@@ -70,9 +70,6 @@ class FPadding<T extends App<T>> extends FWidget<T> {
       child.size.y + top + bottom,
     );
   }
-
-  @override
-  FWidget<T> build() => this;
   
   @override
   void cloneWidgetInto(FWidget<T> copy) {

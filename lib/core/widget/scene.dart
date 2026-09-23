@@ -4,11 +4,9 @@ class FWidgetScene<T extends App<T>> extends DrawScene<T> {
   FWidgetScene(super.app, {super.key}) {
     addSystem(FValidateWidgetsSystem(app));
     addSystem(FMouseSystem(app));
-    addSystem(FWidgetSystem(app));
     addSystem(FWidgetDebugSystem(app));
   }
 
-  FWidgetSystem<T> get controlSystem => getSystem()!;
   FMouseSystem<T> get mouseSystem => getSystem()!;
   FValidateWidgetsSystem<T> get validateSystem => getSystem()!;
   FWidgetDebugSystem<T> get debugSystem => getSystem()!;
@@ -31,10 +29,6 @@ class FWidgetScene<T extends App<T>> extends DrawScene<T> {
   @mustCallSuper
   bool addEntity(Entity<T> entity) {
     if (!super.addEntity(entity)) return false;
-
-    if (entity is FWidget<T> && entity.parentWidget == null) {
-      entity._layoutSelf();
-    }
 
     // we need to wait on whole tree to be populated
     callback(() => validateSystem.validate(entity));

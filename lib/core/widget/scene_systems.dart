@@ -24,23 +24,6 @@ class FMouseSystem<T extends App<T>> extends SceneSystem<T> {
   @override String get persistentTypeId => typeId;
 }
 
-class FWidgetSystem<T extends App<T>> extends SceneSystem<T> {
-  FWidgetSystem(super.app, {
-    super.populateDefaults,
-  });
-
-  void rebuildWidgets() => scene.QueryEntity.DoForEach<FWidget<T>>((e) {
-    // only root widgets
-    if (e.parentWidget == null) e.rebuild();
-  });
-
-  // persistence
-
-  static const typeId = '__sceneSystem__FWidgetSystem';
-  
-  @override String get persistentTypeId => typeId;
-}
-
 class FWidgetDebugSystem<T extends App<T>> extends SceneSystem<T> {
   FWidgetDebugSystem(super.app, {
     super.populateDefaults,

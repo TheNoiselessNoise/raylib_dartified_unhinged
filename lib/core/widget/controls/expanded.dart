@@ -1,6 +1,6 @@
 part of '../../raylib_dartified_unhinged.dart';
 
-class FExpanded<T extends App<T>> extends FWidget<T> {
+class FExpanded<T extends App<T>> extends FWidgetLeaf<T> {
   int flex;
 
   FExpanded(super.app, {
@@ -17,9 +17,6 @@ class FExpanded<T extends App<T>> extends FWidget<T> {
 
     size = .vec2(constraints.maxWidth, constraints.maxHeight);
   }
-
-  @override
-  FWidget<T> build() => this;
   
   @override
   void cloneWidgetInto(FWidget<T> copy) {

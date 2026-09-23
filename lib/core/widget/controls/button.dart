@@ -166,7 +166,7 @@ Map<FButtonVariant, _FButtonVariantPalette> get _fButtonVariantColors => {
   ),
 };
 
-class FButton<T extends App<T>> extends FWidget<T> with
+class FButton<T extends App<T>> extends FWidgetLeaf<T> with
   
   IsWidgetClickable<T, FButton<T>>,
   IsWidgetDisableable<T, FButton<T>>
@@ -230,14 +230,13 @@ class FButton<T extends App<T>> extends FWidget<T> with
 
   @override
   @mustCallSuper
-  void onPostUpdate(double dt) => on2<CTransform<T>, CRectCollider<T>>((t, c) {
-    t.position = worldPosition;
-    c.size = size.copy();
-
+  void onPostUpdate(double dt) {
+    final rect = get<CRectCollider<T>>()!.rect;
+   
     _IsWidgetClickable_updateState(
       hovered: backend.collision.pointRectangle(
         backend.mouse.position,
-        .rect(t.position.x, t.position.y, size.x, size.y),
+        .rect(rect.x, rect.y, size.x, size.y),
       ),
       usePendingSingleClickMethod: usePendingSingleClickMethod,
       dt: dt,
@@ -245,11 +244,11 @@ class FButton<T extends App<T>> extends FWidget<T> with
 
     // update color of children label control
     findChildControl<FLabel<T>>()?.color = resolveStyle().fg;
-  });
+  }
 
   @override
-  void onDraw(double dt) => onTransform((t) {
-    final RectangleD rect = .rect(t.position.x, t.position.y, size.x, size.y);
+  void onDraw(double dt) {
+    final rect = get<CRectCollider<T>>()!.rect;
 
     final roundness = switch (buttonStyle) {
       .pill => 0.75, 
@@ -265,10 +264,7 @@ class FButton<T extends App<T>> extends FWidget<T> with
     backend.render.drawRectangleRoundedLinesEx(rect, roundness, 8, 2, colors.border);
 
     child?._doDraw(dt);
-  });
-
-  @override
-  FWidget<T> build() => this;
+  }
   
   @override
   void cloneWidgetInto(FWidget<T> copy) {

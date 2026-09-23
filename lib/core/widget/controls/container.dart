@@ -1,6 +1,6 @@
 part of '../../raylib_dartified_unhinged.dart';
 
-class FContainer<T extends App<T>> extends FWidget<T> {
+class FContainer<T extends App<T>> extends FWidgetLeaf<T> {
   ColorD? backgroundColor;
 
   FContainer(super.app, {
@@ -16,17 +16,17 @@ class FContainer<T extends App<T>> extends FWidget<T> {
   void layout(FConstraints constraints) {
     final child = this.child!;
     child._doLayout(.loose(.vec2(constraints.maxWidth, constraints.maxHeight)));
-    size = child.size.copy();
+    size = .vec2(
+      constraints.minWidth > child.size.x ? constraints.minWidth : child.size.x,
+      constraints.minHeight > child.size.y ? constraints.minHeight : child.size.y,
+    );
   }
-
-  @override
-  FWidget<T> build() => this;
 
   @override
   void onDraw(double dt) {
     if (backgroundColor != null) {
-      final position = worldPosition;
-      backend.render.drawRectangle(position.x, position.y, size.x, size.y, backgroundColor!);
+      final rect = get<CRectCollider<T>>()!.rect;
+      backend.render.drawRectangleRec(rect, backgroundColor!);
     }
 
     child!._doDraw(dt);

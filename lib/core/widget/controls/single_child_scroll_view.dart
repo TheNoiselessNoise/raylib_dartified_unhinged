@@ -1,6 +1,6 @@
 part of '../../raylib_dartified_unhinged.dart';
 
-class FSingleChildScrollView<T extends App<T>> extends FWidget<T> {
+class FSingleChildScrollView<T extends App<T>> extends FWidgetLeaf<T> {
   bool scrollVertical;
   bool scrollHorizontal;
 
@@ -20,7 +20,7 @@ class FSingleChildScrollView<T extends App<T>> extends FWidget<T> {
     this.scrollVertical = true,
     this.scrollHorizontal = false,
     this.autoScrollX = false,
-    this.autoScrollY = true,
+    this.autoScrollY = false,
     this.defaultScrollSupport = true,
     this.defaultScrollSupportSpeed = 10,
     required FWidget<T> child,
@@ -97,9 +97,6 @@ class FSingleChildScrollView<T extends App<T>> extends FWidget<T> {
     child!._doDraw(dt);
     backend.render.endScissorMode();
   }
-
-  @override
-  FWidget<T> build() => this;
   
   @override
   void cloneWidgetInto(FWidget<T> copy) {

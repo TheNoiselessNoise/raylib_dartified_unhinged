@@ -922,5 +922,5 @@ class ArkanoidStructureFirst extends UnhingedRaylibGame<G> {
 
 void main() => runRaylib(
   ArkanoidStructureFirst(),
-  nativeLibPath: 'raylib-5.5_linux_amd64/lib'
+  nativeLibPath: 'raylib-6.0_linux_amd64/lib'
 );

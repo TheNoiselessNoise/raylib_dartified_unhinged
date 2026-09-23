@@ -1,3 +1,9 @@
+## 6.0.1
+
+- Fix double free
+- `preUpdate` and `postUpdate` for `Entity` and `Comp`
+- Slightly rewrite Widget system (`CRectCollider` as the true position/size)
+
 ## 6.0.0
 
 - CRenderLayer

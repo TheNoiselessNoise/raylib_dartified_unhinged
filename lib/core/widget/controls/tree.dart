@@ -1,6 +1,6 @@
 part of '../../raylib_dartified_unhinged.dart';
 
-class FTree<T extends App<T>> extends FWidget<T> {
+class FTree<T extends App<T>> extends FWidgetLeaf<T> {
   double indent;
   final List<FTreeNode<T>> nodes;
 
@@ -49,12 +49,9 @@ class FTree<T extends App<T>> extends FWidget<T> {
       c._doDraw(dt);
     }
   }
-
-  @override
-  FWidget<T> build() => this;
 }
 
-class FTreeNode<T extends App<T>> extends FWidget<T> {
+class FTreeNode<T extends App<T>> extends FWidgetLeaf<T> {
   bool expanded;
   bool selected;
   final FWidget<T> header;
@@ -112,9 +109,6 @@ class FTreeNode<T extends App<T>> extends FWidget<T> {
 
     super._doPostUpdate(dt);
   }
-
-  @override
-  FWidget<T> build() => this;
 
   @override
   void cloneWidgetInto(FWidget<T> copy) {

@@ -74,7 +74,7 @@ Map<FSliderVariant, _FSliderVariantPalette> get _fSliderVariantColors => {
   ),
 };
 
-class FSlider<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSlider<T>> {
+class FSlider<T extends App<T>> extends FWidgetLeaf<T> with IsWidgetClickable<T, FSlider<T>> {
   double min;
   double max;
   double value;
@@ -138,16 +138,14 @@ class FSlider<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSl
 
   @override
   @mustCallSuper
-  void onPostUpdate(double dt) => on2<CTransform<T>, CRectCollider<T>>((t, c) {
-    t.position = worldPosition;
-    c.size = _interactiveSize.copy();
-
+  void onPostUpdate(double dt) {
+    final rect = get<CRectCollider<T>>()!.rect;
     final mouse = backend.mouse;
-    final originX = t.position.x;
+    final originX = rect.x;
 
     final hovered = backend.collision.pointRectangle(
       mouse.position,
-      .rect(t.position.x, t.position.y, _interactiveSize.x, _interactiveSize.y),
+      .rect(rect.x, rect.y, _interactiveSize.x, _interactiveSize.y),
     );
 
     _IsWidgetClickable_updateState(
@@ -191,15 +189,16 @@ class FSlider<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSl
       _keyHeldTime = 0.0;
       _keyFired = false;
     }
-  });
+  }
 
   @override
-  void onDraw(double dt) => onTransform((t) {
+  void onDraw(double dt) {
+    final rect = get<CRectCollider<T>>()!.rect;
     final theme = FSliderTheme.resolveStyle(sliderStyle, sliderVariant);
     final isHovered = clickState.hovered;
 
-    final originX = t.position.x;
-    final centerY = _centerY(t.position.y);
+    final originX = rect.x;
+    final centerY = _centerY(rect.y);
     final thumbX = _thumbX(originX);
     final trackY = centerY - trackHeight / 2;
 
@@ -239,10 +238,7 @@ class FSlider<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSl
           _isDragging ? theme.thumbDragged : isHovered ? theme.thumbHovered : theme.thumb,
         );
     }
-  });
-  
-  @override
-  FWidget<T> build() => this;
+  }
   
   @override
   void cloneWidgetInto(FWidget<T> copy) {

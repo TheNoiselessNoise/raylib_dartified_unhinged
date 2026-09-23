@@ -84,7 +84,7 @@ Map<FSelectVariant, _FSelectVariantPalette> get _fSelectVariantColors => {
   ),
 };
 
-class FSelect<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSelect<T>> {
+class FSelect<T extends App<T>> extends FWidgetLeaf<T> with IsWidgetClickable<T, FSelect<T>> {
   List<String> options;
   int selectedIndex;
   double controlWidth;
@@ -139,13 +139,11 @@ class FSelect<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSe
 
   @override
   @mustCallSuper
-  void onPostUpdate(double dt) => on2<CTransform<T>, CRectCollider<T>>((t, c) {
-    t.position = worldPosition;
-    // collider covers only the trigger; dropdown is handled manually
-    c.size = _interactiveSize.copy();
+  void onPostUpdate(double dt) {
+    final rect = get<CRectCollider<T>>()!.rect;
 
     final mouse = backend.mouse;
-    final origin = t.position;
+    final Vector2D origin = .vec2(rect.x, rect.y);
 
     final RectangleD triggerRect = .rect(origin.x, origin.y, controlWidth, controlHeight);
 
@@ -220,19 +218,21 @@ class FSelect<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSe
         _hoveredItemIndex = -1;
       }
     }
-  });
+  }
 
   @override
-  void onDraw(double dt) => onTransform((t) {
+  void onDraw(double dt) {
+    final rect = get<CRectCollider<T>>()!.rect;
+
     final theme = FSelectTheme.resolveVariant(selectVariant);
     final isHovered = clickState.hovered;
-    final origin = t.position;
+    final Vector2D origin = .vec2(rect.x, rect.y);
 
     _drawTrigger(theme, isHovered, origin);
 
     // NOTE: `callback` is a hack to defer the draw at the end of frame
     if (_isOpen) callback(() => _drawDropdown(theme, origin));
-  });
+  }
 
   void _drawTrigger(FSelectTheme theme, bool isHovered, Vector2D origin) {
     final RectangleD rect = .rect(origin.x, origin.y, controlWidth, controlHeight);
@@ -321,9 +321,6 @@ class FSelect<T extends App<T>> extends FWidget<T> with IsWidgetClickable<T, FSe
       );
     }
   }
-
-  @override
-  FWidget<T> build() => this;
   
   @override
   void cloneWidgetInto(FWidget<T> copy) {

@@ -1,6 +1,6 @@
 part of '../../raylib_dartified_unhinged.dart';
 
-class FSized<T extends App<T>> extends FWidget<T> {
+class FSized<T extends App<T>> extends FWidgetLeaf<T> {
   late FSizedMode mode;
   FSizedMode? widthMode;
   FSizedMode? heightMode;
@@ -90,9 +90,6 @@ class FSized<T extends App<T>> extends FWidget<T> {
       .flexible => child?.size.y ?? 0,
     };
   }
-
-  @override
-  FWidget<T> build() => this;
 
   @override
   void cloneWidgetInto(FWidget<T> copy) {
