@@ -55,9 +55,10 @@ mixin IsCloneable<
   }
 
   X cloneInto<X extends E>(X target, [ClonePolicy<T>? policy]) {
-    if (!_doCloneBefore(target, policy)) return target;
+    final result = _doCloneBefore(target, policy);
+    if (result == .cancel) return target;
     _assignClone(target);
-    _doOnClone(target, policy);
+    if (result == .proceed) _doOnClone(target, policy);
     _doCloneState(target, policy);
     _doCloneAfter(target, policy);
     return target;
@@ -101,15 +102,15 @@ mixin IsCloneable<
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  late final hookOnBeforeCloneKey = ECSHookKey<bool Function(E self, E copy, [ClonePolicy<T>? policy])>(
+  late final hookOnBeforeCloneKey = ECSHookKey<HookResult Function(E self, E copy, [ClonePolicy<T>? policy])>(
     'IsCloneable', 'onBeforeClone'
   );
 
-  late final hookOnCloneKey = ECSHookKey<bool Function(E self, E copy, [ClonePolicy<T>? policy])>(
+  late final hookOnCloneKey = ECSHookKey<HookResult Function(E self, E copy, [ClonePolicy<T>? policy])>(
     'IsCloneable', 'onClone'
   );
 
-  late final hookOnAfterCloneKey = ECSHookKey<bool Function(E self, E copy, [ClonePolicy<T>? policy])>(
+  late final hookOnAfterCloneKey = ECSHookKey<HookResult Function(E self, E copy, [ClonePolicy<T>? policy])>(
     'IsCloneable', 'onAfterClone'
   );
 
@@ -117,7 +118,7 @@ mixin IsCloneable<
     'IsCloneable', 'onCloned'
   );
 
-  Iterable<bool Function(E self, E copy, [ClonePolicy<T>? policy])> get _onBeforeCloneFns
+  Iterable<HookResult Function(E self, E copy, [ClonePolicy<T>? policy])> get _onBeforeCloneFns
     => hooksOf(hookOnBeforeCloneKey);
 
   Iterable<void Function(E self, E copy, [ClonePolicy<T>? policy])> get _onCloneFns
@@ -133,7 +134,7 @@ mixin IsCloneable<
   ///
   /// [fn] returning `false` cancels the clone.
   @nonVirtual
-  E listenOnBeforeClone(bool Function(E self, E copy, [ClonePolicy<T>? policy]) fn) {
+  E listenOnBeforeClone(HookResult Function(E self, E copy, [ClonePolicy<T>? policy]) fn) {
     addHook(hookOnBeforeCloneKey, fn);
     return self;
   }
@@ -169,9 +170,13 @@ mixin IsCloneable<
   ///
   /// Returns `false` if any listener or the override cancels the clone.
   @nonVirtual
-  bool _doOnBeforeClone(E copy, [ClonePolicy<T>? policy]) {
-    if (!_onBeforeCloneFns.every((f) => f(self, copy, policy))) return false;
-    return onBeforeClone(copy, policy);
+  HookResult _doOnBeforeClone(E copy, [ClonePolicy<T>? policy]) {
+    HookResult result = .proceed;
+    for (final f in _onBeforeCloneFns) {
+      result = _mergeHookResult(result, f(self, copy, policy));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeClone(copy, policy));
   }
 
   /// Runs all clone listeners and [onClone].
@@ -198,7 +203,7 @@ mixin IsCloneable<
   /// Override to cancel cloning from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeClone] listeners.
-  bool onBeforeClone(E copy, [ClonePolicy<T>? policy]) => true;
+  HookResult onBeforeClone(E copy, [ClonePolicy<T>? policy]) => .proceed;
 
   /// Override to react when cloning is about to complete.
   ///
@@ -283,13 +288,14 @@ mixin IsCloneable<
   ///
   /// Returns `false` if any before-hook cancels the clone.
   @nonVirtual
-  bool _doCloneBefore(E target, [ClonePolicy<T>? policy]) {
-    if (!_doOnBeforeClone(target, policy)) return false;
+  HookResult _doCloneBefore(E target, [ClonePolicy<T>? policy]) {
+    final result = _doOnBeforeClone(target, policy);
+    if (result == .cancel) return result;
     if (target is IsCloneable<T, E>) {
       target.isClone = true;
       target.isCloning = true;
     }
-    return true;
+    return result;
   }
 
   /// Finalizes the clone pipeline: clears [isCloning], sets [isCloned], and

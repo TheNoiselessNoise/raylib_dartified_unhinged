@@ -18,7 +18,7 @@ mixin IsComponentManagable<
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  late final hookOnBeforeCompAddKey = ECSHookKey<bool Function(E self, Comp<T> component)>(
+  late final hookOnBeforeCompAddKey = ECSHookKey<HookResult Function(E self, Comp<T> component)>(
     'IsComponentManagable', 'onBeforeCompAdd'
   );
 
@@ -30,7 +30,7 @@ mixin IsComponentManagable<
     'IsComponentManagable', 'onAfterCompAdd'
   );
 
-  late final hookOnBeforeCompRemoveKey = ECSHookKey<bool Function(E self, Comp<T> component)>(
+  late final hookOnBeforeCompRemoveKey = ECSHookKey<HookResult Function(E self, Comp<T> component)>(
     'IsComponentManagable', 'onBeforeCompRemove'
   );
 
@@ -42,7 +42,7 @@ mixin IsComponentManagable<
     'IsComponentManagable', 'onAfterCompRemove'
   );
 
-  late final hookOnBeforeCompCloneKey = ECSHookKey<bool Function(E self, Comp<T> component)>(
+  late final hookOnBeforeCompCloneKey = ECSHookKey<HookResult Function(E self, Comp<T> component)>(
     'IsComponentManagable', 'onBeforeCompClone'
   );
 
@@ -54,7 +54,7 @@ mixin IsComponentManagable<
     'IsComponentManagable', 'onAfterCompClone'
   );
 
-  Iterable<bool Function(E self, Comp<T> component)> get _onBeforeCompAddFns
+  Iterable<HookResult Function(E self, Comp<T> component)> get _onBeforeCompAddFns
     => hooksOf(hookOnBeforeCompAddKey);
 
   Iterable<void Function(E self, Comp<T> component)> get _onCompAddFns
@@ -63,7 +63,7 @@ mixin IsComponentManagable<
   Iterable<void Function(E self, Comp<T> component)> get _onAfterCompAddFns
     => hooksOf(hookOnAfterCompAddKey);
 
-  Iterable<bool Function(E self, Comp<T> component)> get _onBeforeCompRemoveFns
+  Iterable<HookResult Function(E self, Comp<T> component)> get _onBeforeCompRemoveFns
     => hooksOf(hookOnBeforeCompRemoveKey);
 
   Iterable<void Function(E self, Comp<T> component)> get _onCompRemoveFns
@@ -72,7 +72,7 @@ mixin IsComponentManagable<
   Iterable<void Function(E self, Comp<T> component)> get _onAfterCompRemoveFns
     => hooksOf(hookOnAfterCompRemoveKey);
 
-  Iterable<bool Function(E self, Comp<T> component)> get _onBeforeCompCloneFns
+  Iterable<HookResult Function(E self, Comp<T> component)> get _onBeforeCompCloneFns
     => hooksOf(hookOnBeforeCompCloneKey);
 
   Iterable<void Function(E self, Comp<T> component)> get _onCompCloneFns
@@ -82,7 +82,7 @@ mixin IsComponentManagable<
     => hooksOf(hookOnAfterCompCloneKey);
 
   @nonVirtual
-  E listenOnBeforeCompAdd(bool Function(E self, Comp<T> component) fn) {
+  E listenOnBeforeCompAdd(HookResult Function(E self, Comp<T> component) fn) {
     addHook(hookOnBeforeCompAddKey, fn);
     return self;
   }
@@ -100,7 +100,7 @@ mixin IsComponentManagable<
   }
 
   @nonVirtual
-  E listenOnBeforeCompRemove(bool Function(E self, Comp<T> component) fn) {
+  E listenOnBeforeCompRemove(HookResult Function(E self, Comp<T> component) fn) {
     addHook(hookOnBeforeCompRemoveKey, fn);
     return self;
   }
@@ -118,7 +118,7 @@ mixin IsComponentManagable<
   }
 
   @nonVirtual
-  E listenOnBeforeCompClone(bool Function(E self, Comp<T> component) fn) {
+  E listenOnBeforeCompClone(HookResult Function(E self, Comp<T> component) fn) {
     addHook(hookOnBeforeCompCloneKey, fn);
     return self;
   }
@@ -136,9 +136,13 @@ mixin IsComponentManagable<
   }
 
   @mustCallSuper
-  bool _doOnBeforeCompAdd(Comp<T> component) {
-    if (!_onBeforeCompAddFns.every((f) => f(self, component))) return false;
-    return onBeforeCompAdd(component);
+  HookResult _doOnBeforeCompAdd(Comp<T> component) {
+    HookResult result = .proceed;
+    for (final f in _onBeforeCompAddFns) {
+      result = _mergeHookResult(result, f(self, component));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeCompAdd(component));
   }
   
   @mustCallSuper
@@ -154,9 +158,13 @@ mixin IsComponentManagable<
   }
 
   @mustCallSuper
-  bool _doOnBeforeCompRemove(Comp<T> component) {
-    if (!_onBeforeCompRemoveFns.every((f) => f(self, component))) return false;
-    return onBeforeCompRemove(component);
+  HookResult _doOnBeforeCompRemove(Comp<T> component) {
+    HookResult result = .proceed;
+    for (final f in _onBeforeCompRemoveFns) {
+      result = _mergeHookResult(result, f(self, component));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeCompRemove(component));
   }
 
   @mustCallSuper
@@ -172,9 +180,13 @@ mixin IsComponentManagable<
   }
 
   @mustCallSuper
-  bool _doOnBeforeCompClone(Comp<T> component) {
-    if (!_onBeforeCompCloneFns.every((f) => f(self, component))) return false;
-    return onBeforeCompClone(component);
+  HookResult _doOnBeforeCompClone(Comp<T> component) {
+    HookResult result = .proceed;
+    for (final f in _onBeforeCompCloneFns) {
+      result = _mergeHookResult(result, f(self, component));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeCompClone(component));
   }
 
   @mustCallSuper
@@ -189,19 +201,19 @@ mixin IsComponentManagable<
     onAfterCompClone(component);
   }
 
-  bool onBeforeCompAdd(Comp<T> component) => true;
+  HookResult onBeforeCompAdd(Comp<T> component) => .proceed;
 
   void onCompAdd(Comp<T> component) {}
 
   void onAfterCompAdd(Comp<T> component) {}
 
-  bool onBeforeCompRemove(Comp<T> component) => true;
+  HookResult onBeforeCompRemove(Comp<T> component) => .proceed;
 
   void onCompRemove(Comp<T> component) {}
 
   void onAfterCompRemove(Comp<T> component) {}
 
-  bool onBeforeCompClone(Comp<T> copy) => true;
+  HookResult onBeforeCompClone(Comp<T> copy) => .proceed;
 
   void onCompClone(Comp<T> copy) {}
 
@@ -354,12 +366,16 @@ mixin IsComponentManagable<
   E addComp<C extends Comp<T>>(C component) {
     emit(EventCompAdding(app, entity, component));
 
-    if (!_doOnBeforeCompAdd(component)) {
+    HookResult result = _doOnBeforeCompAdd(component);
+
+    if (result == .cancel) {
       emit(EventCompAddCancelled(app, entity, component));
       return self;
     }
 
-    if (!component._doOnBeforeAdd(self)) {
+    result = _mergeHookResult(result, component._doOnBeforeAdd(self));
+
+    if (result == .cancel) {
       emit(EventCompAddCancelled(app, entity, component));
       return self;
     }
@@ -367,8 +383,10 @@ mixin IsComponentManagable<
     component.parent = self;
     component.entity = entity;
 
-    _doOnCompAdd(component);
-    if (!component.isClone) component._doAdd(self);
+    if (result == .proceed) {
+      _doOnCompAdd(component);
+      if (!component.isClone) component._doAdd(self);
+    }
 
     _components.add(component);
 
@@ -423,19 +441,24 @@ mixin IsComponentManagable<
 
     emit(EventCompRemoving(app, entity, component));
 
-    if (!_doOnBeforeCompRemove(component)) {
+    HookResult result = _doOnBeforeCompRemove(component);
+
+    if (result == .cancel) {
       emit(EventCompRemoveCancelled(app, entity, component));
       return self;
     }
 
-    if (!component._doOnBeforeRemove()) {
+    result = _mergeHookResult(result, component._doOnBeforeRemove());
+
+    if (result == .cancel) {
       emit(EventCompRemoveCancelled(app, entity, component));
       return self;
     }
 
-    _doOnCompRemove(component);
-
-    component._doRemove();
+    if (result == .proceed) {
+      _doOnCompRemove(component);
+      component._doRemove();
+    }
 
     // remove nested components
     // NOTE: toList() is important
@@ -742,9 +765,12 @@ mixin IsComponentManagable<
     bool replaceComponent = false,
   }) {
     if (!what.isCloneable) return;
-    if (!_doOnBeforeCompClone(what)) return;
+
+    HookResult result = _doOnBeforeCompClone(what);
+    if (result == .cancel) return;
     
-    _doOnCompClone(what);
+    if (result == .proceed) _doOnCompClone(what);
+
     // This clone() call ALREADY does everything.
     // Returns the fully cloned component
     final fullyClonedComp = what.clone(policy);

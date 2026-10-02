@@ -23,7 +23,7 @@ mixin IsSceneSystemManagable<
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  late final hookOnBeforeSceneSystemAddKey = ECSHookKey<bool Function(E self, SceneSystem<T> system)>(
+  late final hookOnBeforeSceneSystemAddKey = ECSHookKey<HookResult Function(E self, SceneSystem<T> system)>(
     'IsSceneSystemManagable', 'onBeforeSceneSystemAdd'
   );
 
@@ -35,7 +35,7 @@ mixin IsSceneSystemManagable<
     'IsSceneSystemManagable', 'onAfterSceneSystemAdd'
   );
 
-  late final hookOnBeforeSceneSystemRemoveKey = ECSHookKey<bool Function(E self, SceneSystem<T> system)>(
+  late final hookOnBeforeSceneSystemRemoveKey = ECSHookKey<HookResult Function(E self, SceneSystem<T> system)>(
     'IsSceneSystemManagable', 'onBeforeSceneSystemRemove'
   );
 
@@ -47,7 +47,7 @@ mixin IsSceneSystemManagable<
     'IsSceneSystemManagable', 'onAfterSceneSystemRemove'
   );
 
-  Iterable<bool Function(E self, SceneSystem<T> system)> get _onBeforeSceneSystemAddFns
+  Iterable<HookResult Function(E self, SceneSystem<T> system)> get _onBeforeSceneSystemAddFns
     => hooksOf(hookOnBeforeSceneSystemAddKey);
   
   Iterable<void Function(E self, SceneSystem<T> system)> get _onSceneSystemAddFns
@@ -56,7 +56,7 @@ mixin IsSceneSystemManagable<
   Iterable<void Function(E self, SceneSystem<T> system)> get _onAfterSceneSystemAddFns
     => hooksOf(hookOnAfterSceneSystemAddKey);
   
-  Iterable<bool Function(E self, SceneSystem<T> system)> get _onBeforeSceneSystemRemoveFns
+  Iterable<HookResult Function(E self, SceneSystem<T> system)> get _onBeforeSceneSystemRemoveFns
     => hooksOf(hookOnBeforeSceneSystemRemoveKey);
   
   Iterable<void Function(E self, SceneSystem<T> system)> get _onSceneSystemRemoveFns
@@ -69,7 +69,7 @@ mixin IsSceneSystemManagable<
   ///
   /// [fn] returning `false` cancels the system add.
   @nonVirtual
-  E listenOnBeforeSceneSystemAdd(bool Function(E self, SceneSystem<T> system) fn) {
+  E listenOnBeforeSceneSystemAdd(HookResult Function(E self, SceneSystem<T> system) fn) {
     addHook(hookOnBeforeSceneSystemAddKey, fn);
     return self;
   }
@@ -96,7 +96,7 @@ mixin IsSceneSystemManagable<
   ///
   /// [fn] returning `false` cancels the system remove.
   @nonVirtual
-  E listenOnBeforeSceneSystemRemove(bool Function(E self, SceneSystem<T> system) fn) {
+  E listenOnBeforeSceneSystemRemove(HookResult Function(E self, SceneSystem<T> system) fn) {
     addHook(hookOnBeforeSceneSystemRemoveKey, fn);
     return self;
   }
@@ -123,9 +123,13 @@ mixin IsSceneSystemManagable<
   ///
   /// Returns `false` if any listener or the override cancels the add.
   @mustCallSuper
-  bool _doOnBeforeSceneSystemAdd(SceneSystem<T> system) {
-    if (!_onBeforeSceneSystemAddFns.every((f) => f(self, system))) return false;
-    return onBeforeSceneSystemAdd(system);
+  HookResult _doOnBeforeSceneSystemAdd(SceneSystem<T> system) {
+    HookResult result = .proceed;
+    for (final f in _onBeforeSceneSystemAddFns) {
+      result = _mergeHookResult(result, f(self, system));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeSceneSystemAdd(system));
   }
 
   /// Runs all add listeners and [onSceneSystemAdd].
@@ -146,9 +150,13 @@ mixin IsSceneSystemManagable<
   ///
   /// Returns `false` if any listener or the override cancels the remove.
   @mustCallSuper
-  bool _doOnBeforeSceneSystemRemove(SceneSystem<T> system) {
-    if (!_onBeforeSceneSystemRemoveFns.every((f) => f(self, system))) return false;
-    return onBeforeSceneSystemRemove(system);
+  HookResult _doOnBeforeSceneSystemRemove(SceneSystem<T> system) {
+    HookResult result = .proceed;
+    for (final f in _onBeforeSceneSystemRemoveFns) {
+      result = _mergeHookResult(result, f(self, system));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeSceneSystemRemove(system));
   }
 
   /// Runs all remove listeners and [onSceneSystemRemove].
@@ -168,7 +176,7 @@ mixin IsSceneSystemManagable<
   /// Override to cancel a system add from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeSceneSystemAdd] listeners.
-  bool onBeforeSceneSystemAdd(SceneSystem<T> system) => true;
+  HookResult onBeforeSceneSystemAdd(SceneSystem<T> system) => .proceed;
 
   /// Override to react when a system add is about to complete.
   ///
@@ -185,7 +193,7 @@ mixin IsSceneSystemManagable<
   /// Override to cancel a system remove from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeSceneSystemRemove] listeners.
-  bool onBeforeSceneSystemRemove(SceneSystem<T> system) => true;
+  HookResult onBeforeSceneSystemRemove(SceneSystem<T> system) => .proceed;
 
   /// Override to react when a system remove is about to complete.
   ///
@@ -270,19 +278,26 @@ mixin IsSceneSystemManagable<
   void addSystem<S extends SceneSystem<T>>(S system) {
     emit(EventSceneSystemAdding(app, scene, system));
 
-    if (!_doOnBeforeSceneSystemAdd(system)) {
+    HookResult result = _doOnBeforeSceneSystemAdd(system);
+
+    if (result == .cancel) {
       emit(EventSceneSystemAddCancelled(app, scene, system));
       return;
     }
 
-    if (!system._doOnBeforeAdd(self)) {
+    result = _mergeHookResult(result, system._doOnBeforeAdd(self));
+
+    if (result == .cancel) {
       emit(EventSceneSystemAddCancelled(app, scene, system));
       return;
     }
 
     system.parent = self;
-    _doOnSceneSystemAdd(system);
-    if (!system.isClone) system._doAdd(self);
+
+    if (result == .proceed) {
+      _doOnSceneSystemAdd(system);
+      if (!system.isClone) system._doAdd(self);
+    }
     
     _systems.add(system);
 
@@ -323,18 +338,25 @@ mixin IsSceneSystemManagable<
 
     emit(EventSceneSystemRemoving(app, scene, system));
 
-    if (!_doOnBeforeSceneSystemRemove(system)) {
+    HookResult result = _doOnBeforeSceneSystemRemove(system);
+
+    if (result == .cancel) {
       emit(EventSceneSystemRemoveCancelled(app, scene, system));
       return;
     }
 
-    if (!system._doOnBeforeRemove()) {
+    result = _mergeHookResult(result, system._doOnBeforeRemove());
+
+    if (result == .cancel) {
       emit(EventSceneSystemRemoveCancelled(app, scene, system));
       return;
     }
 
-    _doOnSceneSystemRemove(system);
-    system._doRemove();
+    if (result == .proceed) {
+      _doOnSceneSystemRemove(system);
+      system._doRemove();
+    }
+    
     _systems.remove(system);
 
     system._doOnAfterRemove();

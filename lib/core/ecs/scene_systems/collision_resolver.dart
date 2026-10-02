@@ -234,13 +234,20 @@ class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
 
         final collision = ColliderCollision<T>(cA, cB);
 
-        if (!cA._doOnBeforeCollision(cB)) continue;
-        if (!cB._doOnBeforeCollision(cA)) continue;
-        if (!onBeforeCollision(collision)) continue;
+        HookResult result = cA._doOnBeforeCollision(cB);
+        if (result == .cancel) continue;
         
-        cA._doOnCollision(cB);
-        cB._doOnCollision(cA);
-        onCollision(collision);
+        result = _mergeHookResult(result, cB._doOnBeforeCollision(cA));
+        if (result == .cancel) continue;
+
+        result = _mergeHookResult(result, onBeforeCollision(collision));
+        if (result == .cancel) continue;
+
+        if (result == .proceed) {        
+          cA._doOnCollision(cB);
+          cB._doOnCollision(cA);
+          onCollision(collision);
+        }
 
         // NARROW PHASE: Precise collision detection & resolution
         final didCollide = _resolvePair(a, tA, vA, cA, pA, b, tB, vB, cB, pB);
@@ -551,7 +558,7 @@ class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
   ///
   /// Useful for filtering collisions by game state, team, cooldown, or any other
   /// condition that doesn't require knowing whether the shapes actually overlap.
-  bool onBeforeCollision(ColliderCollision<T> collision) => true;
+  HookResult onBeforeCollision(ColliderCollision<T> collision) => .proceed;
 
   /// Called after [onBeforeCollision] passes but before the narrow phase
   /// determines whether the shapes actually overlap.

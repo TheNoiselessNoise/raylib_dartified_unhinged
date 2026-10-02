@@ -44,7 +44,7 @@ mixin IsEntityManagable<
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  late final hookOnBeforeEntityAddKey = ECSHookKey<bool Function(E self, I entity)>(
+  late final hookOnBeforeEntityAddKey = ECSHookKey<HookResult Function(E self, I entity)>(
     'IsEntityManagable', 'onBeforeEntityAdd'
   );
 
@@ -56,7 +56,7 @@ mixin IsEntityManagable<
     'IsEntityManagable', 'onAfterEntityAdd'
   );
 
-  late final hookOnBeforeEntityRemoveKey = ECSHookKey<bool Function(E self, I entity)>(
+  late final hookOnBeforeEntityRemoveKey = ECSHookKey<HookResult Function(E self, I entity)>(
     'IsEntityManagable', 'onBeforeEntityRemove'
   );
 
@@ -68,7 +68,7 @@ mixin IsEntityManagable<
     'IsEntityManagable', 'onAfterEntityRemove'
   );
 
-  Iterable<bool Function(E self, I entity)> get _onBeforeEntityAddFns
+  Iterable<HookResult Function(E self, I entity)> get _onBeforeEntityAddFns
     => hooksOf(hookOnBeforeEntityAddKey);
 
   Iterable<void Function(E self, I entity)> get _onEntityAddFns
@@ -77,7 +77,7 @@ mixin IsEntityManagable<
   Iterable<void Function(E self, I entity)> get _onAfterEntityAddFns
     => hooksOf(hookOnAfterEntityAddKey);
 
-  Iterable<bool Function(E self, I entity)> get _onBeforeEntityRemoveFns
+  Iterable<HookResult Function(E self, I entity)> get _onBeforeEntityRemoveFns
     => hooksOf(hookOnBeforeEntityRemoveKey);
 
   Iterable<void Function(E self, I entity)> get _onEntityRemoveFns
@@ -90,7 +90,7 @@ mixin IsEntityManagable<
   ///
   /// [fn] returning `false` cancels the entity add.
   @nonVirtual
-  E listenOnBeforeEntityAdd(bool Function(E self, I entity) fn) {
+  E listenOnBeforeEntityAdd(HookResult Function(E self, I entity) fn) {
     addHook(hookOnBeforeEntityAddKey, fn);
     return self;
   }
@@ -117,7 +117,7 @@ mixin IsEntityManagable<
   ///
   /// [fn] returning `false` cancels the entity remove.
   @nonVirtual
-  E listenOnBeforeEntityRemove(bool Function(E self, I entity) fn) {
+  E listenOnBeforeEntityRemove(HookResult Function(E self, I entity) fn) {
     addHook(hookOnBeforeEntityRemoveKey, fn);
     return self;
   }
@@ -144,9 +144,13 @@ mixin IsEntityManagable<
   ///
   /// Returns `false` if any listener or the override cancels the add.
   @mustCallSuper
-  bool _doOnBeforeEntityAdd(I entity) {
-    if (!_onBeforeEntityAddFns.every((f) => f(self, entity))) return false;
-    return onBeforeEntityAdd(entity);
+  HookResult _doOnBeforeEntityAdd(I entity) {
+    HookResult result = .proceed;
+    for (final f in _onBeforeEntityAddFns) {
+      result = _mergeHookResult(result, f(self, entity));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeEntityAdd(entity));
   }
 
   /// Runs all add listeners and [onEntityAdd].
@@ -167,9 +171,13 @@ mixin IsEntityManagable<
   ///
   /// Returns `false` if any listener or the override cancels the remove.
   @mustCallSuper
-  bool _doOnBeforeEntityRemove(I entity) {
-    if (!_onBeforeEntityRemoveFns.every((f) => f(self, entity))) return false;
-    return onBeforeEntityRemove(entity);
+  HookResult _doOnBeforeEntityRemove(I entity) {
+    HookResult result = .proceed;
+    for (final f in _onBeforeEntityRemoveFns) {
+      result = _mergeHookResult(result, f(self, entity));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeEntityRemove(entity));
   }
 
   /// Runs all remove listeners and [onEntityRemove].
@@ -189,7 +197,7 @@ mixin IsEntityManagable<
   /// Override to cancel an entity add from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeEntityAdd] listeners.
-  bool onBeforeEntityAdd(I entity) => true;
+  HookResult onBeforeEntityAdd(I entity) => .proceed;
 
   /// Override to react when an entity add is about to complete.
   ///
@@ -204,7 +212,7 @@ mixin IsEntityManagable<
   /// Override to cancel an entity remove from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeEntityRemove] listeners.
-  bool onBeforeEntityRemove(I entity) => true;
+  HookResult onBeforeEntityRemove(I entity) => .proceed;
 
   /// Override to react when an entity remove is about to complete.
   ///
@@ -296,19 +304,27 @@ mixin IsEntityManagable<
 
     emit(EventEntityAdding(app, this, entity));
 
-    if (!_doOnBeforeEntityAdd(entity)) {
+    HookResult result = _doOnBeforeEntityAdd(entity);
+
+    if (result == .cancel) {
       emit(EventEntityAddCancelled(app, this, entity));
       return false;
     }
 
-    if (!entity._doOnBeforeAdd(self)) {
+    result = _mergeHookResult(result, entity._doOnBeforeAdd(self));
+
+    if (result == .cancel) {
       emit(EventEntityAddCancelled(app, this, entity));
       return false;
     }
 
     entity.parent = self;
-    _doOnEntityAdd(entity);
-    if (!entity.isClone) entity._doAdd(self);
+
+    if (result == .proceed) {
+      _doOnEntityAdd(entity);
+      if (!entity.isClone) entity._doAdd(self);
+    }
+
     _entities.add(entity);
 
     entity._doOnAfterAdd(self);
@@ -329,22 +345,28 @@ mixin IsEntityManagable<
 
     emit(EventEntityRemoving(app, this, entity));
 
-    if (!_doOnBeforeEntityRemove(entity)) {
+    HookResult result = _doOnBeforeEntityRemove(entity);
+    
+    if (result == .cancel) {
       emit(EventEntityRemoveCancelled(app, this, entity));
       return false;
     }
 
-    if (!entity._doOnBeforeRemove()) {
+    result = _mergeHookResult(result, entity._doOnBeforeRemove());
+
+    if (result == .cancel) {
       emit(EventEntityRemoveCancelled(app, this, entity));
       return false;
     }
 
-    _doOnEntityRemove(entity);
-
-    entity._doRemove();
+    if (result == .proceed) {
+      _doOnEntityRemove(entity);
+      entity._doRemove();
+    }
 
     // remove entity components
     // NOTE: toList() is important
+    // TODO: do Entity._cleanup() (and others) for each remove
     entity._components.toList().forEach(
       (c) => entity._removeComponentInstance(c)
     );

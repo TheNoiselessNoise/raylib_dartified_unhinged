@@ -12,7 +12,7 @@ mixin IsEnterable<
   Self<E>,
   ECSBase<T>
 {
-  late final hookOnBeforeEnterKey = ECSHookKey<bool Function(E self)>(
+  late final hookOnBeforeEnterKey = ECSHookKey<HookResult Function(E self)>(
     'IsEnterable', 'onBeforeEnter'
   );
 
@@ -24,7 +24,7 @@ mixin IsEnterable<
     'IsEnterable', 'onAfterEnter'
   );
 
-  Iterable<bool Function(E self)> get _onBeforeEnterFns
+  Iterable<HookResult Function(E self)> get _onBeforeEnterFns
     => hooksOf(hookOnBeforeEnterKey);
 
   Iterable<void Function(E self)> get _onEnterFns
@@ -37,7 +37,7 @@ mixin IsEnterable<
   ///
   /// [fn] returning `false` cancels the enter.
   @nonVirtual
-  E listenOnBeforeEnter(bool Function(E self) fn) {
+  E listenOnBeforeEnter(HookResult Function(E self) fn) {
     addHook(hookOnBeforeEnterKey, fn);
     return self;
   }
@@ -64,9 +64,13 @@ mixin IsEnterable<
   ///
   /// Returns `false` if any listener or the override cancels the enter.
   @mustCallSuper
-  bool _doOnBeforeEnter() {
-    if (!_onBeforeEnterFns.every((f) => f(self))) return false;
-    return onBeforeEnter();
+  HookResult _doOnBeforeEnter() {
+    HookResult result = .proceed;
+    for (final f in _onBeforeEnterFns) {
+      result = _mergeHookResult(result, f(self));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeEnter());
   }
 
   /// Runs all enter listeners and [onEnter].
@@ -86,7 +90,7 @@ mixin IsEnterable<
   /// Override to cancel an enter from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeEnter] listeners.
-  bool onBeforeEnter() => true;
+  HookResult onBeforeEnter() => .proceed;
 
   /// Override to react when an enter is about to complete.
   ///

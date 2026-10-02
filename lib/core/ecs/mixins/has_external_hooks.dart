@@ -1,5 +1,17 @@
 part of '../../raylib_dartified_unhinged.dart';
 
+/// Hook result for before/on/after lifecycle functionalities.
+enum HookResult {
+  /// Proceed normally: run the core 'on' phase, then the 'after' phase.
+  proceed,
+
+  /// Skip the core 'on' phase, but still execute the 'after' phase for cleanup/sync.
+  onlyAfter,
+
+  /// Hard abort: cancel the operation entirely (skip both 'on' and 'after').
+  cancel,
+}
+
 /// Single key to external hook storage.
 final class ECSHookKey<F extends Function> {
   // for group-clearing, since there's no enum to group by
@@ -27,6 +39,12 @@ final class ECSHookKey<F extends Function> {
 /// stays stale across clones.
 mixin HasExternalHooks<T extends App<T>> {
   final Map<ECSHookKey, List<Function>> _hooks = {};
+
+  HookResult _mergeHookResult(HookResult acc, HookResult res) {
+    if (res == HookResult.cancel) return res;
+    if (res == HookResult.onlyAfter) return res;
+    return acc;
+  }
 
   void addHook<F extends Function>(ECSHookKey<F> key, F fn)
     => (_hooks[key] ??= <Function>[]).add(fn);

@@ -382,12 +382,12 @@ class ArkanoidCollisionResolver extends CollisionResolverSystem<G> {
   ArkanoidCollisionResolver(super.app);
 
   @override
-  bool onBeforeCollision(ColliderCollision<G> collision) {
-    if (collision.hasEntities<BallEntity, BallEntity>()) return false;
-    if (collision.hasEntities<PickablePowerUp, PickablePowerUp>()) return false;
-    if (collision.hasEntities<PickablePowerUp, BallEntity>()) return false;
-    if (collision.hasEntities<PickablePowerUp, BrickEntity>()) return false;
-    return true;
+  HookResult onBeforeCollision(ColliderCollision<G> collision) {
+    if (collision.hasEntities<BallEntity, BallEntity>()) return .cancel;
+    if (collision.hasEntities<PickablePowerUp, PickablePowerUp>()) return .cancel;
+    if (collision.hasEntities<PickablePowerUp, BallEntity>()) return .cancel;
+    if (collision.hasEntities<PickablePowerUp, BrickEntity>()) return .cancel;
+    return .proceed;
   }
 
   @override

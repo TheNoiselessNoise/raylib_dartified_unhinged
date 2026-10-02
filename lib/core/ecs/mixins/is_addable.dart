@@ -14,7 +14,7 @@ mixin IsAddable<
   Self<E>,
   ECSBase<T>
 {
-  late final hookOnBeforeAddKey = ECSHookKey<bool Function(E self, ECSBase<T> parent)>(
+  late final hookOnBeforeAddKey = ECSHookKey<HookResult Function(E self, ECSBase<T> parent)>(
     'IsAddable', 'onBeforeAdd'
   );
 
@@ -31,7 +31,7 @@ mixin IsAddable<
   
   bool get isAdded => _isAdded;
 
-  Iterable<bool Function(E self, ECSBase<T> parent)> get _onBeforeAddFns
+  Iterable<HookResult Function(E self, ECSBase<T> parent)> get _onBeforeAddFns
     => hooksOf(hookOnBeforeAddKey);
 
   Iterable<void Function(E self, ECSBase<T> parent)> get _onAddFns
@@ -40,11 +40,15 @@ mixin IsAddable<
   Iterable<void Function(E self, ECSBase<T> parent)> get _onAfterAddFns
     => hooksOf(hookOnAfterAddKey);
 
+  // TODO: this is correct doc-comment
   /// Registers [fn] as a before-add listener.
   ///
-  /// [fn] returning `false` cancels the add.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.onlyAfter] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
-  E listenOnBeforeAdd(bool Function(E self, ECSBase<T> parent) fn) {
+  E listenOnBeforeAdd(HookResult Function(E self, ECSBase<T> parent) fn) {
     addHook(hookOnBeforeAddKey, fn);
     return self;
   }
@@ -67,13 +71,18 @@ mixin IsAddable<
     return self;
   }
 
-  /// Runs all before-add listeners and [onBeforeAdd].
+  // TODO: this is correct doc-comment
+  /// Runs all before-add listeners and [onBeforeAdd], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels the add.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.onlyAfter], defaulting to [HookResult.proceed].
   @mustCallSuper
-  bool _doOnBeforeAdd(ECSBase<T> parent) {
-    if (!_onBeforeAddFns.every((f) => f(self, parent))) return false;
-    return onBeforeAdd(parent);
+  HookResult _doOnBeforeAdd(ECSBase<T> parent) {
+    HookResult result = .proceed;
+    for (final f in _onBeforeAddFns) {
+      result = _mergeHookResult(result, f(self, parent));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeAdd(parent));
   }
 
   /// Runs all add listeners and [onAdd].
@@ -90,10 +99,12 @@ mixin IsAddable<
     onAfterAdd(parent);
   }
 
-  /// Override to cancel the add from within the class.
+  // TODO: this is correct doc-comment
+  /// Override to intercept the before-add phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeAdd] listeners.
-  bool onBeforeAdd(ECSBase<T> parent) => true;
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeAdd] listeners.
+  HookResult onBeforeAdd(ECSBase<T> parent) => .proceed;
 
   /// Override to react when the add is about to complete.
   ///

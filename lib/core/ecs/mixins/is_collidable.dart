@@ -15,7 +15,7 @@ mixin IsCollidable<
   Self<E>,
   ECSBase<T>
 {
-  late final hookOnBeforeCollisionKey = ECSHookKey<bool Function(E self, C other)>(
+  late final hookOnBeforeCollisionKey = ECSHookKey<HookResult Function(E self, C other)>(
     'IsCollidable', 'onBeforeCollision'
   );
 
@@ -27,7 +27,7 @@ mixin IsCollidable<
     'IsCollidable', 'onAfterCollision'
   );
 
-  Iterable<bool Function(E self, C other)> get _onBeforeCollisionFns
+  Iterable<HookResult Function(E self, C other)> get _onBeforeCollisionFns
     => hooksOf(hookOnBeforeCollisionKey);
 
   Iterable<void Function(E self, C other)> get _onCollisionFns
@@ -40,7 +40,7 @@ mixin IsCollidable<
   ///
   /// [fn] returning `false` cancels the collision.
   @nonVirtual
-  E listenOnBeforeCollision(bool Function(E self, C other) fn) {
+  E listenOnBeforeCollision(HookResult Function(E self, C other) fn) {
     addHook(hookOnBeforeCollisionKey, fn);
     return self;
   }
@@ -67,9 +67,13 @@ mixin IsCollidable<
   ///
   /// Returns `false` if any listener or the override cancels the collision.
   @mustCallSuper
-  bool _doOnBeforeCollision(C other) {
-    if (!_onBeforeCollisionFns.every((f) => f(self, other))) return false;
-    return onBeforeCollision(other);
+  HookResult _doOnBeforeCollision(C other) {
+    HookResult result = .proceed;
+    for (final f in _onBeforeCollisionFns) {
+      result = _mergeHookResult(result, f(self, other));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeCollision(other));
   }
 
   /// Runs all collision listeners and [onCollision].
@@ -89,7 +93,7 @@ mixin IsCollidable<
   /// Override to cancel the collision from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeCollision] listeners.
-  bool onBeforeCollision(C other) => true;
+  HookResult onBeforeCollision(C other) => .proceed;
 
   /// Override to react when the collision is about to complete.
   ///

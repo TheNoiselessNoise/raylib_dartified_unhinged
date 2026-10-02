@@ -12,7 +12,7 @@ mixin IsLeavable<
   Self<E>,
   ECSBase<T>
 {
-  late final hookOnBeforeLeaveKey = ECSHookKey<bool Function(E self)>(
+  late final hookOnBeforeLeaveKey = ECSHookKey<HookResult Function(E self)>(
     'IsLeavable', 'onBeforeLeave'
   );
 
@@ -24,7 +24,7 @@ mixin IsLeavable<
     'IsLeavable', 'onAfterLeave'
   );
 
-  Iterable<bool Function(E self)> get _onBeforeLeaveFns
+  Iterable<HookResult Function(E self)> get _onBeforeLeaveFns
     => hooksOf(hookOnBeforeLeaveKey);
 
   Iterable<void Function(E self)> get _onLeaveFns
@@ -37,7 +37,7 @@ mixin IsLeavable<
   ///
   /// [fn] returning `false` cancels the enter.
   @nonVirtual
-  E listenOnBeforeLeave(bool Function(E self) fn) {
+  E listenOnBeforeLeave(HookResult Function(E self) fn) {
     addHook(hookOnBeforeLeaveKey, fn);
     return self;
   }
@@ -64,9 +64,13 @@ mixin IsLeavable<
   ///
   /// Returns `false` if any listener or the override cancels the leave.
   @mustCallSuper
-  bool _doOnBeforeLeave() {
-    if (!_onBeforeLeaveFns.every((f) => f(self))) return false;
-    return onBeforeLeave();
+  HookResult _doOnBeforeLeave() {
+    HookResult result = .proceed;
+    for (final f in _onBeforeLeaveFns) {
+      result = _mergeHookResult(result, f(self));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeLeave());
   }
 
   /// Runs all leave listeners and [onLeave].
@@ -86,7 +90,7 @@ mixin IsLeavable<
   /// Override to cancel an leave from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeLeave] listeners.
-  bool onBeforeLeave() => true;
+  HookResult onBeforeLeave() => .proceed;
 
   /// Override to react when an leave is about to complete.
   ///

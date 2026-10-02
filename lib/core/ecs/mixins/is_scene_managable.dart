@@ -23,7 +23,7 @@ mixin IsSceneManagable<
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  late final hookOnBeforeSceneAddKey = ECSHookKey<bool Function(E self, Scene<T> scene)>(
+  late final hookOnBeforeSceneAddKey = ECSHookKey<HookResult Function(E self, Scene<T> scene)>(
     'IsSceneManagable', 'onBeforeSceneAdd'
   );
 
@@ -35,7 +35,7 @@ mixin IsSceneManagable<
     'IsSceneManagable', 'onAfterSceneAdd'
   );
 
-  late final hookOnBeforeSceneRemoveKey = ECSHookKey<bool Function(E self, Scene<T> scene)>(
+  late final hookOnBeforeSceneRemoveKey = ECSHookKey<HookResult Function(E self, Scene<T> scene)>(
     'IsSceneManagable', 'onBeforeSceneRemove'
   );
 
@@ -47,7 +47,7 @@ mixin IsSceneManagable<
     'IsSceneManagable', 'onAfterSceneRemove'
   );
 
-  Iterable<bool Function(E self, Scene<T> scene)> get _onBeforeSceneAddFns
+  Iterable<HookResult Function(E self, Scene<T> scene)> get _onBeforeSceneAddFns
     => hooksOf(hookOnBeforeSceneAddKey);
   
   Iterable<void Function(E self, Scene<T> scene)> get _onSceneAddFns
@@ -56,7 +56,7 @@ mixin IsSceneManagable<
   Iterable<void Function(E self, Scene<T> scene)> get _onAfterSceneAddFns
     => hooksOf(hookOnAfterSceneAddKey);
 
-  Iterable<bool Function(E self, Scene<T> scene)> get _onBeforeSceneRemoveFns
+  Iterable<HookResult Function(E self, Scene<T> scene)> get _onBeforeSceneRemoveFns
     => hooksOf(hookOnBeforeSceneRemoveKey);
 
   Iterable<void Function(E self, Scene<T> scene)> get _onSceneRemoveFns
@@ -69,7 +69,7 @@ mixin IsSceneManagable<
   ///
   /// [fn] returning `false` cancels the scene add.
   @nonVirtual
-  E listenOnBeforeSceneAdd(bool Function(E self, Scene<T> scene) fn) {
+  E listenOnBeforeSceneAdd(HookResult Function(E self, Scene<T> scene) fn) {
     addHook(hookOnBeforeSceneAddKey, fn);
     return self;
   }
@@ -96,7 +96,7 @@ mixin IsSceneManagable<
   ///
   /// [fn] returning `false` cancels the scene remove.
   @nonVirtual
-  E listenOnBeforeSceneRemove(bool Function(E self, Scene<T> scene) fn) {
+  E listenOnBeforeSceneRemove(HookResult Function(E self, Scene<T> scene) fn) {
     addHook(hookOnBeforeSceneRemoveKey, fn);
     return self;
   }
@@ -123,9 +123,13 @@ mixin IsSceneManagable<
   ///
   /// Returns `false` if any listener or the override cancels the add.
   @mustCallSuper
-  bool _doOnBeforeSceneAdd(Scene<T> scene) {
-    if (!_onBeforeSceneAddFns.every((f) => f(self, scene))) return false;
-    return onBeforeSceneAdd(scene);
+  HookResult _doOnBeforeSceneAdd(Scene<T> scene) {
+    HookResult result = .proceed;
+    for (final f in _onBeforeSceneAddFns) {
+      result = _mergeHookResult(result, f(self, scene));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeSceneAdd(scene));
   }
 
   /// Runs all add listeners and [onSceneAdd].
@@ -146,9 +150,13 @@ mixin IsSceneManagable<
   ///
   /// Returns `false` if any listener or the override cancels the remove.
   @mustCallSuper
-  bool _doOnBeforeSceneRemove(Scene<T> scene) {
-    if (!_onBeforeSceneRemoveFns.every((f) => f(self, scene))) return false;
-    return onBeforeSceneRemove(scene);
+  HookResult _doOnBeforeSceneRemove(Scene<T> scene) {
+    HookResult result = .proceed;
+    for (final f in _onBeforeSceneRemoveFns) {
+      result = _mergeHookResult(result, f(self, scene));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeSceneRemove(scene));
   }
 
   /// Runs all remove listeners and [onSceneRemove].
@@ -168,7 +176,7 @@ mixin IsSceneManagable<
   /// Override to cancel a scene add from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeSceneAdd] listeners.
-  bool onBeforeSceneAdd(Scene<T> scene) => true;
+  HookResult onBeforeSceneAdd(Scene<T> scene) => .proceed;
 
   /// Override to react when a scene add is about to complete.
   ///
@@ -183,7 +191,7 @@ mixin IsSceneManagable<
   /// Override to cancel a scene remove from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeSceneRemove] listeners.
-  bool onBeforeSceneRemove(Scene<T> scene) => true;
+  HookResult onBeforeSceneRemove(Scene<T> scene) => .proceed;
 
   /// Override to react when a scene remove is about to complete.
   ///
@@ -290,12 +298,16 @@ mixin IsSceneManagable<
 
     emit(EventSceneAdding(app, scene));
 
-    if (!_doOnBeforeSceneAdd(scene)) {
+    HookResult result = _doOnBeforeSceneAdd(scene);
+
+    if (result == .cancel) {
       emit(EventSceneAddCancelled(app, scene));
       return self;
     }
 
-    if (!scene._doOnBeforeAdd(self)) {
+    result = _mergeHookResult(result, scene._doOnBeforeAdd(self));
+
+    if (result == .cancel) {
       emit(EventSceneAddCancelled(app, scene));
       return self;
     }
@@ -305,8 +317,12 @@ mixin IsSceneManagable<
     }
     
     scene.parent = self;
-    _doOnSceneAdd(scene);
-    if (!scene.isClone) scene._doAdd(self);
+
+    if (result == .proceed) {
+      _doOnSceneAdd(scene);
+      if (!scene.isClone) scene._doAdd(self);
+    }
+
     _scenes.add(scene);
 
     if (_dummyScenePresent) {
@@ -324,18 +340,26 @@ mixin IsSceneManagable<
   E removeScene(Scene<T> scene) {
     emit(EventSceneRemoving(app, scene));
     
-    if (!_doOnBeforeSceneRemove(scene)) {
+    HookResult result = _doOnBeforeSceneRemove(scene);
+
+    if (result == .cancel) {
       emit(EventSceneRemoveCancelled(app, scene));
       return self;
     }
 
-    if (!scene._doOnBeforeRemove()) {
+    result = _mergeHookResult(result, scene._doOnBeforeRemove());
+
+    if (result == .cancel) {
       emit(EventSceneRemoveCancelled(app, scene));
       return self;
     }
     
-    _doOnSceneRemove(scene);
-    scene._doRemove();
+    if (result == .proceed) {
+      _doOnSceneRemove(scene);
+      scene._doRemove();
+    }
+
+    // TODO: Scene._cleanup for entities/systems
     _scenes.remove(scene);
 
     scene._doOnAfterRemove();
@@ -353,18 +377,24 @@ mixin IsSceneManagable<
 
     emit(EventSceneLeaving(app, scene));
 
-    if (!_doOnBeforeSceneLeave(scene)) {
+    HookResult result = _doOnBeforeSceneLeave(scene);
+
+    if (result == .cancel) {
       emit(EventSceneLeaveCancelled(app, scene));
       return false;
     }
 
-    if (!scene._doOnBeforeLeave()) {
+    result = _mergeHookResult(result, scene._doOnBeforeLeave());
+
+    if (result == .cancel) {
       emit(EventSceneLeaveCancelled(app, scene));
       return false;
     } 
 
-    _doOnSceneLeave(scene);
-    scene._doOnLeave();
+    if (result == .proceed) {
+      _doOnSceneLeave(scene);
+      scene._doOnLeave();
+    }
 
     _doOnAfterSceneLeave(scene);
     scene._doOnAfterLeave();
@@ -375,20 +405,27 @@ mixin IsSceneManagable<
   bool _enterScene(Scene<T> scene) {
     emit(EventSceneEntering(app, scene));
 
-    if (!_doOnBeforeSceneEnter(scene)) {
+    HookResult result = _doOnBeforeSceneEnter(scene);
+
+    if (result == .cancel) {
       emit(EventSceneEnterCancelled(app, scene));
       return false;
     }
 
-    if (!scene._doOnBeforeEnter()) {
+    result = _mergeHookResult(result, scene._doOnBeforeEnter());
+
+    if (result == .cancel) {
       emit(EventSceneEnterCancelled(app, scene));
       return false;
     }
 
     if (!scene.isClone) scene._doStart();
 
-    _doOnSceneEnter(scene);
-    scene._doOnEnter();
+    if (result == .proceed) {
+      _doOnSceneEnter(scene);
+      scene._doOnEnter();
+    }
+
     _currentScene = scene;
 
     _doOnAfterSceneEnter(scene);
@@ -403,12 +440,16 @@ mixin IsSceneManagable<
 
     emit(EventSceneTransitioning(app, from, to));
 
-    if (!_doOnBeforeSceneTransition(from, to)) {
+    HookResult result = _doOnBeforeSceneTransition(from, to);
+
+    if (result == .cancel) {
       emit(EventSceneTransitionCancelled(app, from, to));
       return;
     }
 
-    _doOnSceneTransition(from, to);
+    if (result == .proceed) {
+      _doOnSceneTransition(from, to);
+    }
 
     if (from != to) {
       if (!_leaveCurrentScene()) {

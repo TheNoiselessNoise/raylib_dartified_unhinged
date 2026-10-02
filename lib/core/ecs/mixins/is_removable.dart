@@ -13,7 +13,7 @@ mixin IsRemovable<
   Self<E>,
   ECSBase<T>
 {
-  late final hookOnBeforeRemoveKey = ECSHookKey<bool Function(E self)>(
+  late final hookOnBeforeRemoveKey = ECSHookKey<HookResult Function(E self)>(
     'IsRemovable', 'onBeforeRemove'
   );
 
@@ -28,7 +28,7 @@ mixin IsRemovable<
   /// Whether this object has been removed.
   bool isRemoved = false;
 
-  Iterable<bool Function(E self)> get _onBeforeRemoveFns
+  Iterable<HookResult Function(E self)> get _onBeforeRemoveFns
     => hooksOf(hookOnBeforeRemoveKey);
 
   Iterable<void Function(E self)> get _onRemoveFns
@@ -41,7 +41,7 @@ mixin IsRemovable<
   ///
   /// [fn] returning `false` cancels the removal.
   @nonVirtual
-  E listenOnBeforeRemove(bool Function(E self) fn) {
+  E listenOnBeforeRemove(HookResult Function(E self) fn) {
     addHook(hookOnBeforeRemoveKey, fn);
     return self;
   }
@@ -68,9 +68,13 @@ mixin IsRemovable<
   ///
   /// Returns `false` if any listener or the override cancels removal.
   @mustCallSuper
-  bool _doOnBeforeRemove() {
-    if (!_onBeforeRemoveFns.every((f) => f(self))) return false;
-    return onBeforeRemove();
+  HookResult _doOnBeforeRemove() {
+    HookResult result = .proceed;
+    for (final f in _onBeforeRemoveFns) {
+      result = _mergeHookResult(result, f(self));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeRemove());
   }
 
   /// Runs all remove listeners and [onRemove].
@@ -100,7 +104,7 @@ mixin IsRemovable<
   /// Override to cancel removal from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeRemove] listeners.
-  bool onBeforeRemove() => true;
+  HookResult onBeforeRemove() => .proceed;
 
   /// Override to react after removal has completed.
   ///

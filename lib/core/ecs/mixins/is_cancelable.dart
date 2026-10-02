@@ -32,7 +32,7 @@ mixin IsCancelable<
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  late final hookOnBeforeCancelKey = ECSHookKey<bool Function(E self)>(
+  late final hookOnBeforeCancelKey = ECSHookKey<HookResult Function(E self)>(
     'IsCancelable', 'onBeforeCancel'
   );
 
@@ -44,7 +44,7 @@ mixin IsCancelable<
     'IsCancelable', 'onAfterCancel'
   );
 
-  Iterable<bool Function(E self)> get _onBeforeCancelFns
+  Iterable<HookResult Function(E self)> get _onBeforeCancelFns
     => hooksOf(hookOnBeforeCancelKey);
 
   Iterable<void Function(E self)> get _onCancelFns
@@ -57,7 +57,7 @@ mixin IsCancelable<
   ///
   /// [fn] returning `false` cancels the cancel.
   @nonVirtual
-  E listenOnBeforeCancel(bool Function(E self) fn) {
+  E listenOnBeforeCancel(HookResult Function(E self) fn) {
     addHook(hookOnBeforeCancelKey, fn);
     return self;
   }
@@ -84,9 +84,13 @@ mixin IsCancelable<
   ///
   /// Returns `false` if any listener or the override cancels the cancel.
   @mustCallSuper
-  bool _doOnBeforeCancel() {
-    if (!_onBeforeCancelFns.every((f) => f(self))) return false;
-    return onBeforeCancel();
+  HookResult _doOnBeforeCancel() {
+    HookResult result = .proceed;
+    for (final f in _onBeforeCancelFns) {
+      result = _mergeHookResult(result, f(self));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeCancel());
   }
 
   /// Runs all cancel listeners and [onCancel].
@@ -106,7 +110,7 @@ mixin IsCancelable<
   /// Override to cancel the cancel from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeCancel] listeners.
-  bool onBeforeCancel() => true;
+  HookResult onBeforeCancel() => .proceed;
 
   /// Override to react when the cancel is about to complete.
   ///
@@ -137,8 +141,9 @@ mixin IsCancelable<
   /// canceled or any `before` hooks listeners vetoed it.
   bool cancel() {
     if (_isCanceled) return false;
-    if (!_doOnBeforeCancel()) return false;
-    _doOnCancel();
+    HookResult result = _doOnBeforeCancel();
+    if (result == .cancel) return false;
+    if (result == .proceed) _doOnCancel();
     _isCanceled = true;
     _doOnAfterCancel();
     return true;

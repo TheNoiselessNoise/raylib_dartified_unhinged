@@ -24,7 +24,7 @@ mixin IsAppSystemManagable<
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
 
-  late final hookOnBeforeAppSystemAddKey = ECSHookKey<bool Function(E self, AppSystem<T> system)>(
+  late final hookOnBeforeAppSystemAddKey = ECSHookKey<HookResult Function(E self, AppSystem<T> system)>(
     'IsAppSystemManagable', 'onBeforeAppSystemAdd'
   );
 
@@ -36,7 +36,7 @@ mixin IsAppSystemManagable<
     'IsAppSystemManagable', 'onAfterAppSystemAdd'
   );
 
-  late final hookOnBeforeAppSystemRemoveKey = ECSHookKey<bool Function(E self, AppSystem<T> system)>(
+  late final hookOnBeforeAppSystemRemoveKey = ECSHookKey<HookResult Function(E self, AppSystem<T> system)>(
     'IsAppSystemManagable', 'onBeforeAppSystemRemove'
   );
 
@@ -48,7 +48,7 @@ mixin IsAppSystemManagable<
     'IsAppSystemManagable', 'onAfterAppSystemRemove'
   );
 
-  Iterable<bool Function(E self, AppSystem<T> system)> get _onBeforeAppSystemAddFns
+  Iterable<HookResult Function(E self, AppSystem<T> system)> get _onBeforeAppSystemAddFns
     => hooksOf(hookOnBeforeAppSystemAddKey);
 
   Iterable<void Function(E self, AppSystem<T> system)> get _onAppSystemAddFns
@@ -57,7 +57,7 @@ mixin IsAppSystemManagable<
   Iterable<void Function(E self, AppSystem<T> system)> get _onAfterAppSystemAddFns
     => hooksOf(hookOnAfterAppSystemAddKey);
 
-  Iterable<bool Function(E self, AppSystem<T> system)> get _onBeforeAppSystemRemoveFns
+  Iterable<HookResult Function(E self, AppSystem<T> system)> get _onBeforeAppSystemRemoveFns
     => hooksOf(hookOnBeforeAppSystemRemoveKey);
 
   Iterable<void Function(E self, AppSystem<T> system)> get _onAppSystemRemoveFns
@@ -70,7 +70,7 @@ mixin IsAppSystemManagable<
   ///
   /// [fn] returning `false` cancels the system add.
   @nonVirtual
-  E listenOnBeforeAppSystemAdd(bool Function(E self, AppSystem<T> system) fn) {
+  E listenOnBeforeAppSystemAdd(HookResult Function(E self, AppSystem<T> system) fn) {
     addHook(hookOnBeforeAppSystemAddKey, fn);
     return self;
   }
@@ -97,7 +97,7 @@ mixin IsAppSystemManagable<
   ///
   /// [fn] returning `false` cancels the system remove.
   @nonVirtual
-  E listenOnBeforeAppSystemRemove(bool Function(E self, AppSystem<T> system) fn) {
+  E listenOnBeforeAppSystemRemove(HookResult Function(E self, AppSystem<T> system) fn) {
     addHook(hookOnBeforeAppSystemRemoveKey, fn);
     return self;
   }
@@ -124,9 +124,13 @@ mixin IsAppSystemManagable<
   ///
   /// Returns `false` if any listener or the override cancels the add.
   @mustCallSuper
-  bool _doOnBeforeAppSystemAdd(AppSystem<T> system) {
-    if (!_onBeforeAppSystemAddFns.every((f) => f(self, system))) return false;
-    return onBeforeAppSystemAdd(system);
+  HookResult _doOnBeforeAppSystemAdd(AppSystem<T> system) {
+    HookResult result = .proceed;
+    for (final f in _onBeforeAppSystemAddFns) {
+      result = _mergeHookResult(result, f(self, system));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeAppSystemAdd(system));
   }
   
   /// Runs all add listeners and [onAppSystemAdd].
@@ -147,9 +151,13 @@ mixin IsAppSystemManagable<
   ///
   /// Returns `false` if any listener or the override cancels the remove.
   @mustCallSuper
-  bool _doOnBeforeAppSystemRemove(AppSystem<T> system) {
-    if (!_onBeforeAppSystemRemoveFns.every((f) => f(self, system))) return false;
-    return onBeforeAppSystemRemove(system);
+  HookResult _doOnBeforeAppSystemRemove(AppSystem<T> system) {
+    HookResult result = .proceed;
+    for (final f in _onBeforeAppSystemRemoveFns) {
+      result = _mergeHookResult(result, f(self, system));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onBeforeAppSystemRemove(system));
   }
 
   /// Runs all remove listeners and [onAppSystemRemove].
@@ -169,7 +177,7 @@ mixin IsAppSystemManagable<
   /// Override to cancel a system add from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeAppSystemAdd] listeners.
-  bool onBeforeAppSystemAdd(AppSystem<T> system) => true;
+  HookResult onBeforeAppSystemAdd(AppSystem<T> system) => .proceed;
 
   /// Override to react when a system add is about to complete.
   ///
@@ -184,7 +192,7 @@ mixin IsAppSystemManagable<
   /// Override to cancel a system remove from within the class.
   ///
   /// Return `false` to abort. Called after all registered [listenOnBeforeAppSystemRemove] listeners.
-  bool onBeforeAppSystemRemove(AppSystem<T> system) => true;
+  HookResult onBeforeAppSystemRemove(AppSystem<T> system) => .proceed;
 
   /// Override to react when a system remove is about to complete.
   ///
@@ -258,19 +266,26 @@ mixin IsAppSystemManagable<
   void addSystem<S extends AppSystem<T>>(S system) {
     emit(EventAppSystemAdding(app, system));
 
-    if (!_doOnBeforeAppSystemAdd(system)) {
+    HookResult result = _doOnBeforeAppSystemAdd(system);
+
+    if (result == .cancel) {
       emit(EventAppSystemAddCancelled(app, system));
       return;
     }
 
-    if (!system._doOnBeforeAdd(self)) {
+    result = _mergeHookResult(result, system._doOnBeforeAdd(self));
+
+    if (result == .cancel) {
       emit(EventAppSystemAddCancelled(app, system));
       return;
     }
 
     system.parent = self;
-    _doOnAppSystemAdd(system);
-    if (!system.isClone) system._doAdd(self);
+
+    if (result == .proceed) {
+      _doOnAppSystemAdd(system);
+      if (!system.isClone) system._doAdd(self);
+    }
 
     _systems.add(system);
 
@@ -303,18 +318,25 @@ mixin IsAppSystemManagable<
       
     emit(EventAppSystemRemoving(app, system));
 
-    if (!_doOnBeforeAppSystemRemove(system)) {
+    HookResult result = _doOnBeforeAppSystemRemove(system);
+
+    if (result == .cancel) {
       emit(EventAppSystemRemoveCancelled(app, system));
       return;
     }
 
-    if (!system._doOnBeforeRemove()) {
+    result = _mergeHookResult(result, system._doOnBeforeRemove());
+
+    if (result == .cancel) {
       emit(EventAppSystemRemoveCancelled(app, system));
       return;
     }
 
-    _doOnAppSystemRemove(system);
-    system._doRemove();
+    if (result == .proceed) {
+      _doOnAppSystemRemove(system);
+      system._doRemove();
+    }
+    
     _systems.remove(system);
 
     system._doOnAfterRemove();

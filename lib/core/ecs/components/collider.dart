@@ -22,7 +22,7 @@ abstract class CCollider<T extends App<T>> extends Comp<T> with
     this.debugLinesThick = _defaultLinesThick,
     this.debugColor,
 
-    bool Function(Comp<T> self, CCollider<T> other)? onBeforeCollisionFn,
+    HookResult Function(Comp<T> self, CCollider<T> other)? onBeforeCollisionFn,
     void Function(Comp<T> self, CCollider<T> other)? onCollisionFn,
     void Function(Comp<T> self, CCollider<T> other)? onAfterCollisionFn,
   }) {

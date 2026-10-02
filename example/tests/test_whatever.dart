@@ -260,8 +260,8 @@ class WhateverCollisionSystem extends CollisionResolverSystem<G> {
   WhateverCollisionSystem(super.app);
 
   @override
-  bool onBeforeCollision(ColliderCollision<G> collision) {
-    return collision.hasTags(TAG_BULLET, TAG_ENTITY2);
+  HookResult onBeforeCollision(ColliderCollision<G> collision) {
+    return collision.hasTags(TAG_BULLET, TAG_ENTITY2) ? .proceed : .cancel;
   }
 
   @override
