@@ -38,7 +38,10 @@ mixin IsCollidable<
 
   /// Registers [fn] as a before-collision listener.
   ///
-  /// [fn] returning `false` cancels the collision.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeCollision(HookResult Function(E self, C other) fn) {
     addHook(hookOnBeforeCollisionKey, fn);
@@ -63,9 +66,9 @@ mixin IsCollidable<
     return self;
   }
 
-  /// Runs all before-collision listeners and [onBeforeCollision].
+  /// Runs all before-collision listeners and [onBeforeCollision], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels the collision.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeCollision(C other) {
     HookResult result = .proceed;
@@ -90,9 +93,10 @@ mixin IsCollidable<
     onAfterCollision(other);
   }
 
-  /// Override to cancel the collision from within the class.
+  /// Override to intercept the before-collision phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeCollision] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeCollision] listeners.
   HookResult onBeforeCollision(C other) => .proceed;
 
   /// Override to react when the collision is about to complete.

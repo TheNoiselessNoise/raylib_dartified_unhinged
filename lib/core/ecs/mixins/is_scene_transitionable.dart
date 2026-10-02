@@ -76,9 +76,12 @@ mixin IsSceneTransitionable<
   Iterable<void Function(E self, Scene<T> from, Scene<T> to)> get _onAfterSceneTransitionFns
     => hooksOf(hookOnAfterSceneTransitionKey);
 
-  /// Registers [fn] as a before-enter listener.
+  /// Registers [fn] as a before-scene-enter listener.
   ///
-  /// [fn] returning `false` cancels the scene enter.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeSceneEnter(HookResult Function(E self, Scene<T> scene) fn) {
     addHook(hookOnBeforeSceneEnterKey, fn);
@@ -103,9 +106,12 @@ mixin IsSceneTransitionable<
     return self;
   }
 
-  /// Registers [fn] as a before-leave listener.
+  /// Registers [fn] as a before-scene-leave listener.
   ///
-  /// [fn] returning `false` cancels the scene leave.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeSceneLeave(HookResult Function(E self, Scene<T> scene) fn) {
     addHook(hookOnBeforeSceneLeaveKey, fn);
@@ -130,9 +136,12 @@ mixin IsSceneTransitionable<
     return self;
   }
 
-  /// Registers [fn] as a before-transition listener.
+  /// Registers [fn] as a before-scene-transition listener.
   ///
-  /// [fn] returning `false` cancels the full scene transition.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeSceneTransition(HookResult Function(E self, Scene<T> from, Scene<T> to) fn) {
     addHook(hookOnBeforeSceneTransitionKey, fn);
@@ -157,9 +166,9 @@ mixin IsSceneTransitionable<
     return self;
   }
 
-  /// Runs all before-enter listeners and [onBeforeSceneEnter].
+  /// Runs all before-scene-enter listeners and [onBeforeSceneEnter], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels the enter.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeSceneEnter(Scene<T> scene) {
     HookResult result = .proceed;
@@ -184,9 +193,9 @@ mixin IsSceneTransitionable<
     onAfterSceneEnter(scene);
   }
 
-  /// Runs all before-leave listeners and [onBeforeSceneLeave].
+  /// Runs all before-scene-leave listeners and [onBeforeSceneLeave], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels the leave.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeSceneLeave(Scene<T> scene) {
     HookResult result = .proceed;
@@ -211,9 +220,9 @@ mixin IsSceneTransitionable<
     onAfterSceneLeave(scene);
   }
 
-  /// Runs all before-transition listeners and [onBeforeSceneTransition].
+  /// Runs all before-scene-transition listeners and [onBeforeSceneTransition], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels the transition.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeSceneTransition(Scene<T> from, Scene<T> to) {
     HookResult result = .proceed;
@@ -238,9 +247,10 @@ mixin IsSceneTransitionable<
     onAfterSceneTransition(from, to);
   }
 
-  /// Override to cancel a scene enter from within the class.
+  /// Override to intercept the before-scene-enter phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeSceneEnter] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeSceneEnter] listeners.
   HookResult onBeforeSceneEnter(Scene<T> scene) => .proceed;
 
   /// Override to react when a scene enter is about to complete.
@@ -253,9 +263,10 @@ mixin IsSceneTransitionable<
   /// Called after all registered [listenOnAfterSceneEnter] listeners.
   void onAfterSceneEnter(Scene<T> scene) {}
 
-  /// Override to cancel a scene leave from within the class.
+  /// Override to intercept the before-scene-leave phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeSceneLeave] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeSceneLeave] listeners.
   HookResult onBeforeSceneLeave(Scene<T> scene) => .proceed;
 
   /// Override to react when a scene leave is about to complete.
@@ -268,9 +279,10 @@ mixin IsSceneTransitionable<
   /// Called after all registered [listenOnAfterSceneLeave] listeners.
   void onAfterSceneLeave(Scene<T> scene) {}
 
-  /// Override to cancel a scene transition from within the class.
+  /// Override to intercept the before-scene-transition phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeSceneTransition] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeSceneTransition] listeners.
   HookResult onBeforeSceneTransition(Scene<T> from, Scene<T> to) => .proceed;
 
   /// Override to react when a scene transition is about to complete.

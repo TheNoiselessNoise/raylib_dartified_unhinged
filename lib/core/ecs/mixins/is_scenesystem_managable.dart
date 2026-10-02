@@ -65,9 +65,12 @@ mixin IsSceneSystemManagable<
   Iterable<void Function(E self, SceneSystem<T> system)> get _onAfterSceneSystemRemoveFns
     => hooksOf(hookOnAfterSceneSystemRemoveKey);
 
-  /// Registers [fn] as a before-add listener.
+  /// Registers [fn] as a before-scenesystem-add listener.
   ///
-  /// [fn] returning `false` cancels the system add.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeSceneSystemAdd(HookResult Function(E self, SceneSystem<T> system) fn) {
     addHook(hookOnBeforeSceneSystemAddKey, fn);
@@ -92,9 +95,12 @@ mixin IsSceneSystemManagable<
     return self;
   }
 
-  /// Registers [fn] as a before-remove listener.
+  /// Registers [fn] as a before-scenesystem-remove listener.
   ///
-  /// [fn] returning `false` cancels the system remove.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeSceneSystemRemove(HookResult Function(E self, SceneSystem<T> system) fn) {
     addHook(hookOnBeforeSceneSystemRemoveKey, fn);
@@ -119,9 +125,9 @@ mixin IsSceneSystemManagable<
     return self;
   }
 
-  /// Runs all before-add listeners and [onBeforeSceneSystemAdd].
+  /// Runs all before-scenesystem-add listeners and [onBeforeSceneSystemAdd], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels the add.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeSceneSystemAdd(SceneSystem<T> system) {
     HookResult result = .proceed;
@@ -146,9 +152,9 @@ mixin IsSceneSystemManagable<
     onAfterSceneSystemAdd(system);
   }
 
-  /// Runs all before-remove listeners and [onBeforeSceneSystemRemove].
+  /// Runs all before-scenesystem-remove listeners and [onBeforeSceneSystemRemove], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels the remove.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeSceneSystemRemove(SceneSystem<T> system) {
     HookResult result = .proceed;
@@ -173,9 +179,10 @@ mixin IsSceneSystemManagable<
     onAfterSceneSystemRemove(system);
   }
 
-  /// Override to cancel a system add from within the class.
+  /// Override to intercept the before-scenesystem-add phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeSceneSystemAdd] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeSceneSystemAdd] listeners.
   HookResult onBeforeSceneSystemAdd(SceneSystem<T> system) => .proceed;
 
   /// Override to react when a system add is about to complete.
@@ -190,9 +197,10 @@ mixin IsSceneSystemManagable<
   /// Called after all registered [listenOnAfterSceneSystemAdd] listeners.
   void onAfterSceneSystemAdd(SceneSystem<T> system) {}
 
-  /// Override to cancel a system remove from within the class.
+  /// Override to intercept the before-scenesystem-remove phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeSceneSystemRemove] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeSceneSystemRemove] listeners.
   HookResult onBeforeSceneSystemRemove(SceneSystem<T> system) => .proceed;
 
   /// Override to react when a system remove is about to complete.

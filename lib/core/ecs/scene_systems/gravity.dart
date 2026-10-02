@@ -9,7 +9,7 @@ class GravitySystem<T extends App<T>> extends SceneSystem<T> {
   }) : gravity = gravity ?? .zero();
 
   @override
-  void onPreUpdate(double dt) => scene.QueryEntity.DoForEachWith2<CTransform<T>, CVelocity<T>>(
+  void onPostUpdate(double dt) => scene.QueryEntity.DoForEachWith2<CTransform<T>, CVelocity<T>>(
     (e, t, v) => v.velocity.y += gravity.y * dt
   );
 

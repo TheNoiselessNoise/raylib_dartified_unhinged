@@ -1,9 +1,6 @@
 // Run it: dart run test_animations.dart
 import '_base.dart';
 
-// TODO: onPreCompUpdate
-// TODO: onPostCompUpdate
-
 class MyEntity extends Entity<G> {
   double entityField;
 
@@ -24,7 +21,7 @@ class MyEntity extends Entity<G> {
   }
 
   @override
-  void onPreUpdate(double dt) => onTransform((t) {
+  void onPostUpdate(double dt) => onTransform((t) {
     t.position.x = Remap(entityField, 0, 1, 0, sceneWidth);
   });
 }

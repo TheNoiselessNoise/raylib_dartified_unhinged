@@ -35,7 +35,10 @@ mixin IsEnterable<
 
   /// Registers [fn] as a before-enter listener.
   ///
-  /// [fn] returning `false` cancels the enter.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeEnter(HookResult Function(E self) fn) {
     addHook(hookOnBeforeEnterKey, fn);
@@ -60,9 +63,9 @@ mixin IsEnterable<
     return self;
   }
 
-  /// Runs all before-enter listeners and [onBeforeEnter].
+  /// Runs all before-enter listeners and [onBeforeEnter], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels the enter.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeEnter() {
     HookResult result = .proceed;
@@ -87,9 +90,10 @@ mixin IsEnterable<
     onAfterEnter();
   }
 
-  /// Override to cancel an enter from within the class.
+  /// Override to intercept the before-enter phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeEnter] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeEnter] listeners.
   HookResult onBeforeEnter() => .proceed;
 
   /// Override to react when an enter is about to complete.

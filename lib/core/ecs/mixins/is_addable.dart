@@ -40,12 +40,11 @@ mixin IsAddable<
   Iterable<void Function(E self, ECSBase<T> parent)> get _onAfterAddFns
     => hooksOf(hookOnAfterAddKey);
 
-  // TODO: this is correct doc-comment
   /// Registers [fn] as a before-add listener.
   ///
   /// [fn] returns a [HookResult] to control execution flow:
   /// - [HookResult.proceed] continues normally.
-  /// - [HookResult.onlyAfter] skips the core action but runs the after-phase.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
   /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeAdd(HookResult Function(E self, ECSBase<T> parent) fn) {
@@ -71,10 +70,9 @@ mixin IsAddable<
     return self;
   }
 
-  // TODO: this is correct doc-comment
   /// Runs all before-add listeners and [onBeforeAdd], combining their [HookResult] decisions.
   ///
-  /// Prioritizes [HookResult.cancel], followed by [HookResult.onlyAfter], defaulting to [HookResult.proceed].
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeAdd(ECSBase<T> parent) {
     HookResult result = .proceed;
@@ -99,7 +97,6 @@ mixin IsAddable<
     onAfterAdd(parent);
   }
 
-  // TODO: this is correct doc-comment
   /// Override to intercept the before-add phase from within the class.
   ///
   /// Returns a [HookResult] (defaults to [HookResult.proceed]). 

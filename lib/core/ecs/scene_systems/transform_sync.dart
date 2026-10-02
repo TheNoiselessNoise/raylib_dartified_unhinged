@@ -26,7 +26,7 @@ class TransformSyncSystem<T extends App<T>> extends SceneSystem<T> {
   }
 
   @override
-  void onPreUpdate(double dt) {
+  void onPostUpdate(double dt) {
     scene.QueryEntity.DoForEach<AnyEntityGroup<T>>((g) {
       // only start from root groups (those that are NOT themselves inside a group)
       if (g.parent is! AnyEntityGroup<T>) {

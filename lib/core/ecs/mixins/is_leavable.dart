@@ -35,7 +35,10 @@ mixin IsLeavable<
 
   /// Registers [fn] as a before-leave listener.
   ///
-  /// [fn] returning `false` cancels the enter.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeLeave(HookResult Function(E self) fn) {
     addHook(hookOnBeforeLeaveKey, fn);
@@ -60,9 +63,9 @@ mixin IsLeavable<
     return self;
   }
 
-  /// Runs all before-leave listeners and [onBeforeLeave].
+  /// Runs all before-leave listeners and [onBeforeLeave], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels the leave.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeLeave() {
     HookResult result = .proceed;
@@ -87,9 +90,10 @@ mixin IsLeavable<
     onAfterLeave();
   }
 
-  /// Override to cancel an leave from within the class.
+  /// Override to intercept the before-leave phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeLeave] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeLeave] listeners.
   HookResult onBeforeLeave() => .proceed;
 
   /// Override to react when an leave is about to complete.

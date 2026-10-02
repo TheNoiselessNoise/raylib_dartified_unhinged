@@ -325,13 +325,26 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   /// Runs one update tick:
   /// `pre-update` > `systems (pre)` > `entities` > `systems (post)` > `post-update`.
   void _updateScene(double dt) {
-    _doPreUpdate(dt);
+    final result = _doOnPreUpdate(dt);
 
-    _runUpdateSystems(.preEntities, dt);
-    _updateEntities(dt);
-    _runUpdateSystems(.postEntities, dt);
+    if (result == .cancel) return;
 
-    _doPostUpdate(dt);
+    if (result == .proceed) {
+      int ran = 0;
+      HookResult sysResult = .proceed;
+      for (final s in _systems) {
+        ran++;
+        final res = s._doOnPreUpdate(dt);
+        if (res == .cancel) { sysResult = res; break; }
+        if (res == .skip) sysResult = res;
+      }
+      if (sysResult == .proceed) _updateEntities(dt);
+      for (int i = ran - 1; i >= 0; i--) {
+        _systems[i]._doOnPostUpdate(dt);
+      }
+    }
+
+    _doOnPostUpdate(dt);
   }
 
   @override
@@ -361,29 +374,38 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   /// hooks on the appropriate layers and calling system and entity draw methods
   /// for each layer.
   @override
-  @mustCallSuper
+  @nonVirtual
   void _doDraw(double dt) {
-    _doOnPreDraw(dt);
+    final result = _doOnPreDraw(dt);
 
-    for (final layer in renderer.layers) {
-      renderer.setLayer(layer.name);
+    if (result == .cancel) return;
 
-      if (layer.name == RenderLayers.background.name) {
-        _doDrawBackground(dt);
+    if (result == .proceed) {
+      _doDrawBackground(dt);
+
+      for (final layer in renderer.layers) {
+        renderer.setLayer(layer.name);
+
+        int ran = 0;
+        HookResult sysResult = .proceed;
+        for (final s in _systems) {
+          ran++;
+          final res = s._doOnPreDraw(dt);
+          if (res == .cancel) { sysResult = res; break; }
+          if (res == .skip) sysResult = res;
+        }
+        if (sysResult == .proceed) _drawLayeredEntities(dt, renderLayerOverride);
+        for (int i = ran - 1; i >= 0; i--) {
+          _systems[i]._doOnPostDraw(dt);
+        }
       }
 
-      _runDrawSystems(.preEntities, dt);
-      _drawLayeredEntities(dt, renderLayerOverride);
-      _runDrawSystems(.postEntities, dt);
+      super._doDraw(dt);
 
-      if (layer.name == RenderLayers.foreground.name) {
-        _doDrawForeground(dt);
-      }
+      _doDrawForeground(dt);
     }
 
     _doOnPostDraw(dt);
-
-    super._doDraw(dt);
   }
 
   @override
@@ -437,19 +459,11 @@ class Scene<T extends App<T>> extends ECSBase<T> with
     super._doEndFrame(dt);
   }
 
-  /// Calls the update hook on every system for the given [phase].
-  void _runUpdateSystems(SystemPhase phase, double dt) 
-    => _systems.forEach((s) => switch (phase) {
-      .preEntities => s._doPreUpdate(dt),
-      .postEntities => s._doPostUpdate(dt),
-    });
-
-  /// Calls the draw hook on every system for the given [phase].
-  void _runDrawSystems(SystemPhase phase, double dt) 
-    => _systems.forEach((s) => switch (phase) {
-      .preEntities => s._doOnPreDraw(dt),
-      .postEntities => s._doOnPostDraw(dt),
-    });
+  @mustCallSuper
+  void _cleanup() {
+    _entities.toList().forEach(removeEntity);
+    _systems.toList().forEach(_removeSceneSystemInstance);
+  }
 
   // ░██████████ ░██    ░██ ░██████████ ░███    ░██ ░██████████  ░██████   
   // ░██         ░██    ░██ ░██         ░████   ░██     ░██     ░██   ░██  

@@ -78,26 +78,34 @@ class Comp<T extends App<T>> extends ECSBase<T> with
   //   ░██  ░██       ░██ ░██         ░██         
   // ░██████░██       ░██ ░██         ░██████████ 
 
+  @override
+  bool get _isInstanceDisabled => isDisabled || entity.isDisabled;
+
   /// Fires pre update listeners, advances all components by [dt], fires post update listeners.
   /// Skipped entirely when the component or the parent entity is disabled.
   @nonVirtual
   void _doComponentUpdate(double dt) {
-    if (isDisabled || entity.isDisabled) return;
-    _doPreUpdate(dt);
-    for (final c in _components) {
-      if (isDisabled || entity.isDisabled) return;
-      c._doComponentUpdate(dt);
-    }
-    if (isDisabled || entity.isDisabled) return;
-    _doPostUpdate(dt);
+    if (_isInstanceDisabled) return;
+    final result = _doOnPreUpdate(dt);
+    if (result == .cancel) return;
+    if (_isInstanceDisabled) return;
+    if (result == .proceed) _updateChildComponents(dt);
+    if (_isInstanceDisabled) return;
+    _doOnPostUpdate(dt);
   }
 
   @override
   @nonVirtual
   void _doDraw(double dt) {
-    if (isDisabled) return;
-    _components.forEach((c) => c._doDraw(dt));
+    if (_isInstanceDisabled) return;
+    _drawChildComponents(dt);
     super._doDraw(dt);
+  }
+
+  @mustCallSuper
+  void _cleanup() {
+    // NOTE: toList() is important
+    _components.toList().forEach(_removeComponentInstance);
   }
 
   //   ░██████  ░██           ░██████   ░███    ░██ ░██████████ 

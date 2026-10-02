@@ -39,7 +39,10 @@ mixin IsRemovable<
 
   /// Registers [fn] as a before-remove listener.
   ///
-  /// [fn] returning `false` cancels the removal.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeRemove(HookResult Function(E self) fn) {
     addHook(hookOnBeforeRemoveKey, fn);
@@ -64,9 +67,9 @@ mixin IsRemovable<
     return self;
   }
 
-  /// Runs all before-remove listeners and [onBeforeRemove].
+  /// Runs all before-remove listeners and [onBeforeRemove], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels removal.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeRemove() {
     HookResult result = .proceed;
@@ -101,9 +104,10 @@ mixin IsRemovable<
     _doOnRemove();
   }
 
-  /// Override to cancel removal from within the class.
+  /// Override to intercept the before-remove phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeRemove] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeRemove] listeners.
   HookResult onBeforeRemove() => .proceed;
 
   /// Override to react after removal has completed.

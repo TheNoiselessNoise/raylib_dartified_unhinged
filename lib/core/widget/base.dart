@@ -327,17 +327,17 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
 
   @override
   @mustCallSuper
-  void _doPreUpdate(double dt) {
+  HookResult _doOnPreUpdate(double dt) {
     if (parentWidget == null && _needsPass) _flushPass();
     _controllers.forEach((c) => c.update(dt));
-    super._doPreUpdate(dt);
+    return super._doOnPreUpdate(dt);
   }
 
   @override
   @mustCallSuper
-  void _doPostUpdate(double dt) {
+  void _doOnPostUpdate(double dt) {
     if (parentWidget == null) _sync();
-    super._doPostUpdate(dt);
+    super._doOnPostUpdate(dt);
     get<CWidgetMouseInteractable<T>>()!.externalUpdate(dt);
   }
 

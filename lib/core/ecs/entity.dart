@@ -262,17 +262,19 @@ class Entity<T extends App<T>> extends ECSBase<T> with
     super._doOnCompRemove(component);
   }
 
+  @override
+  bool get _isInstanceDisabled => isDisabled;
+
   /// Fires pre update listeners, advances all components by [dt], fires post update listeners.
   /// Skipped entirely when the entity is disabled.
   void _doEntityUpdate(double dt) {
-    if (isDisabled) return;
-    _doPreUpdate(dt);
-    for (final c in _components) {
-      if (isDisabled) return;
-      c._doComponentUpdate(dt);
-    }
-    if (isDisabled) return;
-    _doPostUpdate(dt);
+    if (_isInstanceDisabled) return;
+    final result = _doOnPreUpdate(dt);
+    if (result == .cancel) return;
+    if (_isInstanceDisabled) return;
+    if (result == .proceed) _updateChildComponents(dt);
+    if (_isInstanceDisabled) return;
+    _doOnPostUpdate(dt);
   }
 
   /// Draws all components for [dt], fires draw listeners, then calls
@@ -280,9 +282,15 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   @override
   @mustCallSuper
   void _doDraw(double dt) {
-    if (isDisabled) return;
-    _components.forEach((c) => c._doDraw(dt));
+    if (_isInstanceDisabled) return;
+    _drawChildComponents(dt);
     super._doDraw(dt);
+  }
+
+  @mustCallSuper
+  void _cleanup() {
+    // NOTE: toList() is important
+    _components.toList().forEach(_removeComponentInstance);
   }
 
   //   ░██████   ░██     ░██ ░██████████ ░█████████  ░██     ░██ 
@@ -514,16 +522,14 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   /// Member updates are skipped when the group is disabled.
   @override
   void _doEntityUpdate(double dt) {
-    if (isDisabled) return;
-    _doPreUpdate(dt);
-    for (final c in _components) {
-      if (isDisabled) return;
-      c._doComponentUpdate(dt);
-    }
-    if (isDisabled) return;
+    if (_isInstanceDisabled) return;
+    final result = _doOnPreUpdate(dt);
+    if (result == .cancel) return;
+    if (_isInstanceDisabled) return;
+    if (result == .proceed) _updateChildComponents(dt);
+    if (_isInstanceDisabled) return;
     _updateEntities(dt);
-    if (isDisabled) return;
-    _doPostUpdate(dt);
+    _doOnPostUpdate(dt);
   }
 
   /// Draws the group itself, then draws each member entity.
@@ -532,7 +538,7 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   @mustCallSuper
   void _doDraw(double dt) {
     super._doDraw(dt);
-    if (isDisabled) return;
+    if (_isInstanceDisabled) return;
     _drawAllEntities(dt);
   }
 
@@ -551,6 +557,13 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
     if (!super.addEntity(entity)) return false;
     _ensureLocalPosition(entity);
     return true;
+  }
+
+  @override
+  @mustCallSuper
+  void _cleanup() {
+    _entities.toList().forEach(removeEntity);
+    super._cleanup();
   }
 
   /// Reconciles the transform components of [entity] so that both a world

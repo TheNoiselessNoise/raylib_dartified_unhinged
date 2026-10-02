@@ -54,6 +54,22 @@ mixin IsComponentManagable<
     'IsComponentManagable', 'onAfterCompClone'
   );
 
+  late final hookOnPreCompUpdateKey = ECSHookKey<HookResult Function(E self, Comp<T> component)>(
+    'IsComponentManagable', 'onPreCompUpdate'
+  );
+
+  late final hookOnPostCompUpdateKey = ECSHookKey<void Function(E self, Comp<T> component)>(
+    'IsComponentManagable', 'onPostCompUpdate'
+  );
+
+  late final hookOnPreCompDrawKey = ECSHookKey<HookResult Function(E self, Comp<T> component)>(
+    'IsComponentManagable', 'onPreCompDraw'
+  );
+
+  late final hookOnPostCompDrawKey = ECSHookKey<void Function(E self, Comp<T> component)>(
+    'IsComponentManagable', 'onPostCompDraw'
+  );
+
   Iterable<HookResult Function(E self, Comp<T> component)> get _onBeforeCompAddFns
     => hooksOf(hookOnBeforeCompAddKey);
 
@@ -81,6 +97,24 @@ mixin IsComponentManagable<
   Iterable<void Function(E self, Comp<T> component)> get _onAfterCompCloneFns
     => hooksOf(hookOnAfterCompCloneKey);
 
+  Iterable<HookResult Function(E self, Comp<T> component)> get _onPreCompUpdateFns
+    => hooksOf(hookOnPreCompUpdateKey);
+
+  Iterable<void Function(E self, Comp<T> component)> get _onPostCompUpdateFns
+    => hooksOf(hookOnPostCompUpdateKey);
+
+  Iterable<HookResult Function(E self, Comp<T> component)> get _onPreCompDrawFns
+    => hooksOf(hookOnPreCompDrawKey);
+
+  Iterable<void Function(E self, Comp<T> component)> get _onPostCompDrawFns
+    => hooksOf(hookOnPostCompDrawKey); 
+
+  /// Registers [fn] as a before-comp-add listener.
+  ///
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeCompAdd(HookResult Function(E self, Comp<T> component) fn) {
     addHook(hookOnBeforeCompAddKey, fn);
@@ -99,6 +133,12 @@ mixin IsComponentManagable<
     return self;
   }
 
+  /// Registers [fn] as a before-comp-remove listener.
+  ///
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeCompRemove(HookResult Function(E self, Comp<T> component) fn) {
     addHook(hookOnBeforeCompRemoveKey, fn);
@@ -117,6 +157,12 @@ mixin IsComponentManagable<
     return self;
   }
 
+  /// Registers [fn] as a before-comp-clone listener.
+  ///
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeCompClone(HookResult Function(E self, Comp<T> component) fn) {
     addHook(hookOnBeforeCompCloneKey, fn);
@@ -135,6 +181,44 @@ mixin IsComponentManagable<
     return self;
   }
 
+  /// Registers [fn] as a pre-comp-update listener.
+  ///
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
+  @nonVirtual
+  E listenOnPreCompUpdate(HookResult Function(E self, Comp<T> component) fn) {
+    addHook(hookOnPreCompUpdateKey, fn);
+    return self;
+  }
+
+  @nonVirtual
+  E listenOnPostCompUpdate(void Function(E self, Comp<T> component) fn) {
+    addHook(hookOnPostCompUpdateKey, fn);
+    return self;
+  }
+
+  /// Registers [fn] as a pre-comp-draw listener.
+  ///
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
+  @nonVirtual
+  E listenOnPreCompDraw(HookResult Function(E self, Comp<T> component) fn) {
+    addHook(hookOnPreCompDrawKey, fn);
+    return self;
+  }
+
+  E listenOnPostCompDraw(void Function(E self, Comp<T> component) fn) {
+    addHook(hookOnPostCompDrawKey, fn);
+    return self;
+  }
+
+  /// Runs all before-comp-add listeners and [onBeforeCompAdd], combining their [HookResult] decisions.
+  ///
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeCompAdd(Comp<T> component) {
     HookResult result = .proceed;
@@ -157,6 +241,9 @@ mixin IsComponentManagable<
     onAfterCompAdd(component);
   }
 
+  /// Runs all before-comp-remove listeners and [onBeforeCompRemove], combining their [HookResult] decisions.
+  ///
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeCompRemove(Comp<T> component) {
     HookResult result = .proceed;
@@ -179,6 +266,9 @@ mixin IsComponentManagable<
     onAfterCompRemove(component);
   }
 
+  /// Runs all before-comp-clone listeners and [onBeforeCompClone], combining their [HookResult] decisions.
+  ///
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeCompClone(Comp<T> component) {
     HookResult result = .proceed;
@@ -201,23 +291,87 @@ mixin IsComponentManagable<
     onAfterCompClone(component);
   }
 
+  /// Runs all pre-comp-update listeners and [onPreCompUpdate], combining their [HookResult] decisions.
+  ///
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
+  @mustCallSuper
+  HookResult _doOnPreCompUpdate(Comp<T> component) {
+    HookResult result = .proceed;
+    for (final f in _onPreCompUpdateFns) {
+      result = _mergeHookResult(result, f(self, component));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onPreCompUpdate(component));
+  }
+
+  void _doOnPostCompUpdate(Comp<T> component) {
+    _onPostCompUpdateFns.forEach((f) => f(self, component));
+    return onPostCompUpdate(component);
+  }
+
+  /// Runs all pre-comp-draw listeners and [onPreCompDraw], combining their [HookResult] decisions.
+  ///
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
+  @mustCallSuper
+  HookResult _doOnPreCompDraw(Comp<T> component) {
+    HookResult result = .proceed;
+    for (final f in _onPreCompDrawFns) {
+      result = _mergeHookResult(result, f(self, component));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onPreCompDraw(component));
+  }
+
+  void _doOnPostCompDraw(Comp<T> component) {
+    _onPostCompDrawFns.forEach((f) => f(self, component));
+    return onPostCompDraw(component);
+  }
+
+  /// Override to intercept the before-comp-add phase from within the class.
+  ///
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeCompAdd] listeners.
   HookResult onBeforeCompAdd(Comp<T> component) => .proceed;
 
   void onCompAdd(Comp<T> component) {}
 
   void onAfterCompAdd(Comp<T> component) {}
 
+  /// Override to intercept the before-comp-remove phase from within the class.
+  ///
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeCompRemove] listeners.
   HookResult onBeforeCompRemove(Comp<T> component) => .proceed;
 
   void onCompRemove(Comp<T> component) {}
 
   void onAfterCompRemove(Comp<T> component) {}
 
+  /// Override to intercept the before-comp-clone phase from within the class.
+  ///
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeCompClone] listeners.
   HookResult onBeforeCompClone(Comp<T> copy) => .proceed;
 
   void onCompClone(Comp<T> copy) {}
 
   void onAfterCompClone(Comp<T> copy) {}
+
+  /// Override to intercept the pre-comp-update phase from within the class.
+  ///
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnPreCompUpdate] listeners.
+  HookResult onPreCompUpdate(Comp<T> component) => .proceed;
+
+  void onPostCompUpdate(Comp<T> component) {}
+
+  /// Override to intercept the pre-comp-draw phase from within the class.
+  ///
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnPreCompDraw] listeners.
+  HookResult onPreCompDraw(Comp<T> component) => .proceed;
+
+  void onPostCompDraw(Comp<T> component) {}
 
   // ░██████████ ░██    ░██ ░██████████ ░███    ░██ ░██████████  ░██████   
   // ░██         ░██    ░██ ░██         ░████   ░██     ░██     ░██   ░██  
@@ -283,6 +437,44 @@ mixin IsComponentManagable<
   /// Returns the top-level components attached directly to this entity/component
   /// (does not recurse into nested components).
   Iterable<Comp<T>> getComponents() => _components;
+
+  bool get _isInstanceDisabled;
+
+  void _updateChildComponents(double dt) {
+    for (final c in _components) {
+      if (_isInstanceDisabled) return;
+
+      final result = _doOnPreCompUpdate(c);
+      if (_isInstanceDisabled) return;
+
+      if (result == .cancel) continue;
+
+      if (result == .proceed) {
+        c._doComponentUpdate(dt);
+      }
+
+      if (_isInstanceDisabled) return;
+      _doOnPostCompUpdate(c);
+    }
+  }
+
+  void _drawChildComponents(double dt) {
+    for (final c in _components) {
+      if (_isInstanceDisabled) return;
+
+      final result = _doOnPreCompDraw(c);
+      if (_isInstanceDisabled) return;
+
+      if (result == .cancel) continue;
+
+      if (result == .proceed) {
+        c._doDraw(dt);
+      }
+
+      if (_isInstanceDisabled) return;
+      _doOnPostCompDraw(c);
+    }
+  }
 
   // ──────────
   // ACTIVATION
@@ -460,12 +652,7 @@ mixin IsComponentManagable<
       component._doRemove();
     }
 
-    // remove nested components
-    // NOTE: toList() is important
-    component._components.toList().forEach(
-      (c) => component._removeComponentInstance(c)
-    );
-    
+    component._cleanup();
     _components.remove(component);
 
     component._doOnAfterRemove();

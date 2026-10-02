@@ -1,8 +1,6 @@
 part of '../../raylib_dartified_unhinged.dart';
 
 /// Adds pre-update and post-update lifecycle hooks to an ECS object.
-///
-/// The **on** phase only, update boundaries are not cancelable.
 mixin IsPrePostUpdatable<
   T extends App<T>,
   E extends ECSBase<T>
@@ -10,7 +8,7 @@ mixin IsPrePostUpdatable<
   Self<E>,
   ECSBase<T>
 {
-  late final hookOnPreUpdateKey = ECSHookKey<void Function(E self, double dt)>(
+  late final hookOnPreUpdateKey = ECSHookKey<HookResult Function(E self, double dt)>(
     'IsPrePostUpdatable', 'onPreUpdate'
   );
 
@@ -18,15 +16,21 @@ mixin IsPrePostUpdatable<
     'IsPrePostUpdatable', 'onPostUpdate'
   );
 
-  Iterable<void Function(E self, double dt)> get _onPreUpdateFns
+  Iterable<HookResult Function(E self, double dt)> get _onPreUpdateFns
     => hooksOf(hookOnPreUpdateKey);
 
   Iterable<void Function(E self, double dt)> get _onPostUpdateFns
     => hooksOf(hookOnPostUpdateKey);
 
+  /// Registers [fn] as a pre-update listener.
+  ///
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   /// Registers [fn] to be called before the update phase each frame.
   @nonVirtual
-  E listenOnPreUpdate(void Function(E self, double dt) fn) {
+  E listenOnPreUpdate(HookResult Function(E self, double dt) fn) {
     addHook(hookOnPreUpdateKey, fn);
     return self;
   }
@@ -38,24 +42,31 @@ mixin IsPrePostUpdatable<
     return self;
   }
 
-  /// Notifies all pre-update listeners and calls [onPreUpdate].
+  /// Runs all pre-update listeners and [onPreUpdate], combining their [HookResult] decisions.
+  ///
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
-  void _doPreUpdate(double dt) {
-    _onPreUpdateFns.forEach((f) => f(self, dt));
-    onPreUpdate(dt);
+  HookResult _doOnPreUpdate(double dt) {
+    HookResult result = .proceed;
+    for (final f in _onPreUpdateFns) {
+      result = _mergeHookResult(result, f(self, dt));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onPreUpdate(dt));
   }
 
   /// Notifies all post-update listeners and calls [onPostUpdate].
   @mustCallSuper
-  void _doPostUpdate(double dt) {
+  void _doOnPostUpdate(double dt) {
     _onPostUpdateFns.forEach((f) => f(self, dt));
     onPostUpdate(dt);
   }
 
-  /// Override to react before the update phase each frame.
+  /// Override to intercept the pre-update phase from within the class.
   ///
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
   /// Called after all registered [listenOnPreUpdate] listeners.
-  void onPreUpdate(double dt) {}
+  HookResult onPreUpdate(double dt) => .proceed;
 
   /// Override to react after the update phase each frame.
   ///

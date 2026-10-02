@@ -123,7 +123,7 @@ class PaddleInputSystem extends SceneSystem<G> {
   }
 
   @override
-  void onPreUpdate(double dt) {
+  void onPostUpdate(double dt) {
     double axis = 0;
     if (input.isKeyDown(K_left)) axis = -1;
     if (input.isKeyDown(K_right)) axis = 1;
@@ -154,7 +154,7 @@ class ArkanoidRulesSystem extends SceneSystem<G> {
   }
 
   @override
-  void onPreDraw(double dt) {
+  void onPostDraw(double dt) {
     DrawText('Score: $score', 20, screenHeight - 40, 20, .WHITE);
   }
 }

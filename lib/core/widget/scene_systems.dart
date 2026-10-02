@@ -8,13 +8,15 @@ class FMouseSystem<T extends App<T>> extends SceneSystem<T> {
   MouseCursor cursor = .MOUSE_CURSOR_DEFAULT;
 
   @override
-  void onPreUpdate(double dt) {
+  HookResult onPreUpdate(double dt) {
     cursor = .MOUSE_CURSOR_DEFAULT;
+    return super.onPreUpdate(dt);
   }
 
   @override
-  void onPreDraw(double dt) {
+  HookResult onPreDraw(double dt) {
     backend.setMouseCursor(cursor);
+    return super.onPreDraw(dt);
   }
 
   // persistence
@@ -115,11 +117,13 @@ class FValidateWidgetsSystem<T extends App<T>> extends SceneSystem<T> {
   }
 
   @override
-  void onPreUpdate(double dt) {
-    if (_runOnce) return;
+  HookResult onPreUpdate(double dt) {
+    if (_runOnce) return .proceed;
     _runOnce = true;
 
     scene.QueryEntity.DoForEach<FWidget<T>>(validate);
+
+    return super.onPreUpdate(dt);
   }
 
   // persistence

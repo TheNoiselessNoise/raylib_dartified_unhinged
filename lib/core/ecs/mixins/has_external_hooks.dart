@@ -6,7 +6,7 @@ enum HookResult {
   proceed,
 
   /// Skip the core 'on' phase, but still execute the 'after' phase for cleanup/sync.
-  onlyAfter,
+  skip,
 
   /// Hard abort: cancel the operation entirely (skip both 'on' and 'after').
   cancel,
@@ -42,7 +42,7 @@ mixin HasExternalHooks<T extends App<T>> {
 
   HookResult _mergeHookResult(HookResult acc, HookResult res) {
     if (res == HookResult.cancel) return res;
-    if (res == HookResult.onlyAfter) return res;
+    if (res == HookResult.skip) return res;
     return acc;
   }
 

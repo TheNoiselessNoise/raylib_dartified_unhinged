@@ -1,8 +1,6 @@
 part of '../../raylib_dartified_unhinged.dart';
 
 /// Adds pre-draw and post-draw lifecycle hooks to an ECS object.
-///
-/// The **on** phase only, draw boundaries are not cancelable.
 mixin IsPrePostDrawable<
   T extends App<T>, 
   E extends ECSBase<T>
@@ -10,7 +8,7 @@ mixin IsPrePostDrawable<
   Self<E>,
   ECSBase<T>
 {
-  late final hookOnPreDrawKey = ECSHookKey<void Function(E self, double dt)>(
+  late final hookOnPreDrawKey = ECSHookKey<HookResult Function(E self, double dt)>(
     'IsPrePostDrawable', 'onPreDraw'
   );
 
@@ -18,15 +16,21 @@ mixin IsPrePostDrawable<
     'IsPrePostDrawable', 'onPostDraw'
   );
 
-  Iterable<void Function(E self, double dt)> get _onPreDrawFns
+  Iterable<HookResult Function(E self, double dt)> get _onPreDrawFns
     => hooksOf(hookOnPreDrawKey);
 
   Iterable<void Function(E self, double dt)> get _onPostDrawFns
     => hooksOf(hookOnPostDrawKey);
 
-  /// Registers [fn] to be called before the draw phase each frame.
+  /// Registers [fn] as a pre-draw listener.
+  ///
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
+  /// Registers [fn] to be called before the update phase each frame.
   @nonVirtual
-  E listenOnPreDraw(void Function(E self, double dt) fn) {
+  E listenOnPreDraw(HookResult Function(E self, double dt) fn) {
     addHook(hookOnPreDrawKey, fn);
     return self;
   }
@@ -38,11 +42,17 @@ mixin IsPrePostDrawable<
     return self;
   }
 
-  /// Notifies all pre-draw listeners and calls [onPreDraw].
+  /// Runs all pre-draw listeners and [onPreDraw], combining their [HookResult] decisions.
+  ///
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
-  void _doOnPreDraw(double dt) {
-    _onPreDrawFns.forEach((f) => f(self, dt));
-    onPreDraw(dt);
+  HookResult _doOnPreDraw(double dt) {
+    HookResult result = .proceed;
+    for (final f in _onPreDrawFns) {
+      result = _mergeHookResult(result, f(self, dt));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onPreDraw(dt));
   }
 
   /// Notifies all post-draw listeners and calls [onPostDraw].
@@ -55,7 +65,7 @@ mixin IsPrePostDrawable<
   /// Override to react before the draw phase each frame.
   ///
   /// Called after all registered [listenOnPreDraw] listeners.
-  void onPreDraw(double dt) {}
+  HookResult onPreDraw(double dt) => .proceed;
 
   /// Override to react after the draw phase each frame.
   ///

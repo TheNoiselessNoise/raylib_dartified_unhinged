@@ -65,9 +65,12 @@ mixin IsSceneManagable<
   Iterable<void Function(E self, Scene<T> scene)> get _onAfterSceneRemoveFns
     => hooksOf(hookOnAfterSceneRemoveKey);
 
-  /// Registers [fn] as a before-add listener.
+  /// Registers [fn] as a before-scene-add listener.
   ///
-  /// [fn] returning `false` cancels the scene add.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeSceneAdd(HookResult Function(E self, Scene<T> scene) fn) {
     addHook(hookOnBeforeSceneAddKey, fn);
@@ -92,9 +95,12 @@ mixin IsSceneManagable<
     return self;
   }
 
-  /// Registers [fn] as a before-remove listener.
+  /// Registers [fn] as a before-scene-remove listener.
   ///
-  /// [fn] returning `false` cancels the scene remove.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeSceneRemove(HookResult Function(E self, Scene<T> scene) fn) {
     addHook(hookOnBeforeSceneRemoveKey, fn);
@@ -119,9 +125,9 @@ mixin IsSceneManagable<
     return self;
   }
 
-  /// Runs all before-add listeners and [onBeforeSceneAdd].
+  /// Runs all before-scene-add listeners and [onBeforeSceneAdd], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels the add.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeSceneAdd(Scene<T> scene) {
     HookResult result = .proceed;
@@ -146,9 +152,9 @@ mixin IsSceneManagable<
     onAfterSceneAdd(scene);
   }
 
-  /// Runs all before-remove listeners and [onBeforeSceneRemove].
+  /// Runs all before-scene-remove listeners and [onBeforeSceneRemove], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels the remove.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeSceneRemove(Scene<T> scene) {
     HookResult result = .proceed;
@@ -173,9 +179,10 @@ mixin IsSceneManagable<
     onAfterSceneRemove(scene);
   }
 
-  /// Override to cancel a scene add from within the class.
+  /// Override to intercept the before-scene-add phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeSceneAdd] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeSceneAdd] listeners.
   HookResult onBeforeSceneAdd(Scene<T> scene) => .proceed;
 
   /// Override to react when a scene add is about to complete.
@@ -188,9 +195,10 @@ mixin IsSceneManagable<
   /// Called after all registered [listenOnAfterSceneAdd] listeners.
   void onAfterSceneAdd(Scene<T> scene) {}
 
-  /// Override to cancel a scene remove from within the class.
+  /// Override to intercept the before-scene-remove phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeSceneRemove] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeSceneRemove] listeners.
   HookResult onBeforeSceneRemove(Scene<T> scene) => .proceed;
 
   /// Override to react when a scene remove is about to complete.
@@ -359,7 +367,7 @@ mixin IsSceneManagable<
       scene._doRemove();
     }
 
-    // TODO: Scene._cleanup for entities/systems
+    scene._cleanup();
     _scenes.remove(scene);
 
     scene._doOnAfterRemove();

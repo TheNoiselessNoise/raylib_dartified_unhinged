@@ -55,7 +55,10 @@ mixin IsCancelable<
 
   /// Registers [fn] as a before-cancel listener.
   ///
-  /// [fn] returning `false` cancels the cancel.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeCancel(HookResult Function(E self) fn) {
     addHook(hookOnBeforeCancelKey, fn);
@@ -80,9 +83,9 @@ mixin IsCancelable<
     return self;
   }
 
-  /// Runs all before-cancel listeners and [onBeforeCancel].
+  /// Runs all before-cancel listeners and [onBeforeCancel], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels the cancel.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeCancel() {
     HookResult result = .proceed;
@@ -107,9 +110,10 @@ mixin IsCancelable<
     onAfterCancel();
   }
 
-  /// Override to cancel the cancel from within the class.
+  /// Override to intercept the before-cancel phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeCancel] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeCancel] listeners.
   HookResult onBeforeCancel() => .proceed;
 
   /// Override to react when the cancel is about to complete.

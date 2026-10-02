@@ -68,6 +68,22 @@ mixin IsEntityManagable<
     'IsEntityManagable', 'onAfterEntityRemove'
   );
 
+  late final hookOnPreEntityUpdateKey = ECSHookKey<HookResult Function(E self, Entity<T> entity)>(
+    'IsEntityManagable', 'onPreEntityUpdate'
+  );
+
+  late final hookOnPostEntityUpdateKey = ECSHookKey<void Function(E self, Entity<T> entity)>(
+    'IsEntityManagable', 'onPostEntityUpdate'
+  );
+
+  late final hookOnPreEntityDrawKey = ECSHookKey<HookResult Function(E self, Entity<T> entity)>(
+    'IsEntityManagable', 'onPreEntityDraw'
+  );
+
+  late final hookOnPostEntityDrawKey = ECSHookKey<void Function(E self, Entity<T> entity)>(
+    'IsEntityManagable', 'onPostEntityDraw'
+  );
+
   Iterable<HookResult Function(E self, I entity)> get _onBeforeEntityAddFns
     => hooksOf(hookOnBeforeEntityAddKey);
 
@@ -86,9 +102,24 @@ mixin IsEntityManagable<
   Iterable<void Function(E self, I entity)> get _onAfterEntityRemoveFns
     => hooksOf(hookOnAfterEntityRemoveKey);
 
-  /// Registers [fn] as a before-add listener.
+  Iterable<HookResult Function(E self, Entity<T> entity)> get _onPreEntityUpdateFns
+    => hooksOf(hookOnPreEntityUpdateKey);
+
+  Iterable<void Function(E self, Entity<T> entity)> get _onPostEntityUpdateFns
+    => hooksOf(hookOnPostEntityUpdateKey);
+
+  Iterable<HookResult Function(E self, Entity<T> entity)> get _onPreEntityDrawFns
+    => hooksOf(hookOnPreEntityDrawKey);
+
+  Iterable<void Function(E self, Entity<T> entity)> get _onPostEntityDrawFns
+    => hooksOf(hookOnPostEntityDrawKey); 
+
+  /// Registers [fn] as a before-entity-add listener.
   ///
-  /// [fn] returning `false` cancels the entity add.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeEntityAdd(HookResult Function(E self, I entity) fn) {
     addHook(hookOnBeforeEntityAddKey, fn);
@@ -113,9 +144,12 @@ mixin IsEntityManagable<
     return self;
   }
 
-  /// Registers [fn] as a before-remove listener.
+  /// Registers [fn] as a before-entity-remove listener.
   ///
-  /// [fn] returning `false` cancels the entity remove.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeEntityRemove(HookResult Function(E self, I entity) fn) {
     addHook(hookOnBeforeEntityRemoveKey, fn);
@@ -140,9 +174,44 @@ mixin IsEntityManagable<
     return self;
   }
 
-  /// Runs all before-add listeners and [onBeforeEntityAdd].
+  /// Registers [fn] as a pre-entity-update listener.
   ///
-  /// Returns `false` if any listener or the override cancels the add.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
+  @nonVirtual
+  E listenOnPreEntityUpdate(HookResult Function(E self, Entity<T> entity) fn) {
+    addHook(hookOnPreEntityUpdateKey, fn);
+    return self;
+  }
+
+  @nonVirtual
+  E listenOnPostEntityUpdate(void Function(E self, Entity<T> entity) fn) {
+    addHook(hookOnPostEntityUpdateKey, fn);
+    return self;
+  }
+
+  /// Registers [fn] as a pre-entity-draw listener.
+  ///
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
+  @nonVirtual
+  E listenOnPreEntityDraw(HookResult Function(E self, Entity<T> entity) fn) {
+    addHook(hookOnPreEntityDrawKey, fn);
+    return self;
+  }
+
+  E listenOnPostEntityDraw(void Function(E self, Entity<T> entity) fn) {
+    addHook(hookOnPostEntityDrawKey, fn);
+    return self;
+  }
+
+  /// Runs all before-entity-add listeners and [onBeforeEntityAdd], combining their [HookResult] decisions.
+  ///
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeEntityAdd(I entity) {
     HookResult result = .proceed;
@@ -167,9 +236,9 @@ mixin IsEntityManagable<
     onAfterEntityAdd(entity);
   }
 
-  /// Runs all before-remove listeners and [onBeforeEntityRemove].
+  /// Runs all before-entity-remove listeners and [onBeforeEntityRemove], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels the remove.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeEntityRemove(I entity) {
     HookResult result = .proceed;
@@ -194,9 +263,46 @@ mixin IsEntityManagable<
     onAfterEntityRemove(entity);
   }
 
-  /// Override to cancel an entity add from within the class.
+  /// Runs all pre-entity-update listeners and [onPreEntityUpdate], combining their [HookResult] decisions.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeEntityAdd] listeners.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
+  @mustCallSuper
+  HookResult _doOnPreEntityUpdate(Entity<T> entity) {
+    HookResult result = .proceed;
+    for (final f in _onPreEntityUpdateFns) {
+      result = _mergeHookResult(result, f(self, entity));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onPreEntityUpdate(entity));
+  }
+
+  void _doOnPostEntityUpdate(Entity<T> entity) {
+    _onPostEntityUpdateFns.forEach((f) => f(self, entity));
+    return onPostEntityUpdate(entity);
+  }
+
+  /// Runs all pre-entity-draw listeners and [onPreEntityDraw], combining their [HookResult] decisions.
+  ///
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
+  @mustCallSuper
+  HookResult _doOnPreEntityDraw(Entity<T> entity) {
+    HookResult result = .proceed;
+    for (final f in _onPreEntityDrawFns) {
+      result = _mergeHookResult(result, f(self, entity));
+      if (result == .cancel) return result;
+    }
+    return _mergeHookResult(result, onPreEntityDraw(entity));
+  }
+
+  void _doOnPostEntityDraw(Entity<T> entity) {
+    _onPostEntityDrawFns.forEach((f) => f(self, entity));
+    return onPostEntityDraw(entity);
+  }
+
+  /// Override to intercept the before-entity-add phase from within the class.
+  ///
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeEntityAdd] listeners.
   HookResult onBeforeEntityAdd(I entity) => .proceed;
 
   /// Override to react when an entity add is about to complete.
@@ -209,9 +315,10 @@ mixin IsEntityManagable<
   /// Called after all registered [listenOnAfterEntityAdd] listeners.
   void onAfterEntityAdd(I entity) {}
 
-  /// Override to cancel an entity remove from within the class.
+  /// Override to intercept the before-entity-remove phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeEntityRemove] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeEntityRemove] listeners.
   HookResult onBeforeEntityRemove(I entity) => .proceed;
 
   /// Override to react when an entity remove is about to complete.
@@ -223,6 +330,22 @@ mixin IsEntityManagable<
   ///
   /// Called after all registered [listenOnAfterEntityRemove] listeners.
   void onAfterEntityRemove(I entity) {}
+
+  /// Override to intercept the pre-entity-update phase from within the class.
+  ///
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnPreEntityUpdate] listeners.
+  HookResult onPreEntityUpdate(Entity<T> entity) => .proceed;
+
+  void onPostEntityUpdate(Entity<T> entity) {}
+
+  /// Override to intercept the pre-entity-draw phase from within the class.
+  ///
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnPreEntityDraw] listeners.
+  HookResult onPreEntityDraw(Entity<T> entity) => .proceed;
+
+  void onPostEntityDraw(Entity<T> entity) {}
 
   // ░██████░███     ░███ ░█████████  ░██         
   //   ░██  ░████   ░████ ░██     ░██ ░██         
@@ -364,13 +487,7 @@ mixin IsEntityManagable<
       entity._doRemove();
     }
 
-    // remove entity components
-    // NOTE: toList() is important
-    // TODO: do Entity._cleanup() (and others) for each remove
-    entity._components.toList().forEach(
-      (c) => entity._removeComponentInstance(c)
-    );
-
+    entity._cleanup();
     _entities.remove(entity);
 
     entity._doOnAfterRemove();
@@ -380,8 +497,21 @@ mixin IsEntityManagable<
   }
 
   /// Calls `_doUpdate` on every entity in the scene.
-  void _updateEntities(double dt)
-    => _entities.forEach((e) => e._doEntityUpdate(dt));
+  void _updateEntities(double dt) {
+    for (final e in _entities) {
+      final result = _doOnPreEntityUpdate(e);
+      if (result == .cancel) return;
+      if (result == .proceed) e._doEntityUpdate(dt);
+      _doOnPostEntityUpdate(e);
+    }
+  }
+
+  void _drawEntity(Entity<T> entity, double dt) {
+    final result = _doOnPreEntityDraw(entity);
+    if (result == .cancel) return;
+    if (result == .proceed) entity._doDraw(dt);
+    _doOnPostEntityDraw(entity);
+  }
 
   /// Calls `_doDraw` on entities whose scene-level draw is enabled and whose
   /// render layer matches the renderer's currently active layer.
@@ -392,7 +522,7 @@ mixin IsEntityManagable<
     for (final e in entities) {
       if (!e._drawEnabled) continue;
       if (!e._sceneLevelDrawEnabled) continue;
-      e._doDraw(dt);
+      _drawEntity(e, dt);
     }
   }
 
@@ -403,7 +533,7 @@ mixin IsEntityManagable<
     for (final e in _entities) {
       if (!e._drawEnabled) continue;
       if (!e._sceneLevelDrawEnabled) continue;
-      e._doDraw(dt);
+      _drawEntity(e, dt);
     }
   }
 }

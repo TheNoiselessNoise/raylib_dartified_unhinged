@@ -66,9 +66,12 @@ mixin IsAppSystemManagable<
   Iterable<void Function(E self, AppSystem<T> system)> get _onAfterAppSystemRemoveFns
     => hooksOf(hookOnAfterAppSystemRemoveKey);
 
-  /// Registers [fn] as a before-add listener.
+  /// Registers [fn] as a before-appsystem-add listener.
   ///
-  /// [fn] returning `false` cancels the system add.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeAppSystemAdd(HookResult Function(E self, AppSystem<T> system) fn) {
     addHook(hookOnBeforeAppSystemAddKey, fn);
@@ -93,9 +96,12 @@ mixin IsAppSystemManagable<
     return self;
   }
 
-  /// Registers [fn] as a before-remove listener.
+  /// Registers [fn] as a before-appsystem-remove listener.
   ///
-  /// [fn] returning `false` cancels the system remove.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeAppSystemRemove(HookResult Function(E self, AppSystem<T> system) fn) {
     addHook(hookOnBeforeAppSystemRemoveKey, fn);
@@ -120,9 +126,9 @@ mixin IsAppSystemManagable<
     return self;
   }
 
-  /// Runs all before-add listeners and [onBeforeAppSystemAdd].
+  /// Runs all before-appsystem-add listeners and [onBeforeAppSystemAdd], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels the add.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeAppSystemAdd(AppSystem<T> system) {
     HookResult result = .proceed;
@@ -147,9 +153,9 @@ mixin IsAppSystemManagable<
     onAfterAppSystemAdd(system);
   }
 
-  /// Runs all before-remove listeners and [onBeforeAppSystemRemove].
+  /// Runs all before-appsystem-remove listeners and [onBeforeAppSystemRemove], combining their [HookResult] decisions.
   ///
-  /// Returns `false` if any listener or the override cancels the remove.
+  /// Prioritizes [HookResult.cancel], followed by [HookResult.skip], defaulting to [HookResult.proceed].
   @mustCallSuper
   HookResult _doOnBeforeAppSystemRemove(AppSystem<T> system) {
     HookResult result = .proceed;
@@ -174,9 +180,10 @@ mixin IsAppSystemManagable<
     onAfterAppSystemRemove(system);
   }
 
-  /// Override to cancel a system add from within the class.
+  /// Override to intercept the before-appsystem-add phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeAppSystemAdd] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeAppSystemAdd] listeners.
   HookResult onBeforeAppSystemAdd(AppSystem<T> system) => .proceed;
 
   /// Override to react when a system add is about to complete.
@@ -189,9 +196,10 @@ mixin IsAppSystemManagable<
   /// Called after all registered [listenOnAfterAppSystemAdd] listeners.
   void onAfterAppSystemAdd(AppSystem<T> system) {}
 
-  /// Override to cancel a system remove from within the class.
+  /// Override to intercept the before-appsystem-remove phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeAppSystemRemove] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeAppSystemRemove] listeners.
   HookResult onBeforeAppSystemRemove(AppSystem<T> system) => .proceed;
 
   /// Override to react when a system remove is about to complete.

@@ -549,12 +549,12 @@ class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
 
   /// Called before the narrow-phase collision check is performed.
   ///
-  /// Return `false` to cancel the collision entirely, neither [onCollision] nor
+  /// Return [HookResult.cancel] to cancel the collision entirely, neither [onCollision] nor
   /// [onAfterCollision] will be invoked, and no physics resolution will occur.
-  /// Return `true` (the default) to allow the pipeline to continue.
+  /// Return [HookResult.proceed] (the default) to allow the pipeline to continue.
   ///
   /// Both colliders and the scene each have a chance to cancel: if any of them
-  /// returns `false`, the collision is skipped.
+  /// returns [HookResult.cancel], the collision is skipped.
   ///
   /// Useful for filtering collisions by game state, team, cooldown, or any other
   /// condition that doesn't require knowing whether the shapes actually overlap.

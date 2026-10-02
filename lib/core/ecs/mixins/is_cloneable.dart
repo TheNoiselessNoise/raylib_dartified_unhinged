@@ -132,7 +132,10 @@ mixin IsCloneable<
 
   /// Registers [fn] as a before-clone listener.
   ///
-  /// [fn] returning `false` cancels the clone.
+  /// [fn] returns a [HookResult] to control execution flow:
+  /// - [HookResult.proceed] continues normally.
+  /// - [HookResult.skip] skips the core action but runs the after-phase.
+  /// - [HookResult.cancel] aborts the operation entirely.
   @nonVirtual
   E listenOnBeforeClone(HookResult Function(E self, E copy, [ClonePolicy<T>? policy]) fn) {
     addHook(hookOnBeforeCloneKey, fn);
@@ -200,9 +203,10 @@ mixin IsCloneable<
     onCloned(original);
   }
 
-  /// Override to cancel cloning from within the class.
+  /// Override to intercept the before-clone phase from within the class.
   ///
-  /// Return `false` to abort. Called after all registered [listenOnBeforeClone] listeners.
+  /// Returns a [HookResult] (defaults to [HookResult.proceed]). 
+  /// Called after all registered [listenOnBeforeClone] listeners.
   HookResult onBeforeClone(E copy, [ClonePolicy<T>? policy]) => .proceed;
 
   /// Override to react when cloning is about to complete.
