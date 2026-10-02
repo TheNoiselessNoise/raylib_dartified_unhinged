@@ -1,3 +1,7 @@
+## 6.0.2
+
+- Remove `IsUpdatable`
+
 ## 6.0.1
 
 - Fix double free

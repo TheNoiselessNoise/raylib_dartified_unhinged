@@ -1,24 +1,32 @@
 // Run it: dart run test_animations.dart
 import '_base.dart';
 
+// TODO: onPreCompUpdate
+// TODO: onPostCompUpdate
+
 class MyEntity extends Entity<G> {
   double entityField;
 
-  late CAnimation<G, MyEntity> animation;
+  late CAnimation<G> animation;
 
   MyEntity(super.app, {
     required this.entityField
   }) {
     addComp(CTransform(app, position: screenSize.divideBy(2)));
     addComp(CRectCollider(app, size: .vec2(64, 64), debugDraw: true, debugColor: .GREEN));
-    addComp(animation = .new(app, this)
-      ..property((e) => e.entityField, (s, v) => s.entityField = v, from: 0, to: 1, duration: 0.5)
+    addComp(animation = .new(app)
+      ..property(() => entityField, (v) => entityField = v, from: 0, to: 1, duration: 0.5)
       ..onComplete(() {
         addMessage('Animation completed!');
         animation.reset();
-      })
+      }),
     );
-  } 
+  }
+
+  @override
+  void onPreUpdate(double dt) => onTransform((t) {
+    t.position.x = Remap(entityField, 0, 1, 0, sceneWidth);
+  });
 }
 
 extension on HasAppAccess<G> {

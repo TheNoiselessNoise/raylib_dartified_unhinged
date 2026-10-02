@@ -90,7 +90,5 @@ class CBoundsConstraintSnapshot<T extends App<T>> extends CompSnapshot<T, CBound
   CBoundsConstraintSnapshot(super.id);
 
   @override
-  CBoundsConstraint<T> createInstance(T app) => .new(app,
-    area: area.copy(),
-  );
+  CBoundsConstraint<T> createInstance(T app) => .new(app);
 }

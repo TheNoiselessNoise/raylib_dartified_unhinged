@@ -145,11 +145,5 @@ class CBoundsBounceSnapshot<T extends App<T>> extends CompSnapshot<T, CBoundsBou
   CBoundsBounceSnapshot(super.id);
 
   @override
-  CBoundsBounce<T> createInstance(T app) => .new(app,
-    restitution: restitution,
-    left: left,
-    top: top,
-    right: right,
-    bottom: bottom,
-  );
+  CBoundsBounce<T> createInstance(T app) => .new(app);
 }

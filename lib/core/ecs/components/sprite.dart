@@ -116,13 +116,5 @@ class CSpriteSnapshot<T extends App<T>> extends CompSnapshot<T, CSprite<T>> {
   CSpriteSnapshot(super.id);
 
   @override
-  CSprite<T> createInstance(T app) {
-    final c = CSprite<T>(app,
-      size: size.copy(),
-      color: color?.copy(),
-    );
-    c.rect = rect.copy();
-    c.origin = origin.copy();
-    return c;
-  }
+  CSprite<T> createInstance(T app) => .new(app);
 }

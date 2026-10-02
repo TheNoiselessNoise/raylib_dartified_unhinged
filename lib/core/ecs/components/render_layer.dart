@@ -77,7 +77,5 @@ class CRenderLayerSnapshot<T extends App<T>> extends CompSnapshot<T, CRenderLaye
   CRenderLayerSnapshot(super.id);
 
   @override
-  CRenderLayer<T> createInstance(T app) => .new(app,
-    layer: layer,
-  );
+  CRenderLayer<T> createInstance(T app) => .new(app);
 }

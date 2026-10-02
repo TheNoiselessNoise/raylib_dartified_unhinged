@@ -104,9 +104,5 @@ class CTransformSnapshot<T extends App<T>> extends CompSnapshot<T, CTransform<T>
   CTransformSnapshot(super.id);
 
   @override
-  CTransform<T> createInstance(T app) => .new(app,
-    position: position.copy(),
-    rotation: rotation,
-    scale: scale.copy(),
-  );
+  CTransform<T> createInstance(T app) => .new(app);
 }

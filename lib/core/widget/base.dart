@@ -196,6 +196,7 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
   Set<FWidget<T>> get children => getEntities();
   FWidget<T>? get child => children.firstOrNull;
   FMouseSystem<T>? get mouseSystem => scene.getSystem();
+  CRectCollider<T> get widgetCollider => get<CRectCollider<T>>()!;
 
   /// Constraints given to a widget with no parent widget.
   /// Loose: roots shrink-wrap. Use `.tight(sceneBounds.size)` for Flutter-style.
@@ -290,7 +291,6 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
   // ░██     ░██   ░██████     ░██████       ░██    
 
   void _flushPass() {
-    print('flushing $runtimeType...');
     _rebuildDirty();
     _doLayout(rootConstraints);
     _syncTree();

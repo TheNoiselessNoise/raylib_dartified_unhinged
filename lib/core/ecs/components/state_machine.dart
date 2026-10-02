@@ -1,18 +1,18 @@
 part of '../../raylib_dartified_unhinged.dart';
 
-class CStateMachineStateDef {
+class CStateMachineStateDef<T extends App<T>> {
   final String name;
-  final void Function()? onEnter;
-  final void Function()? onExit;
+  final void Function(CStateMachine<T> component)? onEnter;
+  final void Function(CStateMachine<T> component)? onExit;
   final void Function(double dt)? onUpdate;
 
   CStateMachineStateDef(this.name, {this.onEnter, this.onExit, this.onUpdate});
 }
 
-class CStateMachineTransition {
+class CStateMachineTransition<T extends App<T>> {
   final String from;
   final String to;
-  final bool Function() when;
+  final bool Function(CStateMachine<T> component) when;
 
   CStateMachineTransition(this.from, this.to, this.when);
 }
@@ -42,8 +42,10 @@ class CStateMachineTransition {
 /// }
 /// ```
 class CStateMachine<T extends App<T>> extends Comp<T> {
-  Map<String, CStateMachineStateDef> _states = {};
-  List<CStateMachineTransition> _transitions = [];
+  static const bool _defaultEnableMultipleTransitionsPerFrame = false;
+
+  Map<String, CStateMachineStateDef<T>> _states = {};
+  List<CStateMachineTransition<T>> _transitions = [];
 
   String? _current;
   double _timeInState = 0;
@@ -53,11 +55,13 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
   String? get currentState => _current;
   double get timeInState => _timeInState;
   bool get hasStarted => _started;
+  bool multipleTransitionsPerFrame;
 
   CStateMachine(super.app, {
     super.populateDefaults,
-    Map<String, CStateMachineStateDef>? states,
-    List<CStateMachineTransition>? transitions,
+    this.multipleTransitionsPerFrame = _defaultEnableMultipleTransitionsPerFrame,
+    Map<String, CStateMachineStateDef<T>>? states,
+    List<CStateMachineTransition<T>>? transitions,
   }) :
     _states = states ?? {},
     _transitions = transitions ?? [];
@@ -67,8 +71,8 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
   /// to be mutated while running.
   CStateMachine<T> addState(
     String name, {
-    void Function()? onEnter,
-    void Function()? onExit,
+    void Function(CStateMachine<T> component)? onEnter,
+    void Function(CStateMachine<T> component)? onExit,
     void Function(double dt)? onUpdate,
   }) {
     if (_started) {
@@ -94,7 +98,7 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
   CStateMachine<T> transition(
     String from,
     String to, {
-    required bool Function() when,
+    required bool Function(CStateMachine<T> component) when,
   }) {
     if (_started) {
       throw StateError(
@@ -133,20 +137,20 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
 
     if (!_entered) {
       _entered = true;
-      currentDef.onEnter?.call();
+      currentDef.onEnter?.call(this);
     }
 
     // Evaluate transitions out of the current state, first match wins.
     for (final t in _transitions) {
       if (t.from != _current) continue;
-      if (t.when()) {
-        currentDef.onExit?.call();
+      if (t.when(this)) {
+        currentDef.onExit?.call(this);
         _current = t.to;
         _timeInState = 0;
         _entered = false;
-        _states[t.to]!.onEnter?.call();
+        _states[t.to]!.onEnter?.call(this);
         _entered = true;
-        break; // only one transition per frame
+        if (!multipleTransitionsPerFrame) break;
       }
     }
 
@@ -173,6 +177,7 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
     c._timeInState = _timeInState;
     c._started = _started;
     c._entered = _entered;
+    c.multipleTransitionsPerFrame = multipleTransitionsPerFrame;
     return c;
   }
 
@@ -187,6 +192,7 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
     snapshot._timeInState = _timeInState;
     snapshot._started = _started;
     snapshot._entered = _entered;
+    snapshot.multipleTransitionsPerFrame = multipleTransitionsPerFrame;
     return snapshot;
   }
 
@@ -200,6 +206,7 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
     _timeInState = snapshot._timeInState;
     _started = snapshot._started;
     _entered = snapshot._entered;
+    multipleTransitionsPerFrame = snapshot.multipleTransitionsPerFrame;
   }
 
   // persistence
@@ -216,6 +223,7 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
     '_timeInState': _timeInState,
     '_started': _started,
     '_entered': _entered,
+    'multipleTransitionsPerFrame': multipleTransitionsPerFrame,
   };
 
   @override
@@ -227,6 +235,7 @@ class CStateMachine<T extends App<T>> extends Comp<T> {
     _timeInState = data.getDouble('_timeInState');
     _started = data.getBool('_started');
     _entered = data.getBool('_entered');
+    multipleTransitionsPerFrame = data.getBool('multipleTransitionsPerFrame');
   }
 }
 
@@ -237,18 +246,10 @@ class CStateMachineSnapshot<T extends App<T>> extends CompSnapshot<T, CStateMach
   late double _timeInState;
   late bool _started;
   late bool _entered;
+  late bool multipleTransitionsPerFrame;
   
   CStateMachineSnapshot(super.id);
 
   @override
-  CStateMachine<T> createInstance(T app) {
-    final c = CStateMachine<T>(app);
-    c._states = .from(_states);
-    c._transitions = .from(_transitions);
-    c._current = _current;
-    c._timeInState = _timeInState;
-    c._started = _started;
-    c._entered = _entered;
-    return c;
-  }
+  CStateMachine<T> createInstance(T app) => .new(app);
 }

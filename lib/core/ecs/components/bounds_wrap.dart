@@ -83,7 +83,5 @@ class CBoundsWrapSnapshot<T extends App<T>> extends CompSnapshot<T, CBoundsWrap<
   CBoundsWrapSnapshot(super.id);
 
   @override
-  CBoundsWrap<T> createInstance(T app) => .new(app,
-    area: area.copy(),
-  );
+  CBoundsWrap<T> createInstance(T app) => .new(app);
 }

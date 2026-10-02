@@ -73,7 +73,5 @@ class CLifetimeSnapshot<T extends App<T>> extends CompSnapshot<T, CLifetime<T>> 
   CLifetimeSnapshot(super.id);
 
   @override
-  CLifetime<T> createInstance(T app) => .new(app,
-    timeLeft: timeLeft,
-  );
+  CLifetime<T> createInstance(T app) => .new(app);
 }

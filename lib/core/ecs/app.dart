@@ -395,7 +395,7 @@ class App<T extends App<T>> extends ECSBase<T> with
   @mustCallSuper
   void _doUpdate(double dt) {
     _doFrame(dt, time.frameCount);
-    currentScene._doUpdate(dt);
+    currentScene._updateScene(dt);
   }
 
   @mustCallSuper
@@ -455,7 +455,6 @@ class App<T extends App<T>> extends ECSBase<T> with
     target._dependenciesAssigned = true;
     target.renderer = renderer;
     target.input = input.clone();
-    target.defaultFont = defaultFont;
   }
 
   @override

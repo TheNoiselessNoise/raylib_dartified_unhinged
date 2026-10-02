@@ -114,14 +114,5 @@ class CPulseSnapshot<T extends App<T>> extends CompSnapshot<T, CPulse<T>> {
   CPulseSnapshot(super.id);
 
   @override
-  CPulse<T> createInstance(T app) {
-    final c = CPulse<T>(app,
-      minScale: minScale,
-      maxScale: maxScale,
-      speed: speed,
-      time: pulseTime,
-    );
-    c.currentScale = currentScale;
-    return c;
-  }
+  CPulse<T> createInstance(T app) => .new(app);
 }

@@ -208,14 +208,7 @@ class CCircleColliderSnapshot<T extends App<T>> extends CColliderSnapshot<T, CCi
   CCircleColliderSnapshot(super.id);
   
   @override
-  CCircleCollider<T> createInstance(T app) => CCircleCollider<T>(app,
-    radius: radius,
-    tag: tag,
-    enableCollision: enableCollision,
-    debugDraw: debugDraw,
-    debugLinesThick: debugLinesThick,
-    debugColor: debugColor,
-  );
+  CCircleCollider<T> createInstance(T app) => .new(app);
 }
 
 class CRectCollider<T extends App<T>> extends CCollider<T> {
@@ -373,17 +366,5 @@ class CRectColliderSnapshot<T extends App<T>> extends CColliderSnapshot<T, CRect
   CRectColliderSnapshot(super.id);
 
   @override
-  CRectCollider<T> createInstance(T app) {
-    final c = CRectCollider<T>(app,
-      size: size?.copy(),
-      tag: tag,
-      autoSync: autoSync,
-      enableCollision: enableCollision,
-      debugDraw: debugDraw,
-      debugLinesThick: debugLinesThick,
-      debugColor: debugColor,
-    );
-    c.rect = rect.copy();
-    return c;
-  }
+  CRectCollider<T> createInstance(T app) => .new(app);
 }

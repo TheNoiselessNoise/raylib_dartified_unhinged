@@ -131,11 +131,5 @@ class CVelocitySnapshot<T extends App<T>> extends CompSnapshot<T, CVelocity<T>> 
   CVelocitySnapshot(super.id);
 
   @override
-  CVelocity<T> createInstance(T app) => .new(app,
-    velocity: velocity.copy(),
-    angularVelocity: angularVelocity,
-    linearDamping: linearDamping,
-    angularDamping: angularDamping,
-    maxVelocity: maxVelocity,
-  );
+  CVelocity<T> createInstance(T app) => .new(app);
 }

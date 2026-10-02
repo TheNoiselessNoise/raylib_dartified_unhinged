@@ -85,7 +85,6 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   IsSceneSystemManagable<T, Scene<T>>,
   IsStartable<T, Scene<T>>,
   IsTaskProcessable<T, Scene<T>>,
-  IsUpdatable<T, Scene<T>>,
 
   // special
   IsCallbackProcessable<T, Scene<T>>,
@@ -354,15 +353,6 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   void _doHandleInput() {
     _systems.forEach((e) => e._doHandleInput());
     super._doHandleInput();
-  }
-
-  /// Called by the app each frame to process the event queue and advance the
-  /// scene by [dt] seconds.
-  @override
-  @nonVirtual
-  void _doUpdate(double dt) {
-    _updateScene(dt);
-    super._doUpdate(dt);
   }
 
   /// Called by the app each frame to draw the scene.

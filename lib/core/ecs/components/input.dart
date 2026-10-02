@@ -89,8 +89,5 @@ class CInputSnapshot<T extends App<T>> extends CompSnapshot<T, CInput<T>> {
   CInputSnapshot(super.id);
 
   @override
-  CInput<T> createInstance(T app) => CInput<T>(app,
-    mouseMap: .from(mouseMap),
-    keyMap: .from(keyMap),
-  );
+  CInput<T> createInstance(T app) => .new(app);
 }

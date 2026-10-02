@@ -4,8 +4,8 @@ double _linear(double t) => t;
 
 double _lerpDouble(double from, double to, double t) => from + (to - from) * t;
 
-class _PropertyTween<T> {
-  final void Function(T target, double value) set;
+class _PropertyTween {
+  final void Function(double value) set;
   final double from;
   final double to;
   final double duration;
@@ -22,23 +22,22 @@ class _PropertyTween<T> {
     required this.easing,
   });
 
-  void tick(T target, double dt) {
+  void tick(double dt) {
     if (done) return;
     elapsed += dt;
     final t = duration <= 0 ? 1.0 : (elapsed / duration).clamp(0.0, 1.0);
-    set(target, _lerpDouble(from, to, easing(t)));
+    set(_lerpDouble(from, to, easing(t)));
     if (t >= 1.0) done = true;
   }
 }
 
-class CAnimation<T extends App<T>, X> extends Comp<T> {
-  final X target;
-  List<_PropertyTween<X>> _tweens = [];
+class CAnimation<T extends App<T>> extends Comp<T> {
+  List<_PropertyTween> _tweens = [];
   List<void Function()> _onCompleteCallbacks = [];
 
   bool _completedFired = false;
 
-  CAnimation(super.app, this.target);
+  CAnimation(super.app);
 
   /// Animate a single property from [from] (defaults to current value via
   /// [get] if omitted) to [to] over [duration] seconds.
@@ -47,9 +46,9 @@ class CAnimation<T extends App<T>, X> extends Comp<T> {
   /// it, the new tween replaces the old one outright, consistent with
   /// "last call wins" rather than queueing or stacking. If you want
   /// queueing, chain a second .animate() call after onComplete instead.
-  CAnimation<T, X> property(
-    double Function(X target) get,
-    void Function(X target, double value) set, {
+  CAnimation<T> property(
+    double Function() get,
+    void Function(double value) set, {
     double? from,
     required double to,
     required double duration,
@@ -62,7 +61,7 @@ class CAnimation<T extends App<T>, X> extends Comp<T> {
     _tweens.removeWhere((tw) => tw.set == set);
     _tweens.add(.new(
       set: set,
-      from: from ?? get(target),
+      from: from ?? get(),
       to: to,
       duration: duration,
       easing: easing,
@@ -74,7 +73,7 @@ class CAnimation<T extends App<T>, X> extends Comp<T> {
   /// Fires once, when ALL currently-registered tweens have finished.
   /// If you call .property() again after completion, onComplete can fire
   /// again once the new tween(s) finish too.
-  CAnimation<T, X> onComplete(void Function() callback) {
+  CAnimation<T> onComplete(void Function() callback) {
     _onCompleteCallbacks.add(callback);
     return this;
   }
@@ -85,7 +84,7 @@ class CAnimation<T extends App<T>, X> extends Comp<T> {
     for (final tw in _tweens) {
       tw.elapsed = 0;
       tw.done = false;
-      tw.set(target, tw.from); // snap immediately to the start value
+      tw.set(tw.from); // snap immediately to the start value
     }
     _completedFired = false;
   }
@@ -95,7 +94,7 @@ class CAnimation<T extends App<T>, X> extends Comp<T> {
     if (_tweens.isEmpty) return;
 
     for (final tw in _tweens) {
-      tw.tick(target, dt);
+      tw.tick(dt);
     }
 
     if (!_completedFired && isComplete) {
@@ -109,8 +108,8 @@ class CAnimation<T extends App<T>, X> extends Comp<T> {
   // clone
 
   @override
-  CAnimation<T, X> createInstance() {
-    final c = CAnimation<T, X>(app, target);
+  CAnimation<T> createInstance() {
+    final c = CAnimation<T>(app);
     c._tweens = .from(_tweens);
     c._onCompleteCallbacks = .from(_onCompleteCallbacks);
     c._completedFired = _completedFired;
@@ -120,8 +119,8 @@ class CAnimation<T extends App<T>, X> extends Comp<T> {
   // state
 
   @override
-  CAnimationSnapshot<T, X> createSnapshot() {
-    final snapshot = CAnimationSnapshot<T, X>(namedId);
+  CAnimationSnapshot<T> createSnapshot() {
+    final snapshot = CAnimationSnapshot<T>(namedId);
     snapshot._tweens = .from(_tweens);
     snapshot._onCompleteCallbacks = .from(_onCompleteCallbacks);
     snapshot._completedFired = _completedFired;
@@ -130,7 +129,7 @@ class CAnimation<T extends App<T>, X> extends Comp<T> {
 
   @override
   @mustCallSuper
-  void restoreSnapshot(covariant CAnimationSnapshot<T, X> snapshot) {
+  void restoreSnapshot(covariant CAnimationSnapshot<T> snapshot) {
     super.restoreSnapshot(snapshot);
     _tweens = .from(snapshot._tweens);
     _onCompleteCallbacks = .from(snapshot._onCompleteCallbacks);
@@ -144,20 +143,13 @@ class CAnimation<T extends App<T>, X> extends Comp<T> {
   @override String get persistentTypeId => typeId;
 }
 
-class CAnimationSnapshot<T extends App<T>, X> extends CompSnapshot<T, CAnimation<T, X>> {
-  late X target;
-  late List<_PropertyTween<X>> _tweens;
+class CAnimationSnapshot<T extends App<T>> extends CompSnapshot<T, CAnimation<T>> {
+  late List<_PropertyTween> _tweens;
   late List<void Function()> _onCompleteCallbacks;
   late bool _completedFired;
   
   CAnimationSnapshot(super.id);
 
   @override
-  CAnimation<T, X> createInstance(T app) {
-    final c = CAnimation<T, X>(app, target);
-    c._tweens = .from(_tweens);
-    c._onCompleteCallbacks = .from(_onCompleteCallbacks);
-    c._completedFired = _completedFired;
-    return c;
-  }
+  CAnimation<T> createInstance(T app) => .new(app);
 }

@@ -158,21 +158,5 @@ class COutOfBoundsSnapshot<T extends App<T>> extends CompSnapshot<T, COutOfBound
   COutOfBoundsSnapshot(super.id);
 
   @override
-  COutOfBounds<T> createInstance(T app) {
-    final c = COutOfBounds<T>(app,
-      checkTop: checkTop,
-      checkLeft: checkLeft,
-      checkBottom: checkBottom,
-      checkRight: checkRight,
-      then: then,
-      triggerOnce: triggerOnce,
-    );
-
-    c.top = top;
-    c.left = left;
-    c.bottom = bottom;
-    c.right = right;
-
-    return c;
-  }
+  COutOfBounds<T> createInstance(T app) => .new(app);
 }

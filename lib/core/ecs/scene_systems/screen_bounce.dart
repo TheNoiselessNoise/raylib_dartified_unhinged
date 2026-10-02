@@ -140,11 +140,5 @@ class ScreenBounceSystemSnapshot<T extends App<T>> extends SceneSystemSnapshot<T
   ScreenBounceSystemSnapshot(super.id);
 
   @override
-  ScreenBounceSystem<T> createInstance(T app) => .new(app,
-    restitution: restitution,
-    top: top,
-    left: left,
-    bottom: bottom,
-    right: right,
-  );
+  ScreenBounceSystem<T> createInstance(T app) => .new(app);
 }

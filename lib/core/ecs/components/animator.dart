@@ -476,24 +476,5 @@ class CAnimatorSnapshot<T extends App<T>> extends CompSnapshot<T, CAnimator<T>> 
   CAnimatorSnapshot(super.id);
   
   @override
-  CAnimator<T> createInstance(T app) {
-    final c = CAnimator<T>(app,
-      animations: .from(animations),
-      currentAnimName: currentAnimName,
-      onComplete: onComplete,
-      sheet: sheet,
-      sheets: sheets != null ? .from(sheets!) : null,
-    );
-
-    c._fpsBoundAnimations.addAll(List.from(_fpsBoundAnimations));
-    c.currentFrame = currentFrame;
-    c.frameTime = frameTime;
-    c.isPlaying = isPlaying;
-
-    c.src = src.copy();
-    c.dest = dest.copy();
-    c.origin = origin.copy();
-
-    return c;
-  }
+  CAnimator<T> createInstance(T app) => .new(app);
 }

@@ -135,12 +135,5 @@ class CParticleEmitterSnapshot<T extends App<T>, E extends Entity<T>> extends Co
   CParticleEmitterSnapshot(super.id);
 
   @override
-  CParticleEmitter<T, E> createInstance(T app) {
-    final c = CParticleEmitter<T, E>(app,
-      rate: rate,
-      factory: factory,
-    );
-    c._acc = _acc;
-    return c;
-  }
+  CParticleEmitter<T, E> createInstance(T app) => .new(app);
 }

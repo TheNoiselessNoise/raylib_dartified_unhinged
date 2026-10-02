@@ -91,7 +91,7 @@ abstract class StateSnapshot<T extends App<T>, E extends ECSBase<T>> with HasExt
   E createInstance(T app);
 }
 
-mixin IsStateHolderBase<T extends App<T>> on ECSBase<T> {
+mixin _IsStateHolderBase<T extends App<T>> on ECSBase<T> {
   AnyStateSnapshot<T> createSnapshot();
 
   AnyStateSnapshot<T> captureSnapshot();
@@ -106,13 +106,13 @@ mixin IsStateHolderBase<T extends App<T>> on ECSBase<T> {
   });
 }
 
-typedef IsAnyStateHolder<T extends App<T>> = IsStateHolderBase<T>;
+typedef IsAnyStateHolder<T extends App<T>> = _IsStateHolderBase<T>;
 
 mixin IsStateHolder<
   T extends App<T>,
   E extends IsStateHolder<T, E, S>,
   S extends StateSnapshot<T, E>
-> on ECSBase<T> implements IsStateHolderBase<T> {
+> on ECSBase<T> implements _IsStateHolderBase<T> {
   
   // ░██████░███     ░███ ░█████████  ░██         
   //   ░██  ░████   ░████ ░██     ░██ ░██         

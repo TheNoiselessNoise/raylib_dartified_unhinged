@@ -494,7 +494,7 @@ class MinesweeperScene extends DrawScene<G> {
   }
 
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     if (msState.gameOver && IsKeyPressed(.KEY_R)) {
       initLevel();
     }

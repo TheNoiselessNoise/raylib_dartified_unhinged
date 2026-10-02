@@ -647,11 +647,7 @@ class CollisionResolverSystemSnapshot<T extends App<T>> extends SceneSystemSnaps
   CollisionResolverSystemSnapshot(super.id);
 
   @override
-  CollisionResolverSystem<T> createInstance(T app) => .new(app,
-    gridCellSize: gridCellSize,
-    restitution: restitution,
-    enableEventEmitting: enableEventEmitting,
-  );
+  CollisionResolverSystem<T> createInstance(T app) => .new(app);
 }
 
 /// A mixin that provides typed collision resolution utilities for pairs of

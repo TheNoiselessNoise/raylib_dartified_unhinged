@@ -84,9 +84,5 @@ class CLocalTransformSnapshot<T extends App<T>> extends CompSnapshot<T, CLocalTr
   CLocalTransformSnapshot(super.id);
 
   @override
-  CLocalTransform<T> createInstance(T app) => .new(app,
-    offset: offset.copy(),
-    rotation: rotation,
-    scale: scale.copy(),
-  );
+  CLocalTransform<T> createInstance(T app) => .new(app);
 }

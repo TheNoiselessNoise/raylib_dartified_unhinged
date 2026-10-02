@@ -178,17 +178,5 @@ class CImageSnapshot<T extends App<T>> extends CompSnapshot<T, CImage<T>> {
   CImageSnapshot(super.id);
 
   @override
-  CImage<T> createInstance(T app) {
-    final c = CImage<T>(
-      app,
-      texture: texture,
-      sourceRect: sourceRect?.copy(),
-      tint: tint,
-      size: size?.copy(),
-    );
-    c.source = source.copy();
-    c.dest = dest.copy();
-    c.origin = origin.copy();
-    return c;
-  }
+  CImage<T> createInstance(T app) => .new(app);
 }

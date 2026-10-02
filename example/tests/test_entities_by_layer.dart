@@ -215,7 +215,7 @@ class TestRenderLayerScene extends DrawScene<G> {
   }
 
   @override
-  void onUpdate(double dt) {
+  void onPostUpdate(double dt) {
     renderLayerOverride = selectedLayer != null
       ? _allLayers[selectedLayer!].name
       : null;

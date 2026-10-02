@@ -65,7 +65,5 @@ class GravitySystemSnapshot<T extends App<T>> extends SceneSystemSnapshot<T, Gra
   GravitySystemSnapshot(super.id);
 
   @override
-  GravitySystem<T> createInstance(T app) => .new(app,
-    gravity: gravity.copy(),
-  );
+  GravitySystem<T> createInstance(T app) => .new(app);
 }

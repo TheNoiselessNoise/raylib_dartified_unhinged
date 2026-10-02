@@ -13,15 +13,15 @@ class MyEntity extends Entity<G> {
     addComp(CRectCollider(app, size: .vec2(64, 64), debugDraw: true, debugColor: .GREEN));
     addComp(stateMachine = .new(app)
       ..addState('above100',
-        onEnter: () => addMessage('state machine: `above100` onEnter'),
+        onEnter: (_) => addMessage('state machine: `above100` onEnter'),
         // onUpdate: (dt) => print('state machine: `above100` onUpdate:'),
-        onExit: () => addMessage('state machine: `above100` onExit'))
+        onExit: (_) => addMessage('state machine: `above100` onExit'))
       ..addState('below100',
-        onEnter: () => addMessage('state machine: `below100` onEnter'),
+        onEnter: (_) => addMessage('state machine: `below100` onEnter'),
         // onUpdate: (dt) => print('state machine: `below100` onUpdate:'),
-        onExit: () => addMessage('state machine: `below100` onExit'))
-      ..transition('above100', 'below100', when: () => entityField < 100)
-      ..transition('below100', 'above100', when: () => entityField > 100)
+        onExit: (_) => addMessage('state machine: `below100` onExit'))
+      ..transition('above100', 'below100', when: (_) => entityField < 100)
+      ..transition('below100', 'above100', when: (_) => entityField > 100)
       ..start(entityField < 100 ? 'below100' : 'above100')
     );
   } 

@@ -94,7 +94,6 @@ part 'ecs/mixins/is_scenesystem_managable.dart';
 part 'ecs/mixins/is_startable.dart';
 part 'ecs/mixins/is_state_holder.dart';
 part 'ecs/mixins/is_task_processable.dart';
-part 'ecs/mixins/is_updatable.dart';
 part 'ecs/mixins/self.dart';
 part 'ecs/scene_systems/collision_resolver.dart';
 part 'ecs/scene_systems/gravity.dart';

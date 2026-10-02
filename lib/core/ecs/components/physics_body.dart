@@ -98,9 +98,5 @@ class CPhysicsBodySnapshot<T extends App<T>> extends CompSnapshot<T, CPhysicsBod
   CPhysicsBodySnapshot(super.id);
 
   @override
-  CPhysicsBody<T> createInstance(T app) => .new(app,
-    mass: mass,
-    restitution: restitution,
-    transferVelocity: transferVelocity,
-  );
+  CPhysicsBody<T> createInstance(T app) => .new(app);
 }

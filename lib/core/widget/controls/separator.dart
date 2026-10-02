@@ -62,7 +62,7 @@ class FSeparator<T extends App<T>> extends FWidgetLeaf<T> {
       _drawLine(gapEnd, rect.y, rect.x + rect.width - gapEnd, rect.height);
     }
 
-    lbl.get<CRectCollider<T>>()!.rect = .rect(
+    lbl.widgetCollider.rect = .rect(
       labelX, rect.y + (rect.height - labelSize.y) / 2,
       labelSize.x, labelSize.y,
     );

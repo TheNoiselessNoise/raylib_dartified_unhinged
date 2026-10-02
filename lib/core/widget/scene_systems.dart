@@ -30,7 +30,7 @@ class FWidgetDebugSystem<T extends App<T>> extends SceneSystem<T> {
   });
 
   void _enableDebugWidget(FWidget<T> widget, bool enable) {
-    final rect = widget.get<CRectCollider<T>>()!;
+    final rect = widget.widgetCollider;
     rect.debugColor = .GREEN;
     rect.debugDraw = enable;
 
