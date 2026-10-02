@@ -54,6 +54,8 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   IsEnableable<T, Entity<T>>,
   IsEventEmittable<T, Entity<T>>,
   IsEventHistoryHolder<T, Entity<T>>,
+  IsMorphable<T, Entity<T>>,
+  IsPanicable<T, Entity<T>>,
   IsRemovable<T, Entity<T>>,
   IsPrePostUpdatable<T, Entity<T>>, // pre components and post components
   
@@ -267,7 +269,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
 
   /// Fires pre update listeners, advances all components by [dt], fires post update listeners.
   /// Skipped entirely when the entity is disabled.
-  void _doEntityUpdate(double dt) {
+  void _doEntityUpdate(double dt) => _runSafely(() {
     if (_isInstanceDisabled) return;
     final result = _doOnPreUpdate(dt);
     if (result == .cancel) return;
@@ -275,17 +277,17 @@ class Entity<T extends App<T>> extends ECSBase<T> with
     if (result == .proceed) _updateChildComponents(dt);
     if (_isInstanceDisabled) return;
     _doOnPostUpdate(dt);
-  }
+  });
 
   /// Draws all components for [dt], fires draw listeners, then calls
   /// [onDraw]. Skipped entirely when the entity is disabled.
   @override
   @mustCallSuper
-  void _doDraw(double dt) {
+  void _doDraw(double dt) => _runSafely(() {
     if (_isInstanceDisabled) return;
     _drawChildComponents(dt);
     super._doDraw(dt);
-  }
+  });
 
   @mustCallSuper
   void _cleanup() {
@@ -521,7 +523,7 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
   /// Advances the group itself, then advances each member entity.
   /// Member updates are skipped when the group is disabled.
   @override
-  void _doEntityUpdate(double dt) {
+  void _doEntityUpdate(double dt) => _runSafely(() {
     if (_isInstanceDisabled) return;
     final result = _doOnPreUpdate(dt);
     if (result == .cancel) return;
@@ -530,17 +532,17 @@ class EntityGroup<T extends App<T>, E extends Entity<T>> extends Entity<T> with
     if (_isInstanceDisabled) return;
     _updateEntities(dt);
     _doOnPostUpdate(dt);
-  }
+  });
 
   /// Draws the group itself, then draws each member entity.
   /// Member draws are skipped when the group is disabled.
   @override
   @mustCallSuper
-  void _doDraw(double dt) {
+  void _doDraw(double dt) => _runSafely(() {
     super._doDraw(dt);
     if (_isInstanceDisabled) return;
     _drawAllEntities(dt);
-  }
+  });
 
   /// Dispatches [event] to the group itself, then to each member entity.
   /// Propagation stops if [Event.isStopped] becomes `true` after the group.

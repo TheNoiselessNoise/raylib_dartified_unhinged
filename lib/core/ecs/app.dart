@@ -134,6 +134,7 @@ class App<T extends App<T>> extends ECSBase<T> with
   IsDebuggable<T, T>,
   IsDisposable<T, T>,
   IsInputHandleable<T, T>,
+  IsPanicable<T, T>,
 
   IsSceneTransitionable<T, T>, // needs to be before `IsSceneManagable`
   IsSceneManagable<T, T>,
@@ -189,26 +190,30 @@ class App<T extends App<T>> extends ECSBase<T> with
   // ░██       ░██ ░██    ░██   ░██  ░██   ░████ 
   // ░██       ░██ ░██    ░██ ░██████░██    ░███ 
 
-  void init() {
+  void init() => _runSafely(() {
     _doInit();
     _enterScene(_scenes.first);
-  }
+  });
 
-  void frame() {
+  void frame() => _runSafely(() {
     time._update();
-    _doBeginFrame(time.dt);
-    _doUpdate(time.dt);
-    _doDraw(time.dt);
-    _doEndFrame(time.dt);
-  }
+    final dt = time.dt;
+    _doBeginFrame(dt);
+    // update
+    _doFrame(dt, time.frameCount);
+    currentScene._updateScene(dt);
+    // draw
+    currentScene._doDraw(dt);
+    _doEndFrame(dt);
+  });
 
-  void exit() {
+  void exit() => _runSafely(() {
     _doOnEvent(EventAppExiting(app));
     _doExit();
     _doOnDispose();
     backend.dispose();
     _doOnEvent(EventAppExited(app));
-  }
+  });
 
   // ░██     ░██   ░██████     ░██████   ░██     ░██   ░██████   
   // ░██     ░██  ░██   ░██   ░██   ░██  ░██    ░██   ░██   ░██  
@@ -391,15 +396,6 @@ class App<T extends App<T>> extends ECSBase<T> with
   //   ░██  ░██  ░██  ░██ ░██         ░██         
   //   ░██  ░██       ░██ ░██         ░██         
   // ░██████░██       ░██ ░██         ░██████████ 
-
-  @mustCallSuper
-  void _doUpdate(double dt) {
-    _doFrame(dt, time.frameCount);
-    currentScene._updateScene(dt);
-  }
-
-  @mustCallSuper
-  void _doDraw(double dt) => currentScene._doDraw(dt);
 
   @override
   @mustCallSuper

@@ -79,6 +79,8 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   IsEventHistoryHolder<T, Scene<T>>,
   IsInputHandleable<T, Scene<T>>,
   IsLeavable<T, Scene<T>>,
+  IsMorphable<T, Scene<T>>,
+  IsPanicable<T, Scene<T>>,
   IsPrePostDrawable<T, Scene<T>>,
   IsPrePostUpdatable<T, Scene<T>>, // pre scene systems and post scene systems
   IsRemovable<T, Scene<T>>,
@@ -324,7 +326,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
 
   /// Runs one update tick:
   /// `pre-update` > `systems (pre)` > `entities` > `systems (post)` > `post-update`.
-  void _updateScene(double dt) {
+  void _updateScene(double dt) => _runSafely(() {
     final result = _doOnPreUpdate(dt);
 
     if (result == .cancel) return;
@@ -345,7 +347,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
     }
 
     _doOnPostUpdate(dt);
-  }
+  });
 
   @override
   @nonVirtual
@@ -375,7 +377,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
   /// for each layer.
   @override
   @nonVirtual
-  void _doDraw(double dt) {
+  void _doDraw(double dt) => _runSafely(() {
     final result = _doOnPreDraw(dt);
 
     if (result == .cancel) return;
@@ -406,7 +408,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
     }
 
     _doOnPostDraw(dt);
-  }
+  });
 
   @override
   @mustCallSuper

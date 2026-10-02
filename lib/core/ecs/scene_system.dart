@@ -22,6 +22,7 @@ class SceneSystem<T extends App<T>> extends ECSBase<T> with
   IsEventEmittable<T, SceneSystem<T>>,
   IsEventHistoryHolder<T, SceneSystem<T>>,
   IsInputHandleable<T, SceneSystem<T>>,
+  IsMorphable<T, SceneSystem<T>>,
   IsPrePostDrawable<T, SceneSystem<T>>,
   IsPrePostUpdatable<T, SceneSystem<T>>, // pre entities and post entities
   IsRemovable<T, SceneSystem<T>>,
