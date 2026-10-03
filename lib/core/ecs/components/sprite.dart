@@ -4,16 +4,16 @@ part of '../../raylib_dartified_unhinged.dart';
 class CSprite<T extends App<T>> extends Comp<T> {
   static const List<double> _defaultSize = [50, 50];
 
-  Vector2D size; // unscaled local size
-  ColorD? color;
+  Vector2 size; // unscaled local size
+  Color? color;
 
   // cached for drawing
-  RectangleD rect = .zero(); // dest rect (centered)
-  Vector2D origin = .zero(); // origin relative to rec (usually center)
+  Rectangle rect = .zero(); // dest rect (centered)
+  Vector2 origin = .zero(); // origin relative to rec (usually center)
 
   CSprite(super.app, {
     super.populateDefaults,
-    Vector2D? size,
+    Vector2? size,
     this.color,
   }) : size = size ?? .vec2(_defaultSize[0], _defaultSize[1]);
 
@@ -108,10 +108,10 @@ class CSprite<T extends App<T>> extends Comp<T> {
 }
 
 class CSpriteSnapshot<T extends App<T>> extends CompSnapshot<T, CSprite<T>> {
-  late Vector2D size;
-  late ColorD? color;
-  late RectangleD rect;
-  late Vector2D origin;
+  late Vector2 size;
+  late Color? color;
+  late Rectangle rect;
+  late Vector2 origin;
   
   CSpriteSnapshot(super.id);
 

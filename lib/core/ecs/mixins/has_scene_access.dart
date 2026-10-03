@@ -4,7 +4,7 @@ part of '../../raylib_dartified_unhinged.dart';
 mixin HasSceneAccess<T extends App<T>> on HasAppAccess<T> {
   Bounds get sceneBounds => scene.sceneBounds;
 
-  Vector2D get sceneSize => sceneBounds.size;
+  Vector2 get sceneSize => sceneBounds.size;
 
   double get sceneWidth => sceneBounds.width;
 

@@ -180,7 +180,7 @@ class MyGame extends ExampleRaylibApp<G> {
   MyGame(super.backend);
 
   @override
-  Vector2D get screenSize => .vec2(800, 450);
+  Vector2 get screenSize => .vec2(800, 450);
 
   @override
   void onInit() {

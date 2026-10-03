@@ -133,7 +133,7 @@ class CellGrid2D extends Grid2D<G, Cell> {
 class Cell extends Entity<G> {
   final int x;
   final int y;
-  final RectangleD rect;
+  final Rectangle rect;
   int value = 0; // 0-8 = cell, -1 bomb
 
   bool get isBomb => value == -1;
@@ -146,7 +146,7 @@ class Cell extends Entity<G> {
 
   Cell(super.app, this.x, this.y, this.rect);
 
-  ColorD get valueColor => switch(value) {
+  Color get valueColor => switch(value) {
     1 => .BLUE,
     2 => .GREEN,
     3 => .RED,
@@ -200,7 +200,7 @@ class Cell extends Entity<G> {
     };
 
     final atlasSize = backend.assets.atlasTileSize;
-    final RectangleD src = .rect(
+    final Rectangle src = .rect(
       tile.col * atlasSize.y,
       tile.row * atlasSize.x,
       atlasSize.x,
@@ -237,7 +237,7 @@ class MinesweeperStateSystem extends SceneSystem<G> {
 
   MinesweeperDifficulty difficulty = .Beginner;
   
-  late Vector2D gridSize = .vec2(
+  late Vector2 gridSize = .vec2(
     difficulty.gridSize.$1,
     difficulty.gridSize.$2,
   );
@@ -247,7 +247,7 @@ class MinesweeperStateSystem extends SceneSystem<G> {
   final int headerPadding = 12;
   final int gridMargin = 16;
 
-  Vector2D get cellSize {
+  Vector2 get cellSize {
     final availableWidth = sceneWidth - gridMargin * 2;
     final availableHeight = sceneHeight - headerHeight - gridMargin * 2;
 
@@ -258,12 +258,12 @@ class MinesweeperStateSystem extends SceneSystem<G> {
     return .vec2(size, size);
   }
 
-  Vector2D get gridPixelSize => .vec2(
+  Vector2 get gridPixelSize => .vec2(
     gridSize.x * cellSize.x,
     gridSize.y * cellSize.y,
   );
 
-  Vector2D get gridOffset {
+  Vector2 get gridOffset {
     final availableHeight = sceneHeight - headerHeight;
     return .vec2(
       ((sceneWidth - gridPixelSize.x) / 2).round(),
@@ -603,8 +603,8 @@ class SettingsScene extends FWidgetScene<G> {
 }
 
 extension on AssetManager {
-  Vector2D get atlasTileSize => .vec2(16, 16);
-  TextureD get atlas => texture('xp.png').asset;
+  Vector2 get atlasTileSize => .vec2(16, 16);
+  Texture get atlas => texture('xp.png').asset;
 }
 
 class Minesweeper extends App<G> {

@@ -8,7 +8,7 @@ typedef G = TestRenderLayerApp;
 final _random = math.Random();
 
 class CustomRenderLayer extends RenderLayer {
-  final ColorD color;
+  final Color color;
 
   CustomRenderLayer(super.name, super.order, this.color);
 }

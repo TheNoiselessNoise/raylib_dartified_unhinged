@@ -2,7 +2,7 @@ part of '../../raylib_dartified_unhinged.dart';
 
 class FSeparator<T extends App<T>> extends FWidgetLeaf<T> {
   double thickness;
-  ColorD color;
+  Color color;
   FLabel<T>? label;
   FSeparatorLabelPosition labelPosition;
   double labelGap;
@@ -10,7 +10,7 @@ class FSeparator<T extends App<T>> extends FWidgetLeaf<T> {
   FSeparator(super.app, {
     super.key,
     this.thickness = 1,
-    ColorD? color,
+    Color? color,
     this.label,
     this.labelPosition = .center,
     this.labelGap = 8,
@@ -21,7 +21,7 @@ class FSeparator<T extends App<T>> extends FWidgetLeaf<T> {
 
   @override
   void layout(FConstraints constraints) {
-    final Vector2D desired = .vec2(constraints.maxWidth, thickness);
+    final Vector2 desired = .vec2(constraints.maxWidth, thickness);
 
     size = constraints.resolve(desired);
 

@@ -1,22 +1,22 @@
 part of '../../raylib_dartified_unhinged.dart';
 
 class CImage<T extends App<T>> extends Comp<T> {
-  TextureD? texture;
+  Texture? texture;
 
   /// If provided, draws a sub-rect from the texture (sprite sheet).
   /// If null, draws the full texture.
-  RectangleD? sourceRect;
+  Rectangle? sourceRect;
 
-  ColorD? tint;
+  Color? tint;
 
   // cached drawing data
-  RectangleD source = .zero();
-  RectangleD dest = .zero();
-  Vector2D origin = .zero();
+  Rectangle source = .zero();
+  Rectangle dest = .zero();
+  Vector2 origin = .zero();
 
   /// Optional: override draw size in world units.
   /// If null, we try CSprite.size; if absent, we fall back to texture size.
-  Vector2D? size;
+  Vector2? size;
 
   CImage(super.app, {
     super.populateDefaults,
@@ -26,7 +26,7 @@ class CImage<T extends App<T>> extends Comp<T> {
     this.size,
   });
 
-  Vector2D _getLocalSize() {
+  Vector2 _getLocalSize() {
     if (size != null) return size!;
     final sprite = entity.get<CSprite<T>>();
     if (sprite != null) return sprite.size;
@@ -167,13 +167,13 @@ class CImage<T extends App<T>> extends Comp<T> {
 }
 
 class CImageSnapshot<T extends App<T>> extends CompSnapshot<T, CImage<T>> {
-  late TextureD? texture;
-  late RectangleD? sourceRect;
-  late ColorD? tint;
-  late RectangleD source;
-  late RectangleD dest;
-  late Vector2D origin;
-  late Vector2D? size;
+  late Texture? texture;
+  late Rectangle? sourceRect;
+  late Color? tint;
+  late Rectangle source;
+  late Rectangle dest;
+  late Vector2 origin;
+  late Vector2? size;
   
   CImageSnapshot(super.id);
 

@@ -170,12 +170,12 @@ class App<T extends App<T>> extends ECSBase<T> with
   }
 
   @override
-  Vector2D get screenSize => .vec2(800, 450);
+  Vector2 get screenSize => .vec2(800, 450);
 
   bool _initialized = false;
   bool _dependenciesAssigned = false;
 
-  late FontD defaultFont = backend.getFontDefault();
+  late Font defaultFont = backend.getFontDefault();
 
   bool exitApp = false; // internal
 

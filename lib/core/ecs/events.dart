@@ -547,7 +547,7 @@ class EventCollision<T extends App<T>> extends Event<T> with WithCollisionResolv
   @override
   final Entity<T> b;
   
-  final Vector2D normal; // from a -> b
+  final Vector2 normal; // from a -> b
   
   final double penetration;
 

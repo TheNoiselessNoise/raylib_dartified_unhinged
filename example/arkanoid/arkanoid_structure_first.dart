@@ -81,8 +81,8 @@ class PaddleEntity extends Entity<G> {
   PaddleEntity(super.app);
 
   double speed = 600;
-  Vector2D size = .vec2(120, 20);
-  ColorD color = .GREEN;
+  Vector2 size = .vec2(120, 20);
+  Color color = .GREEN;
 
   @override
   void onAdd(_) {
@@ -125,13 +125,13 @@ class BallEntity extends Entity<G> {
   static final String TAG = 'ball'; 
 
   int damage = 1;
-  late Vector2D position;
-  late Vector2D initialVelocity;
+  late Vector2 position;
+  late Vector2 initialVelocity;
   bool isCopy;
 
   BallEntity(super.app, {
-    Vector2D? position,
-    Vector2D? velocity,
+    Vector2? position,
+    Vector2? velocity,
     this.isCopy = false,
   }) {
     this.position = position ?? sceneBounds.size.divideBy(2);
@@ -183,17 +183,17 @@ class BallEntity extends Entity<G> {
 class BrickEntity extends Entity<G> {
   static final String TAG = 'brick'; 
 
-  final Vector2D position;
-  final Vector2D size;
+  final Vector2 position;
+  final Vector2 size;
   double maxHealth;
   late double health;
-  ColorD color;
+  Color color;
 
   BrickEntity(super.app, {
     required this.position,
     required this.size,
     required this.maxHealth,
-    ColorD? color,
+    Color? color,
   }) :
     color = color ?? .ORANGE,
     health = maxHealth.roundToDouble();
@@ -268,7 +268,7 @@ enum PowerUpType {
     .upDamage => 'DMG',
   };
 
-  ColorD get color => switch (this) {
+  Color get color => switch (this) {
     .widenPaddle => .color(0xFF, 0x00, 0xFF, 0x88),
     .shortenPaddle => .color(0xFF, 0xFF, 0x44, 0x44),
     .splitBalls => .color(0xFF, 0x44, 0x88, 0xFF),
@@ -298,7 +298,7 @@ class PickablePowerUp extends Entity<G> {
 
   final PowerUpType type;
   final double speed = 150;
-  final Vector2D position;
+  final Vector2 position;
 
   PickablePowerUp(super.app, {
     required this.type,
@@ -457,14 +457,14 @@ class ArkanoidStatsSystem extends AppSystem<G> {
   int level = 1;
   int score = 0;
 
-  final ColorD _textColor = .color(255, 255, 255, 50);
+  final Color _textColor = .color(255, 255, 255, 50);
 
   bool get isLevelComplete => bricksDestroyed >= bricksCurrentLevel;
 
   final Map<String, int> highScores = {};
   void addHighScoreFor(String name) => highScores[name] = score;
 
-  void drawTextLine(String text, int yStart, int fontSize, ColorD textColor) {
+  void drawTextLine(String text, int yStart, int fontSize, Color textColor) {
     final screen = sceneBounds.size;
     final w = MeasureText(text, fontSize);
     DrawText(text, screen.x / 2 - w / 2, screen.y / 2 - fontSize / 2 + yStart, fontSize, textColor);
@@ -522,7 +522,7 @@ class ArkanoidGameOverWidget extends FWidget<G> {
   bool showOnly = false;
 
   String textName = '';
-  ColorD borderOverride = .GREEN;
+  Color borderOverride = .GREEN;
   FShake<G>? errorText;
 
   void setError(String? error) => setState(() {
@@ -826,11 +826,11 @@ class ArkanoidScene extends DrawScene<G> {
 
   // ---- helpers ----
 
-  void _addBrick(int x, int y, {required double health, required ColorD color}) {
+  void _addBrick(int x, int y, {required double health, required Color color}) {
     statsSystem.bricksCurrentLevel++;
 
-    final Vector2D size = .vec2(60, 20);
-    final Vector2D position = .vec2(80 + (x * size.x) + 5, 60 + (y * size.y) + 5);
+    final Vector2 size = .vec2(60, 20);
+    final Vector2 position = .vec2(80 + (x * size.x) + 5, 60 + (y * size.y) + 5);
     addEntity(BrickEntity(app,
       position: position,
       size: size,
@@ -842,8 +842,8 @@ class ArkanoidScene extends DrawScene<G> {
   void _addPowerUpBrick(int x, int y, {required double healthMultiplier}) {
     statsSystem.bricksCurrentLevel++;
 
-    final Vector2D size = .vec2(60, 20);
-    final Vector2D position = .vec2(80 + (x * size.x) + 5, 60 + (y * size.y) + 5);
+    final Vector2 size = .vec2(60, 20);
+    final Vector2 position = .vec2(80 + (x * size.x) + 5, 60 + (y * size.y) + 5);
     final PowerUpType type = .random();
     addEntity(PowerUpBrick(app,
       position: position,
@@ -853,8 +853,8 @@ class ArkanoidScene extends DrawScene<G> {
     ));
   }
 
-  final List<ColorD> _levelColors = [.RED, .ORANGE, .YELLOW, .GREEN, .SKYBLUE, .BLUE, .VIOLET, .PINK];
-  ColorD _levelColor(int level) => _levelColors[level % _levelColors.length];
+  final List<Color> _levelColors = [.RED, .ORANGE, .YELLOW, .GREEN, .SKYBLUE, .BLUE, .VIOLET, .PINK];
+  Color _levelColor(int level) => _levelColors[level % _levelColors.length];
 
   @override
   void onDrawBackground() {

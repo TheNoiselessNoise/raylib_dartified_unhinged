@@ -55,7 +55,7 @@ class Animation {
     }
   }
   
-  RectangleD getFrameRect(int frameIndex) {
+  Rectangle getFrameRect(int frameIndex) {
     if (maxColumns != null) {
       final col = frameIndex % maxColumns!;
       final row = startRow + (frameIndex ~/ maxColumns!);
@@ -98,8 +98,8 @@ class Animation {
 /// }
 /// ```
 class CAnimator<T extends App<T>> extends Comp<T> {
-  TextureD? sheet;
-  Map<String, TextureD>? sheets;
+  Texture? sheet;
+  Map<String, Texture>? sheets;
   Map<String, Animation> animations;
   List<Animation> _fpsBoundAnimations = [];
   void Function(String animName)? onComplete;
@@ -109,9 +109,9 @@ class CAnimator<T extends App<T>> extends Comp<T> {
   double frameTime = 0;
   bool isPlaying = true;
 
-  RectangleD src = .zero();
-  RectangleD dest = .zero();
-  Vector2D origin = .zero();
+  Rectangle src = .zero();
+  Rectangle dest = .zero();
+  Vector2 origin = .zero();
   
   CAnimator(super.app, {
     super.populateDefaults,
@@ -136,7 +136,7 @@ class CAnimator<T extends App<T>> extends Comp<T> {
   }) {
     int maxWidth = frameWidth ?? 0;
     int maxHeight = frameHeight ?? 0;
-    final Map<String, TextureD> sheets = {};
+    final Map<String, Texture> sheets = {};
     final Map<String, Animation> animations = {};
     
     for (final aninName in animationNames) {
@@ -171,7 +171,7 @@ class CAnimator<T extends App<T>> extends Comp<T> {
     return animations[currentAnimName]!;
   }
   
-  TextureD get currentTexture {
+  Texture get currentTexture {
     final anim = currentAnim;
     
     // if sheetKey, use that
@@ -380,7 +380,7 @@ class CAnimator<T extends App<T>> extends Comp<T> {
   @mustCallSuper
   MapData getPersistableData({bool force = false}) => {
     ...super.getPersistableData(force: force),
-    'sheetKey': sheet?.id, // assumes TextureD exposes a stable asset key
+    'sheetKey': sheet?.id, // assumes Texture exposes a stable asset key
     'sheets': sheets?.map((k, tex) => MapEntry(k, tex.id)),
     'animations': animations.map((k, anim) => MapEntry(k, _animToData(anim))),
     // record which anims were fps-derived so we can re-null their
@@ -458,8 +458,8 @@ class CAnimator<T extends App<T>> extends Comp<T> {
 }
 
 class CAnimatorSnapshot<T extends App<T>> extends CompSnapshot<T, CAnimator<T>> {
-  late TextureD? sheet;
-  late Map<String, TextureD>? sheets;
+  late Texture? sheet;
+  late Map<String, Texture>? sheets;
   late Map<String, Animation> animations;
   late List<Animation> _fpsBoundAnimations;
   late void Function(String animName)? onComplete;
@@ -469,9 +469,9 @@ class CAnimatorSnapshot<T extends App<T>> extends CompSnapshot<T, CAnimator<T>> 
   late double frameTime;
   late bool isPlaying;
 
-  late RectangleD src;
-  late RectangleD dest;
-  late Vector2D origin;
+  late Rectangle src;
+  late Rectangle dest;
+  late Vector2 origin;
 
   CAnimatorSnapshot(super.id);
   

@@ -26,7 +26,7 @@ mixin HasAppAccess<T extends App<T>> {
   AppTime<T> get time => app.time;
 
   /// Shorthand for [App.screenSize].
-  Vector2D get screenSize => app.screenSize;
+  Vector2 get screenSize => app.screenSize;
 
   /// Shorthand for [App]'s width.
   double get screenWidth => screenSize.x;

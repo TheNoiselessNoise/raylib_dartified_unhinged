@@ -6,7 +6,7 @@ class CVelocity<T extends App<T>> extends Comp<T> {
   static const double _defaultLinearDamping = 0;
   static const double _defaultAngularDamping = 0;
 
-  Vector2D velocity;      // units per second
+  Vector2 velocity;      // units per second
   double angularVelocity; // radians per second
 
   /// Optional damping: 0 = no damping. Typical: 1..10 (per second).
@@ -18,7 +18,7 @@ class CVelocity<T extends App<T>> extends Comp<T> {
 
   CVelocity(super.app, {
     super.populateDefaults,
-    Vector2D? velocity,
+    Vector2? velocity,
     this.angularVelocity = _defaultAngularVelocity,
     this.linearDamping = _defaultLinearDamping,
     this.angularDamping = _defaultAngularDamping,
@@ -122,7 +122,7 @@ class CVelocity<T extends App<T>> extends Comp<T> {
 }
 
 class CVelocitySnapshot<T extends App<T>> extends CompSnapshot<T, CVelocity<T>> {
-  late Vector2D velocity;
+  late Vector2 velocity;
   late double angularVelocity;
   late double linearDamping;
   late double angularDamping;

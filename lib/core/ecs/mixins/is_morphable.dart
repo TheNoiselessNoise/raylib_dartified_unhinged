@@ -1,7 +1,5 @@
 part of '../../raylib_dartified_unhinged.dart';
 
-// TODO: use this
-
 /// Adds a morph lifecycle hook to an ECS object.
 mixin IsMorphable<
   T extends App<T>,

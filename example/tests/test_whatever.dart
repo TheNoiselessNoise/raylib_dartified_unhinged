@@ -2,7 +2,7 @@
 import '_base.dart';
 import 'dart:math' as math;
 
-final Vector2D ENTITY_SIZE = .vec2(50, 50);
+final Vector2 ENTITY_SIZE = .vec2(50, 50);
 final String TAG_ENTITY1 = 'entity1';
 final String TAG_ENTITY2 = 'entity2';
 final String TAG_BULLET = 'bullet';
@@ -136,7 +136,7 @@ class CDeathAnim extends Comp<G> {
 }
 
 class BulletExplosion extends Entity<G> {
-  BulletExplosion(super.app, Vector2D position) {
+  BulletExplosion(super.app, Vector2 position) {
     addComp(CTransform(app, position: position));
     addComp(CExplosionAnim(app));
   }
@@ -171,7 +171,7 @@ class Bullet extends Entity<G> {
 
   int damage = 0;
 
-  Vector2D? _start;
+  Vector2? _start;
   double _elapsed = 0;
 
   Bullet(super.app) {
@@ -195,7 +195,7 @@ class Bullet extends Entity<G> {
 
     final toTarget = target.sub(_start!);
     final len = math.sqrt(toTarget.x * toTarget.x + toTarget.y * toTarget.y);
-    final Vector2D perp = len == 0 ? .vec2(0, 0) : .vec2(-toTarget.y / len, toTarget.x / len);
+    final Vector2 perp = len == 0 ? .vec2(0, 0) : .vec2(-toTarget.y / len, toTarget.x / len);
     final wobble = perp.scale(math.sin(progress * math.pi * 3) * _wobbleAmplitude * (1 - progress));
 
     t.position = direct.add(wobble);

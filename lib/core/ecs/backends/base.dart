@@ -1,39 +1,39 @@
 part of '../../raylib_dartified_unhinged.dart';
 
 abstract class RenderBackend {
-  void drawText(String text, num posX, num posY, num fontSize, ColorD color);
+  void drawText(String text, num posX, num posY, num fontSize, Color color);
 
-  void drawTextEx(FontD font, String text, Vector2D position, num fontSize, num spacing, ColorD tint);
+  void drawTextEx(Font font, String text, Vector2 position, num fontSize, num spacing, Color tint);
 
-  void drawTextPro(FontD font, String text, Vector2D position, Vector2D origin, num rotation, num fontSize, num spacing, ColorD tint);
+  void drawTextPro(Font font, String text, Vector2 position, Vector2 origin, num rotation, num fontSize, num spacing, Color tint);
 
-  void drawLineEx(Vector2D startPos, Vector2D endPos, num thick, ColorD color);
+  void drawLineEx(Vector2 startPos, Vector2 endPos, num thick, Color color);
   
   int measureText(String text, num fontSize);
 
-  Vector2D measureTextEx(FontD font, String text, num fontSize, num spacing);
+  Vector2 measureTextEx(Font font, String text, num fontSize, num spacing);
   
-  void drawRectangle(num posX, num posY, num width, num height, ColorD color);
+  void drawRectangle(num posX, num posY, num width, num height, Color color);
 
-  void drawRectangleRounded(RectangleD rec, num roundness, num segments, ColorD color);
+  void drawRectangleRounded(Rectangle rec, num roundness, num segments, Color color);
 
-  void drawRectangleRoundedLinesEx(RectangleD rec, num roundness, num segments, num lineThick, ColorD color);
+  void drawRectangleRoundedLinesEx(Rectangle rec, num roundness, num segments, num lineThick, Color color);
 
-  void drawRectangleRec(RectangleD rec, ColorD color);
+  void drawRectangleRec(Rectangle rec, Color color);
 
-  void drawRectanglePro(RectangleD rec, Vector2D origin, num rotation, ColorD color);
+  void drawRectanglePro(Rectangle rec, Vector2 origin, num rotation, Color color);
 
-  void drawPixel(num posX, num posY, ColorD color);
+  void drawPixel(num posX, num posY, Color color);
 
-  void drawTriangle(Vector2D v1, Vector2D v2, Vector2D v3, ColorD color);
+  void drawTriangle(Vector2 v1, Vector2 v2, Vector2 v3, Color color);
 
-  void drawCircle(num centerX, num centerY, num radius, ColorD color);
+  void drawCircle(num centerX, num centerY, num radius, Color color);
 
-  void drawTexturePro(TextureD texture, RectangleD source, RectangleD dest, Vector2D origin, num rotation, ColorD tint);
+  void drawTexturePro(Texture texture, Rectangle source, Rectangle dest, Vector2 origin, num rotation, Color tint);
 
   void beginDrawing();
 
-  void clearBackground(ColorD color);
+  void clearBackground(Color color);
   
   void endDrawing();
 
@@ -41,11 +41,11 @@ abstract class RenderBackend {
     
   void endScissorMode();
   
-  void drawRectangleLinesEx(RectangleD rec, num lineThick, ColorD color);
+  void drawRectangleLinesEx(Rectangle rec, num lineThick, Color color);
 
-  void drawCircleLinesV(Vector2D center, num radius, ColorD color);
+  void drawCircleLinesV(Vector2 center, num radius, Color color);
 
-  void drawRectangleLinesRotated(RectangleD rect, num rotationDegrees, num lineThick, ColorD color);
+  void drawRectangleLinesRotated(Rectangle rect, num rotationDegrees, num lineThick, Color color);
 
   void dispose() {}
 }
@@ -71,13 +71,13 @@ abstract class InputBackend {
 }
 
 abstract class CollisionBackend {
-  bool circles(Vector2D center1, num radius1, Vector2D center2, num radius2);
+  bool circles(Vector2 center1, num radius1, Vector2 center2, num radius2);
   
-  bool circleRectangle(Vector2D center, num radius, RectangleD rec);
+  bool circleRectangle(Vector2 center, num radius, Rectangle rec);
   
-  bool rectangles(RectangleD rec1, RectangleD rec2);
+  bool rectangles(Rectangle rec1, Rectangle rec2);
 
-  bool pointRectangle(Vector2D point, RectangleD rec);
+  bool pointRectangle(Vector2 point, Rectangle rec);
 
   void dispose() {}
 }
@@ -90,11 +90,11 @@ class UnhingedAsset<X> {
 }
 
 abstract class AssetManager {
-  UnhingedAsset<ImageD> image(String id, {String? path});
+  UnhingedAsset<Image> image(String id, {String? path});
 
-  UnhingedAsset<TextureD> texture(String id, {String? path});
+  UnhingedAsset<Texture> texture(String id, {String? path});
 
-  UnhingedAsset<FontD> font(String id, {String? path, int fontSize = 32});
+  UnhingedAsset<Font> font(String id, {String? path, int fontSize = 32});
 
   void dispose() {}
 }
@@ -128,7 +128,7 @@ abstract class UnhingedBackend {
 
   void setTargetFPS(int fps);
 
-  FontD getFontDefault();
+  Font getFontDefault();
 
   @mustCallSuper
   void dispose() {

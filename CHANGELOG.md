@@ -1,6 +1,8 @@
-## 6.0.2
+## 6.0.3
 
 - Remove `IsUpdatable`
+- Add `IsMorphable` and `IsPanicable`
+- migrated to `raylib_dartified` family of version `6.0.3`
 
 ## 6.0.1
 

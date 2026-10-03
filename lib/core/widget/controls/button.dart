@@ -14,9 +14,9 @@ enum FButtonVariant {
 }
 
 class FButtonThemeColors {
-  final ColorD bg;
-  final ColorD fg;
-  final ColorD border;
+  final Color bg;
+  final Color fg;
+  final Color border;
 
   FButtonThemeColors({
     required this.bg,
@@ -26,18 +26,18 @@ class FButtonThemeColors {
 }
 
 class FButtonTheme<T extends App<T>> {
-  final ColorD bg;
-  final ColorD bgHovered;
-  final ColorD bgClicked;
-  final ColorD bgDisabled;
-  final ColorD fg;
-  final ColorD fgHovered;
-  final ColorD fgClicked;
-  final ColorD fgDisabled;
-  final ColorD border;
-  final ColorD borderHovered;
-  final ColorD borderClicked;
-  final ColorD borderDisabled;
+  final Color bg;
+  final Color bgHovered;
+  final Color bgClicked;
+  final Color bgDisabled;
+  final Color fg;
+  final Color fgHovered;
+  final Color fgClicked;
+  final Color fgDisabled;
+  final Color border;
+  final Color borderHovered;
+  final Color borderClicked;
+  final Color borderDisabled;
 
   const FButtonTheme({
     required this.bg,
@@ -55,17 +55,17 @@ class FButtonTheme<T extends App<T>> {
   });
 
   FButtonThemeColors resolveState(FButton<T> btn) {
-    ColorD bgColor = bg;
+    Color bgColor = bg;
     if (btn.isWidgetDisabled) bgColor = bgDisabled;
     else if (btn.clickState.framesHeld > 0) bgColor = bgClicked;
     else if (btn.clickState.hovered) bgColor = bgHovered;
 
-    ColorD fgColor = fg;
+    Color fgColor = fg;
     if (btn.isWidgetDisabled) fgColor = fgDisabled;
     else if (btn.clickState.framesHeld > 0) fgColor = fgClicked;
     else if (btn.clickState.hovered) fgColor = fgHovered;
 
-    ColorD borderColor = border;
+    Color borderColor = border;
     if (btn.isWidgetDisabled) borderColor = borderDisabled;
     else if (btn.clickState.framesHeld > 0) borderColor = borderClicked;
     else if (btn.clickState.hovered) borderColor = borderHovered;
@@ -127,11 +127,11 @@ class FButtonTheme<T extends App<T>> {
 }
 
 class _FButtonVariantPalette {
-  final ColorD solid;
-  final ColorD solidHover;
-  final ColorD solidActive;
-  final ColorD tintLight;
-  final ColorD tintMid;
+  final Color solid;
+  final Color solidHover;
+  final Color solidActive;
+  final Color tintLight;
+  final Color tintMid;
 
   const _FButtonVariantPalette({
     required this.solid,
@@ -182,7 +182,7 @@ class FButton<T extends App<T>> extends FWidgetLeaf<T> with
 
   FButton(super.app, {
     super.key,
-    Vector2D? position,
+    Vector2? position,
     this.buttonStyle = .flat,
     this.buttonVariant = .primary,
     this.onClickFn,

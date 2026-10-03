@@ -44,16 +44,16 @@ class FConstraints {
   });
 
   /// "You must be exactly this size"
-  FConstraints.tight(Vector2D size)
+  FConstraints.tight(Vector2 size)
     : minWidth = size.x, maxWidth = size.x,
       minHeight = size.y, maxHeight = size.y;
 
   /// "You can be up to this big, but no smaller than 0"
-  FConstraints.loose(Vector2D size)
+  FConstraints.loose(Vector2 size)
     : minWidth = 0, maxWidth = size.x,
       minHeight = 0, maxHeight = size.y;
 
-  Vector2D constrain(Vector2D size) => .vec2(
+  Vector2 constrain(Vector2 size) => .vec2(
     size.x.clamp(minWidth, maxWidth),
     size.y.clamp(minHeight, maxHeight),
   );
@@ -62,7 +62,7 @@ class FConstraints {
 
   num resolveHeight(num v) => v.clamp(minHeight, maxHeight);
 
-  Vector2D resolve(Vector2D size) => .vec2(
+  Vector2 resolve(Vector2 size) => .vec2(
     resolveWidth(size.x),
     resolveHeight(size.y),
   );
@@ -185,10 +185,10 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
   bool _needsPass = true;  // only meaningful on the root: rebuild + layout pending
 
   FWidget<T>? parentWidget;
-  Vector2D localOffset = .zero();
-  Vector2D _size = .zero(); // OUTPUT of layout(), never an input
-  Vector2D get size => _size;
-  set size(Vector2D value) {
+  Vector2 localOffset = .zero();
+  Vector2 _size = .zero(); // OUTPUT of layout(), never an input
+  Vector2 get size => _size;
+  set size(Vector2 value) {
     _size = value;
     markNeedsLayout();
   }
@@ -217,7 +217,7 @@ abstract class FWidget<T extends App<T>> extends EntityGroup<T, FWidget<T>> {
   }
 
   @override
-  Vector2D get worldPosition {
+  Vector2 get worldPosition {
     final p = parentWidget;
     return p == null ? sceneBounds.position.add(localOffset) : p.worldPosition.add(localOffset);
   }

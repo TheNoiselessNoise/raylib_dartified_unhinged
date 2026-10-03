@@ -111,7 +111,7 @@ class Entity<T extends App<T>> extends ECSBase<T> with
   /// 2. [CLocalTransform] with an [Entity] parent, adds the offset to the
   ///    parent's [worldPosition] recursively.
   /// 3. Falls back to [Scene.sceneBounds]'s position if neither is present.
-  Vector2D get worldPosition {
+  Vector2 get worldPosition {
     final sceneOffset = sceneBounds.position;
 
     final transform = this.transform;
@@ -129,8 +129,8 @@ class Entity<T extends App<T>> extends ECSBase<T> with
 
   /// The entity's position relative to its parent.
   ///
-  /// Returns [CLocalTransform.offset] if present, otherwise [Vector2D.zero].
-  Vector2D get localPosition {
+  /// Returns [CLocalTransform.offset] if present, otherwise [Vector2.zero].
+  Vector2 get localPosition {
     final local = localTransform;
     if (local != null) return local.offset;
     return .zero();

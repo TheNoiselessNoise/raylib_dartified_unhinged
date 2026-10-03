@@ -3,9 +3,9 @@ part of '../../raylib_dartified_unhinged.dart';
 class FLabel<T extends App<T>> extends FWidgetLeaf<T> {
   String text;
   int fontSize;
-  ColorD color;
+  Color color;
   FLabelAlignment alignment;
-  FontD? font;
+  Font? font;
   int spacing;
 
   /// Rotation in degrees, clockwise. `0` (default) preserves the original
@@ -17,15 +17,15 @@ class FLabel<T extends App<T>> extends FWidgetLeaf<T> {
     super.key,
     required this.text,
     this.fontSize = 20,
-    ColorD? color,
+    Color? color,
     this.alignment = .left,
     this.font,
     this.spacing = 2,
     this.angle = 0,
   }) : color = color ?? .WHITE;
 
-  Vector2D _textSize = .zero();
-  FontD get _font => font ?? app.defaultFont;
+  Vector2 _textSize = .zero();
+  Font get _font => font ?? app.defaultFont;
 
   @override
   void layout(FConstraints constraints) {

@@ -560,7 +560,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
 ///
 /// Calls [RaylibCore.BeginDrawing] and [RaylibCore.ClearBackground] at the start of every frame,
 /// and [RaylibCore.EndDrawing] at the end. Override [backgroundColor] to control the
-/// clear color (defaults to [ColorD.BLACK]).
+/// clear color (defaults to [Color.BLACK]).
 ///
 /// This is the correct base class for any scene that renders directly to the
 /// screen; use [Scene] only if you need manual control over the drawing
@@ -568,7 +568,7 @@ class Scene<T extends App<T>> extends ECSBase<T> with
 class DrawScene<T extends App<T>> extends Scene<T> {
   DrawScene(super.app, {super.key});
 
-  ColorD get backgroundColor => .BLACK;
+  Color get backgroundColor => .BLACK;
 
   @override
   @mustCallSuper

@@ -73,7 +73,7 @@ class TextDrawer<T extends App<T>> extends BaseDrawer<T> {
   }
 
   /// Draws [content] at the current cursor and advances horizontally.
-  TextDrawer text(String content, [ColorD? color]) {
+  TextDrawer text(String content, [Color? color]) {
     final width = backend.render.measureText(content, _fontSize);
 
     final drawX = switch (_halign) {
@@ -123,7 +123,7 @@ sealed class _Segment {}
 class _TextSegment extends _Segment {
   _TextSegment(this.content, this.color, this.width);
   final String content;
-  final ColorD? color;
+  final Color? color;
   final int width;
 }
 
@@ -139,7 +139,7 @@ class SentenceDrawer<T extends App<T>> {
   final List<_Segment> _segments = [];
   double _totalWidth = 0;
 
-  SentenceDrawer<T> text(String content, [ColorD? color]) {
+  SentenceDrawer<T> text(String content, [Color? color]) {
     final width = _parent.backend.render.measureText(content, _parent._fontSize);
     _segments.add(_TextSegment(content, color, width));
     _totalWidth += width;
@@ -197,7 +197,7 @@ class ComponentDrawer<T extends App<T>> extends BaseDrawer<T> {
     num y,
     num fontSize,
     String prefix,
-    ColorD color,
+    Color color,
     bool isLast,
     List<int> yRef,
   ) {
@@ -223,7 +223,7 @@ class ComponentDrawer<T extends App<T>> extends BaseDrawer<T> {
     num y,
     num fontSize,
     String prefix,
-    ColorD color,
+    Color color,
     [List<int>? yRef]
   ) {
     yRef ??= [y.toInt()];
@@ -244,7 +244,7 @@ class ComponentDrawer<T extends App<T>> extends BaseDrawer<T> {
     num x,
     num y,
     num fontSize, {
-      ColorD? color,
+      Color? color,
       String? prefix,
     }
   ) {
@@ -333,12 +333,12 @@ class DigitalDrawer<T extends App<T>> extends BaseDrawer<T> {
     num digitWidth,
     num digitHeight,
     String text,
-    ColorD? digitBackgroundColor,
-    ColorD digitUnlitSegmentsColor,
-    ColorD digitLitSegmentsColor, {
+    Color? digitBackgroundColor,
+    Color digitUnlitSegmentsColor,
+    Color digitLitSegmentsColor, {
     DigitalStyle style = .DEFAULT,
     num digitPadding = 1,
-    ColorD? textBackgroundColor,
+    Color? textBackgroundColor,
   }) {
     assert(text.isNotEmpty, 'DrawDigitalText expects text to be non-empty.');
 
@@ -378,11 +378,11 @@ class DigitalDrawer<T extends App<T>> extends BaseDrawer<T> {
   /// 
   /// [style] => controls thickness, rounding. Defaults to [DigitalStyle.DEFAULT].
   void number(
-    RectangleD dst,
+    Rectangle dst,
     String n,
-    ColorD? backgroundColor,
-    ColorD dimColor,
-    ColorD litColor, {
+    Color? backgroundColor,
+    Color dimColor,
+    Color litColor, {
     DigitalStyle style = .DEFAULT,
   }) {
     assert(n.length == 1, 'DrawDigitalNumber expects a single character; got "$n".');
@@ -410,19 +410,19 @@ class DigitalDrawer<T extends App<T>> extends BaseDrawer<T> {
 
     // Horizontal segments
 
-    final segA = RectangleD( // top
+    final segA = Rectangle( // top
       x:      colL + t + s,
       y:      row0,
       width:  w - 2 * t - 2 * s,
       height: t,
     );
-    final segG = RectangleD( // middle
+    final segG = Rectangle( // middle
       x:      colL + t + s,
       y:      row1 - t / 2.0,
       width:  w - 2 * t - 2 * s,
       height: t,
     );
-    final segD = RectangleD( // bottom
+    final segD = Rectangle( // bottom
       x:      colL + t + s,
       y:      row2 - t,
       width:  w - 2 * t - 2 * s,
@@ -439,13 +439,13 @@ class DigitalDrawer<T extends App<T>> extends BaseDrawer<T> {
     final double botSegBottom = row2 - t - s;  // above segD top
     final double botSegH = botSegBottom - botSegY;
 
-    final segF = RectangleD(x: colL,     y: topSegY, width: t, height: topSegH);
-    final segB = RectangleD(x: colR - t, y: topSegY, width: t, height: topSegH);
-    final segE = RectangleD(x: colL,     y: botSegY, width: t, height: botSegH);
-    final segC = RectangleD(x: colR - t, y: botSegY, width: t, height: botSegH);
+    final segF = Rectangle(x: colL,     y: topSegY, width: t, height: topSegH);
+    final segB = Rectangle(x: colR - t, y: topSegY, width: t, height: topSegH);
+    final segE = Rectangle(x: colL,     y: botSegY, width: t, height: botSegH);
+    final segC = Rectangle(x: colR - t, y: botSegY, width: t, height: botSegH);
 
-    void drawSeg(RectangleD rect, bool lit) {
-      final ColorD color = lit ? litColor : dimColor;
+    void drawSeg(Rectangle rect, bool lit) {
+      final Color color = lit ? litColor : dimColor;
       if (style.roundedEnds) {
         backend.render.drawRectangleRounded(rect, style.roundness, 4, color);
       } else {

@@ -3,15 +3,15 @@ part of '../../raylib_dartified_unhinged.dart';
 class CLocalTransform<T extends App<T>> extends Comp<T> {
   static const double _defaultRotation = 0;
 
-  Vector2D offset; // OFFSET from a parent
+  Vector2 offset; // OFFSET from a parent
   double rotation; // radians
-  Vector2D scale;  // 1,1 is identity
+  Vector2 scale;  // 1,1 is identity
 
   CLocalTransform(super.app, {
     super.populateDefaults,
-    Vector2D? offset,
+    Vector2? offset,
     this.rotation = _defaultRotation,
-    Vector2D? scale,
+    Vector2? scale,
   }) :
     offset = offset ?? .zero(),
     scale = scale ?? .one();
@@ -77,9 +77,9 @@ class CLocalTransform<T extends App<T>> extends Comp<T> {
 }
 
 class CLocalTransformSnapshot<T extends App<T>> extends CompSnapshot<T, CLocalTransform<T>> {
-  late Vector2D offset;
+  late Vector2 offset;
   late double rotation;
-  late Vector2D scale;
+  late Vector2 scale;
   
   CLocalTransformSnapshot(super.id);
 

@@ -2,55 +2,55 @@ part of '../../raylib_dartified_unhinged.dart';
 
 class HeadlessRenderBackend extends RenderBackend {
   @override
-  void drawText(String text, num posX, num posY, num fontSize, ColorD color) {}
+  void drawText(String text, num posX, num posY, num fontSize, Color color) {}
 
   @override
-  void drawTextEx(FontD font, String text, Vector2D position, num fontSize, num spacing, ColorD tint) {}
+  void drawTextEx(Font font, String text, Vector2 position, num fontSize, num spacing, Color tint) {}
 
   @override
-  void drawTextPro(FontD font, String text, Vector2D position, Vector2D origin, num rotation, num fontSize, num spacing, ColorD tint) {}
+  void drawTextPro(Font font, String text, Vector2 position, Vector2 origin, num rotation, num fontSize, num spacing, Color tint) {}
 
   @override
-  void drawLineEx(Vector2D startPos, Vector2D endPos, num thick, ColorD color) {}
+  void drawLineEx(Vector2 startPos, Vector2 endPos, num thick, Color color) {}
 
   @override
   int measureText(String text, num fontSize) => 0;
   
   @override
-  Vector2D measureTextEx(FontD font, String text, num fontSize, num spacing) => .zero();
+  Vector2 measureTextEx(Font font, String text, num fontSize, num spacing) => .zero();
 
   @override
-  void drawRectangle(num posX, num posY, num width, num height, ColorD color) {}
+  void drawRectangle(num posX, num posY, num width, num height, Color color) {}
 
   @override
-  void drawRectangleRounded(RectangleD rec, num roundness, num segments, ColorD color) {}
+  void drawRectangleRounded(Rectangle rec, num roundness, num segments, Color color) {}
 
   @override
-  void drawRectangleRoundedLinesEx(RectangleD rec, num roundness, num segments, num lineThick, ColorD color) {}
+  void drawRectangleRoundedLinesEx(Rectangle rec, num roundness, num segments, num lineThick, Color color) {}
 
   @override
-  void drawRectangleRec(RectangleD rec, ColorD color) {}
+  void drawRectangleRec(Rectangle rec, Color color) {}
 
   @override
-  void drawRectanglePro(RectangleD rec, Vector2D origin, num rotation, ColorD color) {}
+  void drawRectanglePro(Rectangle rec, Vector2 origin, num rotation, Color color) {}
 
   @override
-  void drawPixel(num posX, num posY, ColorD color) {}
+  void drawPixel(num posX, num posY, Color color) {}
 
   @override
-  void drawTriangle(Vector2D v1, Vector2D v2, Vector2D v3, ColorD color) {}
+  void drawTriangle(Vector2 v1, Vector2 v2, Vector2 v3, Color color) {}
 
   @override
-  void drawCircle(num centerX, num centerY, num radius, ColorD color) {}
+  void drawCircle(num centerX, num centerY, num radius, Color color) {}
 
   @override
-  void drawTexturePro(TextureD texture, RectangleD source, RectangleD dest, Vector2D origin, num rotation, ColorD tint) {}
+  void drawTexturePro(Texture texture, Rectangle source, Rectangle dest, Vector2 origin, num rotation, Color tint) {}
 
   @override
   void beginDrawing() {}
 
   @override
-  void clearBackground(ColorD color) {}
+  void clearBackground(Color color) {}
   
   @override
   void endDrawing() {}
@@ -62,13 +62,13 @@ class HeadlessRenderBackend extends RenderBackend {
   void endScissorMode() {}
 
   @override
-  void drawRectangleLinesEx(RectangleD rec, num lineThick, ColorD color) {}
+  void drawRectangleLinesEx(Rectangle rec, num lineThick, Color color) {}
 
   @override
-  void drawCircleLinesV(Vector2D center, num radius, ColorD color) {}
+  void drawCircleLinesV(Vector2 center, num radius, Color color) {}
 
   @override
-  void drawRectangleLinesRotated(RectangleD rect, num rotationDegrees, num lineThick, ColorD color) {}
+  void drawRectangleLinesRotated(Rectangle rect, num rotationDegrees, num lineThick, Color color) {}
 }
 
 class HeadlessInputBackend extends InputBackend {
@@ -99,27 +99,27 @@ class HeadlessInputBackend extends InputBackend {
 
 class HeadlessCollisionBackend extends CollisionBackend {
   @override
-  bool circles(Vector2D center1, num radius1, Vector2D center2, num radius2) => false;
+  bool circles(Vector2 center1, num radius1, Vector2 center2, num radius2) => false;
   
   @override
-  bool circleRectangle(Vector2D center, num radius, RectangleD rec) => false;
+  bool circleRectangle(Vector2 center, num radius, Rectangle rec) => false;
   
   @override
-  bool rectangles(RectangleD rec1, RectangleD rec2) => false;
+  bool rectangles(Rectangle rec1, Rectangle rec2) => false;
 
   @override
-  bool pointRectangle(Vector2D point, RectangleD rec) => false;
+  bool pointRectangle(Vector2 point, Rectangle rec) => false;
 }
 
 class HeadlessAssetManager extends AssetManager {
   @override
-  UnhingedAsset<ImageD> image(String id, {String? path}) => .new(id, .zero());
+  UnhingedAsset<Image> image(String id, {String? path}) => .new(id, .zero());
 
   @override
-  UnhingedAsset<TextureD> texture(String id, {String? path}) => .new(id, .zero());
+  UnhingedAsset<Texture> texture(String id, {String? path}) => .new(id, .zero());
 
   @override
-  UnhingedAsset<FontD> font(String id, {String? path, int fontSize = 32}) => .new(id, .zero());
+  UnhingedAsset<Font> font(String id, {String? path, int fontSize = 32}) => .new(id, .zero());
 }
 
 class HeadlessBackend extends UnhingedBackend {
@@ -146,5 +146,5 @@ class HeadlessBackend extends UnhingedBackend {
   void setTargetFPS(int fps) {}
 
   @override
-  FontD getFontDefault() => .new();
+  Font getFontDefault() => .new();
 }

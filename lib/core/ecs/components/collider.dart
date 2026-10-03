@@ -12,7 +12,7 @@ abstract class CCollider<T extends App<T>> extends Comp<T> with
   bool enableCollision;
   bool debugDraw;
   double debugLinesThick;
-  ColorD? debugColor;
+  Color? debugColor;
 
   CCollider(super.app, {
     super.populateDefaults,
@@ -64,7 +64,7 @@ abstract class CColliderSnapshot<T extends App<T>, C extends CCollider<T>> exten
   late bool enableCollision;
   late bool debugDraw;
   late double debugLinesThick;
-  late ColorD? debugColor;
+  late Color? debugColor;
 
   CColliderSnapshot(super.id);
 
@@ -91,7 +91,7 @@ class CCircleCollider<T extends App<T>> extends CCollider<T> {
   double baseRadius;
   double radius;
 
-  Vector2D center = .zero();
+  Vector2 center = .zero();
 
   CCircleCollider(super.app, {
     super.populateDefaults,
@@ -203,7 +203,7 @@ class CCircleCollider<T extends App<T>> extends CCollider<T> {
 
 class CCircleColliderSnapshot<T extends App<T>> extends CColliderSnapshot<T, CCircleCollider<T>> {
   late double radius;
-  late Vector2D center;
+  late Vector2 center;
 
   CCircleColliderSnapshot(super.id);
   
@@ -215,9 +215,9 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
   static const bool _defaultAutoSync = true;
   static const bool _defaultEnableRotation = false;
 
-  Vector2D? size;
+  Vector2? size;
 
-  RectangleD rect = .zero();
+  Rectangle rect = .zero();
   bool autoSync;
   bool enableRotation;
 
@@ -236,7 +236,7 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
     super.onAfterCollisionFn,
   });
 
-  Vector2D _getLocalSize() {
+  Vector2 _getLocalSize() {
     if (size != null) return size!;
     final sprite = entity.get<CSprite<T>>();
     if (sprite != null) return sprite.size;
@@ -358,8 +358,8 @@ class CRectCollider<T extends App<T>> extends CCollider<T> {
 }
 
 class CRectColliderSnapshot<T extends App<T>> extends CColliderSnapshot<T, CRectCollider<T>> {
-  late Vector2D? size;
-  late RectangleD rect;
+  late Vector2? size;
+  late Rectangle rect;
   late bool autoSync;
   late bool enableRotation;
   

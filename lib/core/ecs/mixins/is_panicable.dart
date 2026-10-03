@@ -1,7 +1,5 @@
 part of '../../raylib_dartified_unhinged.dart';
 
-// TODO: use this
-
 /// Panic policy for handling exceptions.
 enum PanicPolicy {
   /// Suppress the exception entirely and do nothing.

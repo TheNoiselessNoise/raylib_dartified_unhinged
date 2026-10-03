@@ -87,7 +87,7 @@ class BallEntity extends Entity<G> {
 ========================= */
 
 class BrickEntity extends Entity<G> {
-  final Vector2D position;
+  final Vector2 position;
 
   BrickEntity(super.app, this.position);
 

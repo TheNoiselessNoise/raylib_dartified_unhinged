@@ -78,7 +78,7 @@ class FirstScene extends FWidgetScene<G> {
   FirstScene(super.app);
 
   @override
-  ColorD get backgroundColor => .RED;
+  Color get backgroundColor => .RED;
 
   @override
   void onDrawBackground() {
@@ -114,7 +114,7 @@ class SecondScene extends DrawScene<G> {
   double _elapsed = 0;
 
   @override
-  ColorD get backgroundColor => .BLUE;
+  Color get backgroundColor => .BLUE;
 
   @override
   void onDrawBackground() {

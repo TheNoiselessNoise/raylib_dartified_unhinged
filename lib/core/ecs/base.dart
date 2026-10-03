@@ -125,7 +125,7 @@ class Bounds {
     right.toDouble(),
   );
 
-  factory Bounds.fromRectangle(RectangleD rect) => .new(
+  factory Bounds.fromRectangle(Rectangle rect) => .new(
     rect.y, // top
     rect.x, // left
     rect.y + rect.height, // bottom
@@ -140,11 +140,11 @@ class Bounds {
     return this;
   }
 
-  Vector2D get position => .vec2(left, top);
+  Vector2 get position => .vec2(left, top);
 
-  Vector2D get size => .vec2(width, height);
+  Vector2 get size => .vec2(width, height);
   
-  RectangleD get rectangle => .rect(left, top, width, height);
+  Rectangle get rectangle => .rect(left, top, width, height);
 
   @override
   String toString() => '$runtimeType(top=$top, left=$left, bottom=$bottom, right=$right)';

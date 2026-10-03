@@ -1,7 +1,7 @@
 part of '../../raylib_dartified_unhinged.dart';
 
 class FContainer<T extends App<T>> extends FWidgetLeaf<T> {
-  ColorD? backgroundColor;
+  Color? backgroundColor;
 
   FContainer(super.app, {
     super.key,

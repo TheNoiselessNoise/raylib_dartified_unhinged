@@ -7,12 +7,12 @@ enum FCheckboxVariant {
 }
 
 class FCheckboxTheme {
-  final ColorD border;
-  final ColorD borderHovered;
-  final ColorD fill;
-  final ColorD fillHovered;
-  final ColorD check;
-  final ColorD background;
+  final Color border;
+  final Color borderHovered;
+  final Color fill;
+  final Color fillHovered;
+  final Color check;
+  final Color background;
 
   const FCheckboxTheme({
     required this.border,
@@ -37,8 +37,8 @@ class FCheckboxTheme {
 }
 
 class _FCheckboxVariantPalette {
-  final ColorD solid;
-  final ColorD solidHover;
+  final Color solid;
+  final Color solidHover;
 
   const _FCheckboxVariantPalette({
     required this.solid,
@@ -80,7 +80,7 @@ class FCheckbox<T extends App<T>> extends FWidgetLeaf<T> with IsWidgetClickable<
     this.onChangeFn,
   });
 
-  Vector2D get _interactiveSize => .vec2(boxSize, boxSize);
+  Vector2 get _interactiveSize => .vec2(boxSize, boxSize);
 
   @override
   void layout(FConstraints constraints) {

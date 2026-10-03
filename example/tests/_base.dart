@@ -47,7 +47,7 @@ class ExampleMessagesWidget<T extends ExampleRaylibApp<T>> extends FWidget<T> {
   
   int get fontSize => 16;
 
-  ColorD messageColor(Message message) => switch (message.isValid) {
+  Color messageColor(Message message) => switch (message.isValid) {
     false => .RED,
     true => .GREEN,
     null => .WHITE,

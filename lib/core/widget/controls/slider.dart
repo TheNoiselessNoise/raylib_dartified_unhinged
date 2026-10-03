@@ -12,13 +12,13 @@ enum FSliderVariant {
 }
 
 class FSliderTheme {
-  final ColorD track;
-  final ColorD trackHovered;
-  final ColorD fill;
-  final ColorD fillHovered;
-  final ColorD thumb;
-  final ColorD thumbHovered;
-  final ColorD thumbDragged;
+  final Color track;
+  final Color trackHovered;
+  final Color fill;
+  final Color fillHovered;
+  final Color thumb;
+  final Color thumbHovered;
+  final Color thumbDragged;
 
   const FSliderTheme({
     required this.track,
@@ -45,9 +45,9 @@ class FSliderTheme {
 }
 
 class _FSliderVariantPalette {
-  final ColorD solid;
-  final ColorD solidHover;
-  final ColorD solidActive;
+  final Color solid;
+  final Color solidHover;
+  final Color solidActive;
 
   const _FSliderVariantPalette({
     required this.solid,
@@ -97,7 +97,7 @@ class FSlider<T extends App<T>> extends FWidgetLeaf<T> with IsWidgetClickable<T,
 
   FSlider(super.app, {
     super.key,
-    Vector2D? position,
+    Vector2? position,
     this.min = 0.0,
     this.max = 1.0,
     double? initialValue,
@@ -112,7 +112,7 @@ class FSlider<T extends App<T>> extends FWidgetLeaf<T> with IsWidgetClickable<T,
   }) : value = (initialValue ?? min).clamp(min, max);
 
   // full bounding box: thumb can overhang track vertically
-  Vector2D get _interactiveSize => .vec2(
+  Vector2 get _interactiveSize => .vec2(
     trackWidth,
     (thumbRadius * 2).clamp(trackHeight, double.infinity),
   );

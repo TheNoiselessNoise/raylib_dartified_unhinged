@@ -7,21 +7,21 @@ enum FSelectVariant {
 }
 
 class FSelectTheme {
-  final ColorD background;
-  final ColorD backgroundHovered;
-  final ColorD border;
-  final ColorD borderHovered;
-  final ColorD borderOpen;
-  final ColorD text;
-  final ColorD arrow;
+  final Color background;
+  final Color backgroundHovered;
+  final Color border;
+  final Color borderHovered;
+  final Color borderOpen;
+  final Color text;
+  final Color arrow;
 
   // dropdown
-  final ColorD dropdownBackground;
-  final ColorD dropdownBorder;
-  final ColorD itemHovered;
-  final ColorD itemSelected;
-  final ColorD itemSelectedText;
-  final ColorD itemText;
+  final Color dropdownBackground;
+  final Color dropdownBorder;
+  final Color itemHovered;
+  final Color itemSelected;
+  final Color itemSelectedText;
+  final Color itemText;
 
   const FSelectTheme({
     required this.background,
@@ -60,8 +60,8 @@ class FSelectTheme {
 }
 
 class _FSelectVariantPalette {
-  final ColorD solid;
-  final ColorD solidHover;
+  final Color solid;
+  final Color solidHover;
 
   const _FSelectVariantPalette({
     required this.solid,
@@ -123,12 +123,12 @@ class FSelect<T extends App<T>> extends FWidgetLeaf<T> with IsWidgetClickable<T,
 
   String get selectedLabel => options[selectedIndex.clamp(0, options.length - 1)];
 
-  Vector2D get _interactiveSize => .vec2(controlWidth, controlHeight);
+  Vector2 get _interactiveSize => .vec2(controlWidth, controlHeight);
 
   double get _dropdownHeight => itemHeight * options.length;
 
   // full bounding box including open dropdown, for hit-testing "outside click"
-  RectangleD _fullRect(Vector2D origin) => _isOpen
+  Rectangle _fullRect(Vector2 origin) => _isOpen
     ? .rect(origin.x, origin.y, controlWidth, controlHeight + _dropdownHeight)
     : .rect(origin.x, origin.y, controlWidth, controlHeight);
 
@@ -143,9 +143,9 @@ class FSelect<T extends App<T>> extends FWidgetLeaf<T> with IsWidgetClickable<T,
     final rect = get<CRectCollider<T>>()!.rect;
 
     final mouse = backend.mouse;
-    final Vector2D origin = .vec2(rect.x, rect.y);
+    final Vector2 origin = .vec2(rect.x, rect.y);
 
-    final RectangleD triggerRect = .rect(origin.x, origin.y, controlWidth, controlHeight);
+    final Rectangle triggerRect = .rect(origin.x, origin.y, controlWidth, controlHeight);
 
     final hoveredTrigger = backend.collision.pointRectangle(
       mouse.position, triggerRect,
@@ -164,7 +164,7 @@ class FSelect<T extends App<T>> extends FWidgetLeaf<T> with IsWidgetClickable<T,
     }
 
     if (_isOpen) {
-      final RectangleD dropdownRect = .rect(
+      final Rectangle dropdownRect = .rect(
         origin.x, origin.y + controlHeight,
         controlWidth, _dropdownHeight,
       );
@@ -226,7 +226,7 @@ class FSelect<T extends App<T>> extends FWidgetLeaf<T> with IsWidgetClickable<T,
 
     final theme = FSelectTheme.resolveVariant(selectVariant);
     final isHovered = clickState.hovered;
-    final Vector2D origin = .vec2(rect.x, rect.y);
+    final Vector2 origin = .vec2(rect.x, rect.y);
 
     _drawTrigger(theme, isHovered, origin);
 
@@ -234,8 +234,8 @@ class FSelect<T extends App<T>> extends FWidgetLeaf<T> with IsWidgetClickable<T,
     if (_isOpen) callback(() => _drawDropdown(theme, origin));
   }
 
-  void _drawTrigger(FSelectTheme theme, bool isHovered, Vector2D origin) {
-    final RectangleD rect = .rect(origin.x, origin.y, controlWidth, controlHeight);
+  void _drawTrigger(FSelectTheme theme, bool isHovered, Vector2 origin) {
+    final Rectangle rect = .rect(origin.x, origin.y, controlWidth, controlHeight);
 
     // background
     backend.render.drawRectangleRounded(
@@ -281,11 +281,11 @@ class FSelect<T extends App<T>> extends FWidgetLeaf<T> with IsWidgetClickable<T,
     }
   }
 
-  void _drawDropdown(FSelectTheme theme, Vector2D origin) {
+  void _drawDropdown(FSelectTheme theme, Vector2 origin) {
     final dropY = origin.y + controlHeight;
 
     // dropdown background + border
-    final RectangleD dropRect = .rect(origin.x, dropY, controlWidth, _dropdownHeight);
+    final Rectangle dropRect = .rect(origin.x, dropY, controlWidth, _dropdownHeight);
     backend.render.drawRectangleRounded(dropRect, cornerRadius, 4, theme.dropdownBackground);
     backend.render.drawRectangleRoundedLinesEx(
       dropRect, cornerRadius, 4, borderWidth, theme.dropdownBorder,
@@ -294,12 +294,12 @@ class FSelect<T extends App<T>> extends FWidgetLeaf<T> with IsWidgetClickable<T,
     // items
     for (var i = 0; i < options.length; i++) {
       final itemY = dropY + i * itemHeight;
-      final RectangleD itemRect = .rect(origin.x, itemY, controlWidth, itemHeight);
+      final Rectangle itemRect = .rect(origin.x, itemY, controlWidth, itemHeight);
 
       final isSelected = i == selectedIndex;
       final isItemHovered = i == _hoveredItemIndex;
 
-      ColorD? color;
+      Color? color;
 
       if (isSelected) {
         color = theme.itemSelected;

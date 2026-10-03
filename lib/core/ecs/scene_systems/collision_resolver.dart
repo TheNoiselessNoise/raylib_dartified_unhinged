@@ -126,7 +126,7 @@ class SpatialGrid<T extends App<T>> {
 
 // MTV (Minimum Translation Vector) - Used for collision response
 class MTV {
-  Vector2D normal;
+  Vector2 normal;
   double depth;
 
   MTV(this.normal, this.depth);
@@ -374,7 +374,7 @@ class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
   void _fireCollisionEvents(
     Entity<T> a,
     Entity<T> b,
-    Vector2D normal,
+    Vector2 normal,
     double depth,
   ) {
     if (!enableEventEmitting) return;
@@ -446,7 +446,7 @@ class CollisionResolverSystem<T extends App<T>> extends SceneSystem<T> {
       return MTV(.vec2(1, 0), r);
     }
 
-    final Vector2D n = .vec2(dx / dist, dy / dist);
+    final Vector2 n = .vec2(dx / dist, dy / dist);
     return MTV(n, r - dist);
   }
   

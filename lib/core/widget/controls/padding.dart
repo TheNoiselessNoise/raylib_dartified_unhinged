@@ -42,7 +42,7 @@ class FPadding<T extends App<T>> extends FWidgetLeaf<T> {
     child: child,
   );
 
-  factory FPadding.fromRectangle(T app, RectangleD rect, {
+  factory FPadding.fromRectangle(T app, Rectangle rect, {
     required FWidget<T> child,
   }) => .new(app,
     left: rect.x,

@@ -9,19 +9,19 @@ class RaylibRenderBackend extends RenderBackend {
   RaylibRlglDart get _rlgl => rl.module();
 
   @override
-  void drawText(String text, num posX, num posY, num fontSize, ColorD color)
+  void drawText(String text, num posX, num posY, num fontSize, Color color)
     => _core.DrawText(text, posX, posY, fontSize, color);
 
   @override
-  void drawTextEx(FontD font, String text, Vector2D position, num fontSize, num spacing, ColorD tint)
+  void drawTextEx(Font font, String text, Vector2 position, num fontSize, num spacing, Color tint)
     => _core.DrawTextEx(font, text, position, fontSize, spacing, tint);
 
   @override
-  void drawTextPro(FontD font, String text, Vector2D position, Vector2D origin, num rotation, num fontSize, num spacing, ColorD tint)
+  void drawTextPro(Font font, String text, Vector2 position, Vector2 origin, num rotation, num fontSize, num spacing, Color tint)
     => _core.DrawTextPro(font, text, position, origin, rotation, fontSize, spacing, tint);
 
   @override
-  void drawLineEx(Vector2D startPos, Vector2D endPos, num thick, ColorD color)
+  void drawLineEx(Vector2 startPos, Vector2 endPos, num thick, Color color)
     => _core.DrawLineEx(startPos, endPos, thick, color);
 
   @override
@@ -29,43 +29,43 @@ class RaylibRenderBackend extends RenderBackend {
     => _core.MeasureText(text, fontSize);
 
   @override
-  Vector2D measureTextEx(FontD font, String text, num fontSize, num spacing)
+  Vector2 measureTextEx(Font font, String text, num fontSize, num spacing)
     => _core.MeasureTextEx(font, text, fontSize, spacing);
   
   @override
-  void drawRectangle(num posX, num posY, num width, num height, ColorD color)
+  void drawRectangle(num posX, num posY, num width, num height, Color color)
     => _core.DrawRectangle(posX, posY, width, height, color);
 
   @override
-  void drawRectangleRounded(RectangleD rec, num roundness, num segments, ColorD color)
+  void drawRectangleRounded(Rectangle rec, num roundness, num segments, Color color)
     => _core.DrawRectangleRounded(rec, roundness, segments, color);
 
   @override
-  void drawRectangleRoundedLinesEx(RectangleD rec, num roundness, num segments, num lineThick, ColorD color)
+  void drawRectangleRoundedLinesEx(Rectangle rec, num roundness, num segments, num lineThick, Color color)
     => _core.DrawRectangleRoundedLinesEx(rec, roundness, segments, lineThick, color);
 
   @override
-  void drawRectangleRec(RectangleD rec, ColorD color)
+  void drawRectangleRec(Rectangle rec, Color color)
     => _core.DrawRectangleRec(rec, color);
 
   @override
-  void drawRectanglePro(RectangleD rec, Vector2D origin, num rotation, ColorD color)
+  void drawRectanglePro(Rectangle rec, Vector2 origin, num rotation, Color color)
     => _core.DrawRectanglePro(rec, origin, rotation, color);
 
   @override
-  void drawPixel(num posX, num posY, ColorD color)
+  void drawPixel(num posX, num posY, Color color)
     => _core.DrawPixel(posX, posY, color);
 
   @override
-  void drawTriangle(Vector2D v1, Vector2D v2, Vector2D v3, ColorD color)
+  void drawTriangle(Vector2 v1, Vector2 v2, Vector2 v3, Color color)
     => _core.DrawTriangle(v1, v2, v3, color);
 
   @override
-  void drawCircle(num centerX, num centerY, num radius, ColorD color)
+  void drawCircle(num centerX, num centerY, num radius, Color color)
     => _core.DrawCircle(centerX, centerY, radius, color);
 
   @override
-  void drawTexturePro(TextureD texture, RectangleD source, RectangleD dest, Vector2D origin, num rotation, ColorD tint)
+  void drawTexturePro(Texture texture, Rectangle source, Rectangle dest, Vector2 origin, num rotation, Color tint)
     => _core.DrawTexturePro(texture, source, dest, origin, rotation, tint);
 
   @override
@@ -73,7 +73,7 @@ class RaylibRenderBackend extends RenderBackend {
     => _core.BeginDrawing();
 
   @override
-  void clearBackground(ColorD color)
+  void clearBackground(Color color)
     => _core.ClearBackground(color);
   
   @override
@@ -89,15 +89,15 @@ class RaylibRenderBackend extends RenderBackend {
     => _core.EndScissorMode();
 
   @override
-  void drawRectangleLinesEx(RectangleD rec, num lineThick, ColorD color)
+  void drawRectangleLinesEx(Rectangle rec, num lineThick, Color color)
     => _core.DrawRectangleLinesEx(rec, lineThick, color);
 
   @override
-  void drawCircleLinesV(Vector2D center, num radius, ColorD color)
+  void drawCircleLinesV(Vector2 center, num radius, Color color)
     => _core.DrawCircleLinesV(center, radius, color);
   
   @override
-  void drawRectangleLinesRotated(RectangleD rect, num rotationDegrees, num lineThick, ColorD color) {
+  void drawRectangleLinesRotated(Rectangle rect, num rotationDegrees, num lineThick, Color color) {
     final centerX = rect.x + rect.width / 2;
     final centerY = rect.y + rect.height / 2;
 
@@ -163,19 +163,19 @@ class RaylibCollisionBackend extends CollisionBackend {
   RaylibCoreDart get _core => rl.module();
 
   @override
-  bool circles(Vector2D center1, num radius1, Vector2D center2, num radius2)
+  bool circles(Vector2 center1, num radius1, Vector2 center2, num radius2)
     => _core.CheckCollisionCircles(center1, radius1, center2, radius2);
   
   @override
-  bool circleRectangle(Vector2D center, num radius, RectangleD rec)
+  bool circleRectangle(Vector2 center, num radius, Rectangle rec)
     => _core.CheckCollisionCircleRec(center, radius, rec);
   
   @override
-  bool rectangles(RectangleD rec1, RectangleD rec2)
+  bool rectangles(Rectangle rec1, Rectangle rec2)
     => _core.CheckCollisionRecs(rec1, rec2);
 
   @override
-  bool pointRectangle(Vector2D point, RectangleD rec)
+  bool pointRectangle(Vector2 point, Rectangle rec)
     => _core.CheckCollisionPointRec(point, rec);
 }
 
@@ -186,26 +186,26 @@ class RaylibAssetManager extends AssetManager {
 
   RaylibCoreDart get _core => rl.module();
 
-  final Map<String, ImageD> _images = {};
-  final Map<String, TextureD> _textures = {};
-  final Map<String, FontD> _fonts = {};
+  final Map<String, Image> _images = {};
+  final Map<String, Texture> _textures = {};
+  final Map<String, Font> _fonts = {};
 
   @override
-  UnhingedAsset<ImageD> image(String id, {String? path}) {
+  UnhingedAsset<Image> image(String id, {String? path}) {
     var existing = _images[id] ?? _images[path];
     if (existing != null) return .new(id, existing);
     return .new(id, _images[id] = _core.LoadImage(path ?? id));
   }
 
   @override
-  UnhingedAsset<TextureD> texture(String id, {String? path}) {
+  UnhingedAsset<Texture> texture(String id, {String? path}) {
     var existing = _textures[id] ?? _textures[path];
     if (existing != null) return .new(id, existing);
     return .new(id, _textures[id] = _core.LoadTexture(path ?? id));
   }
 
   @override
-  UnhingedAsset<FontD> font(String id, {String? path, int fontSize = 32}) {
+  UnhingedAsset<Font> font(String id, {String? path, int fontSize = 32}) {
     var existing = _fonts[id] ?? _fonts[path];
     if (existing != null) return .new(id, existing);
     return .new(id, _fonts[id] = _core.LoadFontEx(path ?? id, fontSize));
@@ -260,13 +260,13 @@ class RaylibBackend extends UnhingedBackend {
     => _core.SetTargetFPS(fps);
 
   @override
-  FontD getFontDefault()
+  Font getFontDefault()
     => _core.GetFontDefault();
 
   // Note: `rl.dispose` is already handled in `RaylibAppBase`
 }
 
-extension on Vector2D {
+extension on Vector2 {
   List<double> getPersistableData() => [x, y];
 
   void setPersistableData(List<double> data) {
@@ -276,7 +276,7 @@ extension on Vector2D {
   }
 }
 
-extension on RectangleD {
+extension on Rectangle {
   List<double> getPersistableData() => [x, y, width, height];
 
   void setPersistableData(List<double> data) {
@@ -288,7 +288,7 @@ extension on RectangleD {
   }
 }
 
-extension on ColorD {
+extension on Color {
   List<int> getPersistableData() => [r, g, b, a];
 
   void setPersistableData(List<int> data) {

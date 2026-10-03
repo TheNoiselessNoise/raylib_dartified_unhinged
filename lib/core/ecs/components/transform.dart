@@ -4,17 +4,17 @@ part of '../../raylib_dartified_unhinged.dart';
 class CTransform<T extends App<T>> extends Comp<T> {
   static const double _defaultRotation = 0;
 
-  late Vector2D prevPosition;
+  late Vector2 prevPosition;
 
-  Vector2D position; // CENTER position in world space
+  Vector2 position; // CENTER position in world space
   double rotation;   // radians
-  Vector2D scale;    // 1,1 is identity
+  Vector2 scale;    // 1,1 is identity
 
   CTransform(super.app, {
     super.populateDefaults,
-    Vector2D? position,
+    Vector2? position,
     this.rotation = _defaultRotation,
-    Vector2D? scale,
+    Vector2? scale,
   }) :
     position = position ?? .zero(),
     scale = scale ?? .one()
@@ -97,9 +97,9 @@ class CTransform<T extends App<T>> extends Comp<T> {
 }
 
 class CTransformSnapshot<T extends App<T>> extends CompSnapshot<T, CTransform<T>> {
-  late Vector2D position;
+  late Vector2 position;
   late double rotation;
-  late Vector2D scale;
+  late Vector2 scale;
   
   CTransformSnapshot(super.id);
 

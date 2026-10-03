@@ -7,12 +7,12 @@ enum FTextInputStyle {
 }
 
 class FTextInputThemeColors {
-  final ColorD bg;
-  final ColorD fg;
-  final ColorD border;
-  final ColorD placeholder;
-  final ColorD cursor;
-  final ColorD selection;
+  final Color bg;
+  final Color fg;
+  final Color border;
+  final Color placeholder;
+  final Color cursor;
+  final Color selection;
 
   FTextInputThemeColors({
     required this.bg,
@@ -25,21 +25,21 @@ class FTextInputThemeColors {
 }
 
 class FTextInputTheme<T extends App<T>> {
-  final ColorD bg;
-  final ColorD bgHovered;
-  final ColorD bgFocused;
-  final ColorD bgDisabled;
-  final ColorD fg;
-  final ColorD fgHovered;
-  final ColorD fgFocused;
-  final ColorD fgDisabled;
-  final ColorD border;
-  final ColorD borderHovered;
-  final ColorD borderFocused;
-  final ColorD borderDisabled;
-  final ColorD placeholder;
-  final ColorD cursor;
-  final ColorD selection;
+  final Color bg;
+  final Color bgHovered;
+  final Color bgFocused;
+  final Color bgDisabled;
+  final Color fg;
+  final Color fgHovered;
+  final Color fgFocused;
+  final Color fgDisabled;
+  final Color border;
+  final Color borderHovered;
+  final Color borderFocused;
+  final Color borderDisabled;
+  final Color placeholder;
+  final Color cursor;
+  final Color selection;
 
   const FTextInputTheme({
     required this.bg,
@@ -60,17 +60,17 @@ class FTextInputTheme<T extends App<T>> {
   });
 
   FTextInputThemeColors resolveState(FTextInput<T> input) {
-    ColorD bgColor = bg;
+    Color bgColor = bg;
     if (input.isWidgetDisabled) bgColor = bgDisabled;
     else if (input.isFocused)   bgColor = bgFocused;
     else if (input._hovered)    bgColor = bgHovered;
 
-    ColorD fgColor = fg;
+    Color fgColor = fg;
     if (input.isWidgetDisabled) fgColor = fgDisabled;
     else if (input.isFocused)   fgColor = fgFocused;
     else if (input._hovered)    fgColor = fgHovered;
 
-    ColorD borderColor = border;
+    Color borderColor = border;
     if (input.isWidgetDisabled) borderColor = borderDisabled;
     else if (input.isFocused)   borderColor = borderFocused;
     else if (input._hovered)    borderColor = borderHovered;
@@ -185,7 +185,7 @@ class FTextInput<T extends App<T>> extends FWidgetLeaf<T> with
   static const double _paddingX = 8;
   // static const double _paddingY = 6;
 
-  ColorD? borderOverride;
+  Color? borderOverride;
 
   FTextInput(super.app, {
     super.key,
@@ -199,7 +199,7 @@ class FTextInput<T extends App<T>> extends FWidgetLeaf<T> with
     this.onChangedFn,
     this.onSubmitFn,
     this.getClipboardTextFn,
-    Vector2D? size,
+    Vector2? size,
     this.borderOverride,
   }) {
     _text = initialText;
